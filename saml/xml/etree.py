@@ -36,40 +36,135 @@ except ImportError:
     # if you've installed it yourself it comes this way
     import cElementTree, ElementTree
 
-from ndg.security.common.saml import SAMLObject, Conditions, Assertion, \
-    Attribute, AttributeStatement, AttributeValue, XSStringAttributeValue, \
-    XSGroupRoleAttributeValue, Response, AttributeQuery, Subject, NameID, \
-    Issuer, SAMLVersion, Response, Status, StatusCode
+from saml import SAMLObject, Conditions, Assertion, Attribute, \
+    AttributeStatement, AttributeValue, XSStringAttributeValue, \
+    Response, AttributeQuery, Subject, NameID, Issuer, SAMLVersion, Response, \
+    Status, StatusCode, XSGroupRoleAttributeValue
     
-from ndg.security.common.saml.xml import XMLObject, IssueInstantXMLObject, \
-    XMLObjectParseError, SAMLConstants
+from saml.xml import XMLObject, IssueInstantXMLObject, XMLObjectParseError, \
+    SAMLConstants
 
-from ndg.security.common.utils.etree import QName, getLocalName, prettyPrint
+# Generic Helper classes
+class QName(ElementTree.QName):
+    """Extend ElementTree implementation for improved attribute access support
+    """ 
+    def __init__(self, namespaceURI, tag=None, prefix=None):
+        ElementTree.QName.__init__(self, namespaceURI, tag=tag)
+        
+        if tag:
+            self.namespaceURI = namespaceURI
+            self.localPart = tag
+        else:
+            self.namespaceURI = QName.getNs(self.text)
+            self.localPart = QName.getLocalName(self.text)
+            
+        self.prefix = prefix
 
-class SAMLElementTree(XMLObject):
-    """Implement methods generic to all ElementTree SAML object representations
-    """       
-#    def parse(self, source):
-#        """Read in the XML from source
-#        @type source: basestring/file
-#        @param source: file path to XML file or file object
-#        """
-#        tree = ElementTree.parse(source)
-#        self.__elem = tree.getroot()
-#        
-#        return self.__elem
-#   
-    @staticmethod     
-    def serialize(elem):
-        """Serialise element tree into string"""
-        return cElementTree.tostring(elem)
-   
+    getNs = staticmethod(lambda elem: elem.tag.split('}')[0][1:])
+    getLocalName = staticmethod(lambda elem: elem.tag.rsplit('}',1)[-1])
+    
+#    @staticmethod
+#    def getNs(tag):
+#        return tag.split('}')[0][1:]
+#
+#    @staticmethod
+#    def getLocalName(tag):
+#        return tag.rsplit('}',1)[-1]
+    
+    def _getPrefix(self):
+        return self.__prefix
+
+    def _setPrefix(self, value):
+        self.__prefix = value
+    
+    prefix = property(_getPrefix, _setPrefix, None, "Prefix")
+
+    def _getLocalPart(self):
+        return self.__localPart
+    
+    def _setLocalPart(self, value):
+        self.__localPart = value
+        
+    localPart = property(_getLocalPart, _setLocalPart, None, "LocalPart")
+
+    def _getNamespaceURI(self):
+        return self.__namespaceURI
+
+    def _setNamespaceURI(self, value):
+        self.__namespaceURI = value
+  
+    namespaceURI = property(_getNamespaceURI, _setNamespaceURI, None, 
+                            "Namespace URI'")
+    
+    
+def prettyPrint(*arg, **kw):
+    '''Lightweight pretty printing of ElementTree elements'''
+    
+    # Keep track of namespace declarations made so they're not repeated
+    declaredNss = []
+    
+    _prettyPrint = PrettyPrint(declaredNss)
+    return _prettyPrint(*arg, **kw)
+
+
+class PrettyPrint(object):
+    def __init__(self, declaredNss):
+        self.declaredNss = declaredNss
+    
     @staticmethod
-    def prettyPrint(elem):
-        """Basic pretty printing separating each element on to a new line"""
-        return prettyPrint(elem)
+    def estrip(elem):
+        ''' Just want to get rid of unwanted whitespace '''
+        if elem is None:
+            return ''
+        else:
+            # just in case the elem is another simple type - e.g. int - 
+            # wrapper it as a string
+            return str(elem).strip()
+        
+    def __call__(self, elem, indent='', html=0, space=' '*4):
+        '''Most of the work done in this wrapped function - wrapped so that
+        state can be maintained for declared namespace declarations during
+        recursive calls using "declaredNss" above'''  
+        strAttrib = ''.join([' %s="%s"' % (att, attVal) 
+                             for att, attVal in elem.attrib.items()])
+        
+        namespace = getNs(elem)
+        nsPrefix = ElementTree._namespace_map.get(namespace)
+        if nsPrefix is None:
+            raise KeyError('prettyPrint: missing namespace "%s" for ' 
+                           'ElementTree._namespace_map' % namespace)
+            
+        tag = "%s:%s" % (nsPrefix, getLocalName(elem))
+        
+        # Put in namespace declaration if one doesn't already exist
+        # FIXME: namespace declaration handling is wrong for handling child
+        # element scope
+        if namespace in self.declaredNss:
+            nsDeclaration = ''
+        else:
+            nsDeclaration = ' xmlns:%s="%s"' % (nsPrefix, namespace)
+            self.declaredNss.append(namespace)
+            
+        result = '%s<%s%s%s>%s' % (indent, tag, nsDeclaration, strAttrib, 
+                                   PrettyPrint.estrip(elem.text))
+        
+        children = len(elem)
+        if children:
+            for child in elem:
+                declaredNss = self.declaredNss[:]
+                _prettyPrint = PrettyPrint(declaredNss)
+                result += '\n'+ _prettyPrint(child, indent=indent+space) 
+                
+            result += '\n%s%s</%s>' % (indent,
+                                       PrettyPrint.estrip(child.tail),
+                                       tag)
+        else:
+            result += '</%s>' % tag
+            
+        return result
 
 
+# ElementTree SAML wrapper classes
 class ConditionsElementTree(Conditions, IssueInstantXMLObject):
     """ElementTree based XML representation of Conditions class
     """
@@ -161,7 +256,7 @@ class AssertionElementTree(Assertion, IssueInstantXMLObject):
         return elem
 
   
-class AttributeStatementElementTree(SAMLElementTree):
+class AttributeStatementElementTree(AttributeStatement):
     """ElementTree XML representation of AttributeStatement"""
     
     @classmethod
@@ -172,11 +267,9 @@ class AttributeStatementElementTree(SAMLElementTree):
             raise TypeError("Expecting %r type got: %r" % (AttributeStatement, 
                                                            attributeStatement))
             
-        elem = ElementTree.Element(
-                                str(AttributeStatement.DEFAULT_ELEMENT_NAME))
-        ElementTree._namespace_map[
-            AttributeStatement.DEFAULT_ELEMENT_NAME.namespaceURI
-        ] = AttributeStatement.DEFAULT_ELEMENT_NAME.prefix 
+        elem = ElementTree.Element(str(cls.DEFAULT_ELEMENT_NAME))
+        ElementTree._namespace_map[cls.DEFAULT_ELEMENT_NAME.namespaceURI
+                                   ] = cls.DEFAULT_ELEMENT_NAME.prefix 
 
         for attribute in attributeStatement.attributes:
             # Factory enables support for multiple attribute types
@@ -187,7 +280,7 @@ class AttributeStatementElementTree(SAMLElementTree):
         return elem
     
 
-class AttributeElementTree(SAMLElementTree):
+class AttributeElementTree(Attribute):
     """ElementTree XML representation of SAML Attribute object.  Extend
     to make Attribute types""" 
 
@@ -201,20 +294,17 @@ class AttributeElementTree(SAMLElementTree):
             raise TypeError("Expecting %r type got: %r"%(Attribute, attribute))
             
         elem = ElementTree.Element(str(Attribute.DEFAULT_ELEMENT_NAME))
-        ElementTree._namespace_map[
-            Attribute.DEFAULT_ELEMENT_NAME.namespaceURI
-        ] = Attribute.DEFAULT_ELEMENT_NAME.prefix 
+        ElementTree._namespace_map[cls.DEFAULT_ELEMENT_NAME.namespaceURI
+                                   ] = cls.DEFAULT_ELEMENT_NAME.prefix 
         
-            
         if attribute.friendlyName:
-            elem.set(Attribute.FRIENDLY_NAME_ATTRIB_NAME,
-                     attribute.friendlyName) 
+            elem.set(cls.FRIENDLY_NAME_ATTRIB_NAME, attribute.friendlyName) 
              
         if attribute.name:
-            elem.set(Attribute.NAME_ATTRIB_NAME, attribute.name)
+            elem.set(cls.NAME_ATTRIB_NAME, attribute.name)
         
         if attribute.nameFormat:
-            elem.set(Attribute.NAME_FORMAT_ATTRIB_NAME, attribute.nameFormat)
+            elem.set(cls.NAME_FORMAT_ATTRIB_NAME, attribute.nameFormat)
 
         for attributeValue in attribute.attributeValues:
             factory = AttributeValueElementTreeFactory(
@@ -240,31 +330,31 @@ class AttributeElementTree(SAMLElementTree):
             raise TypeError("Expecting %r input type for parsing; got %r" %
                             (ElementTree.Element, elem))
 
-        if getLocalName(elem) != Attribute.DEFAULT_ELEMENT_LOCAL_NAME:
+        if getLocalName(elem) != cls.DEFAULT_ELEMENT_LOCAL_NAME:
             raise XMLObjectParseError("No \"%s\" element found" %
-                                        Attribute.DEFAULT_ELEMENT_LOCAL_NAME)
+                                      cls.DEFAULT_ELEMENT_LOCAL_NAME)
             
         attribute = Attribute()
             
-        name = elem.attrib.get(Attribute.NAME_ATTRIB_NAME)
+        name = elem.attrib.get(cls.NAME_ATTRIB_NAME)
         if name is not None:
             attribute.name = name
             
-        friendlyName = elem.attrib.get(Attribute.FRIENDLY_NAME_ATTRIB_NAME)
+        friendlyName = elem.attrib.get(cls.FRIENDLY_NAME_ATTRIB_NAME)
         if friendlyName is not None:
             attribute.friendlyName = friendlyName
             
-        nameFormat = elem.attrib.get(Attribute.NAME_FORMAT_ATTRIB_NAME)    
+        nameFormat = elem.attrib.get(cls.NAME_FORMAT_ATTRIB_NAME)    
         if nameFormat is not None:
             attribute.nameFormat = nameFormat
 
         for childElem in elem:
             localName = getLocalName(childElem)
-            if localName != AttributeValue.DEFAULT_ELEMENT_LOCAL_NAME:
+            if localName != cls.DEFAULT_ELEMENT_LOCAL_NAME:
                 raise XMLObjectParseError('Expecting "%s" element; found '
-                                    '"%s"' %
-                                    (AttributeValue.DEFAULT_ELEMENT_LOCAL_NAME,
-                                     localName))
+                                          '"%s"' %
+                                          (cls.DEFAULT_ELEMENT_LOCAL_NAME,
+                                           localName))
             
             # Find XML type attribute to key which AttributeValue sub type to 
             # instantiate
@@ -289,7 +379,7 @@ class AttributeElementTree(SAMLElementTree):
         return attribute
         
     
-class AttributeValueElementTreeBase(SAMLElementTree):
+class AttributeValueElementTreeBase(AttributeValue):
     """Base class ElementTree XML representation of SAML Attribute Value""" 
     
     @classmethod
@@ -300,10 +390,9 @@ class AttributeValueElementTreeBase(SAMLElementTree):
             raise TypeError("Expecting %r type got: %r" % (AttributeValue, 
                                                            attributeValue))
             
-        elem = ElementTree.Element(str(AttributeValue.DEFAULT_ELEMENT_NAME))
-        ElementTree._namespace_map[
-            AttributeValue.DEFAULT_ELEMENT_NAME.namespaceURI
-        ] = AttributeValue.DEFAULT_ELEMENT_NAME.prefix
+        elem = ElementTree.Element(str(cls.DEFAULT_ELEMENT_NAME))
+        ElementTree._namespace_map[cls.DEFAULT_ELEMENT_NAME.namespaceURI
+                                   ] = cls.DEFAULT_ELEMENT_NAME.prefix
 
         return elem
 
@@ -483,7 +572,7 @@ class AttributeValueElementTreeFactory(object):
         return xmlObjectClass
 
         
-class IssuerElementTree(SAMLElementTree, Issuer):
+class IssuerElementTree(Issuer):
     """Represent a SAML Issuer element in XML using ElementTree"""
     
     @classmethod
@@ -517,9 +606,9 @@ class IssuerElementTree(SAMLElementTree, Issuer):
         issuerFormat = elem.attrib.get(cls.FORMAT_ATTRIB_NAME)
         if issuerFormat is None:
             raise XMLObjectParseError('No "%s" attribute found in "%s" '
-                                        'element' %
-                                        (issuerFormat,
-                                         cls.DEFAULT_ELEMENT_LOCAL_NAME))
+                                      'element' %
+                                      (issuerFormat,
+                                       cls.DEFAULT_ELEMENT_LOCAL_NAME))
         issuer = Issuer()
         issuer.format = issuerFormat
         issuer.value = elem.text.strip() 
@@ -527,7 +616,7 @@ class IssuerElementTree(SAMLElementTree, Issuer):
         return issuer
 
         
-class NameIdElementTree(SAMLElementTree, NameID):
+class NameIdElementTree(NameID):
     """Represent a SAML Name Identifier in XML using ElementTree"""
     
     @classmethod
@@ -571,7 +660,7 @@ class NameIdElementTree(SAMLElementTree, NameID):
             raise XMLObjectParseError("No \"%s\" element found" %
                                       cls.DEFAULT_ELEMENT_LOCAL_NAME)
             
-        format = elem.attrib.get(NameID.FORMAT_ATTRIB_NAME)
+        format = elem.attrib.get(cls.FORMAT_ATTRIB_NAME)
         if format is None:
             raise XMLObjectParseError('No "%s" attribute found in "%s" '
                                       'element' %
@@ -584,7 +673,7 @@ class NameIdElementTree(SAMLElementTree, NameID):
         return nameID
 
 
-class SubjectElementTree(SAMLElementTree, Subject):
+class SubjectElementTree(Subject):
     """Represent a SAML Subject in XML using ElementTree"""
     
     @classmethod
@@ -599,7 +688,7 @@ class SubjectElementTree(SAMLElementTree, Subject):
             raise TypeError("Expecting %r class got %r" % (Subject, 
                                                            type(subject)))
             
-        elem = ElementTree.Element(str(Subject.DEFAULT_ELEMENT_NAME))
+        elem = ElementTree.Element(str(cls.DEFAULT_ELEMENT_NAME))
         
         ElementTree._namespace_map[cls.DEFAULT_ELEMENT_NAME.namespaceURI
                                    ] = cls.DEFAULT_ELEMENT_NAME.prefix
