@@ -15,41 +15,50 @@ except ImportError:
     from time import strptime as _strptime
     strptime = lambda datetimeStr, format: datetime(*(_strptime(datetimeStr, 
                                                                 format)[0:6]))
-from datetime import datetime
+from datetime import datetime, timedelta
         
         
 class SAMLDateTime(object):
-    """Generic datetime formatting utility for SAML timestamps
+    """Generic datetime formatting utility for SAML timestamps - XMLSchema
+    Datetime format
     """
-    DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
+    DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
     
     @classmethod
-    def toString(cls, dtIssueInstant):
+    def toString(cls, dtValue):
         """Convert issue instant datetime to correct string type for output
-        @type dtIssueInstant: datetime.datetime
-        @param dtIssueInstant: issue instance as a datetime
+        @type dtValue: datetime.datetime
+        @param dtValue: issue instance as a datetime
         @rtype: basestring
         @return: issue instance as a string
         """
-        if not isinstance(dtIssueInstant, datetime):
+        if not isinstance(dtValue, datetime):
             raise TypeError("Expecting datetime type for string conversion, "
-                            "got %r" % dtIssueInstant)
+                            "got %r" % dtValue)
             
-        return dtIssueInstant.strftime(cls.DATETIME_FORMAT)
+        # isoformat provides the correct formatting
+#        return dtIssueInstant.strftime(cls.DATETIME_FORMAT)
+        return datetime.isoformat(dtValue)+'Z'
 
     @classmethod
-    def fromString(cls, issueInstant):
+    def fromString(cls, strDateTime):
         """Convert issue instant string to datetime type
-        @type issueInstant: basestring
-        @param issueInstant: issue instance as a string
+        @type strDateTime: basestring
+        @param strDateTime: issue instance as a string
         @rtype: datetime.datetime
         @return: issue instance as a datetime
         """
-        if not isinstance(issueInstant, basestring):
+        if not isinstance(strDateTime, basestring):
             raise TypeError("Expecting basestring derived type for string "
-                            "conversion, got %r" % issueInstant)
-            
-        return datetime.strptime(issueInstant, cls.DATETIME_FORMAT)
+                            "conversion, got %r" % strDateTime)
+        
+        # Workaround for seconds fraction as strptime doesn't seem able to deal
+        # with this 
+        strDateTimeFraction, strSecondsFraction = strDateTime.split('.')
+        dtValue = datetime.strptime(strDateTimeFraction, cls.DATETIME_FORMAT)
+        secondsFraction = float("0." + strSecondsFraction.replace('Z', ''))
+        dtValue += timedelta(seconds=secondsFraction)
+        return dtValue
 
 
 class TypedList(list):

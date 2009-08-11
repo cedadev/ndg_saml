@@ -572,6 +572,63 @@ class Conditions(SAMLObject):
         @return the ProxyRestriction condition for the assertion
         '''
         raise NotImplementedError()
+    
+    
+class Advice(SAMLObject):
+    '''SAML 2.0 Core Advice.
+    '''
+
+    # Element local name
+    DEFAULT_ELEMENT_LOCAL_NAME = "Advice"
+
+    # Default element name.
+    DEFAULT_ELEMENT_NAME = QName(SAMLConstants.SAML20_NS, 
+                                 DEFAULT_ELEMENT_LOCAL_NAME,
+                                 SAMLConstants.SAML20_PREFIX)
+
+    # Local name of the XSI type
+    TYPE_LOCAL_NAME = "AdviceType"
+
+    # QName of the XSI type
+    TYPE_NAME = QName(SAMLConstants.SAML20_NS, 
+                      TYPE_LOCAL_NAME,
+                      SAMLConstants.SAML20_PREFIX)
+
+    def _getChildren(self, typeOrName=None):
+        '''
+        Gets the list of all child elements attached to this advice.
+        
+        @return the list of all child elements attached to this advice
+        '''
+        raise NotImplementedError()
+
+    def _getAssertionIDReferences(self):
+        '''Gets the list of AssertionID references used as advice.
+        
+        @return the list of AssertionID references used as advice
+        '''
+        raise NotImplementedError()
+
+    def _getAssertionURIReferences(self):
+        '''Gets the list of AssertionURI references used as advice.
+        
+        @return the list of AssertionURI references used as advice
+        '''
+        raise NotImplementedError()
+    
+    def _getAssertions(self):
+        '''Gets the list of Assertions used as advice.
+        
+        @return the list of Assertions used as advice
+        '''
+        raise NotImplementedError()
+    
+    def _getEncryptedAssertions(self):
+        '''Gets the list of EncryptedAssertions used as advice.
+        
+        @return the list of EncryptedAssertions used as advice
+        '''
+        raise NotImplementedError()
         
 
 class Assertion(SAMLObject):

@@ -240,7 +240,34 @@ class SAMLTestCase(unittest.TestCase):
         print(xmlOutput)
         print("_"*80)
 
-    def test02CreateAttributeQuery(self):
+    def test02ParseAssertion(self):
+        assertion = self._createAssertionHelper()
+        
+        # Add mapping for ESG Group/Role Attribute Value to enable ElementTree
+        # Attribute Value factory to render the XML output
+        attributeValueElementTreeClassMap = {
+            XSGroupRoleAttributeValue: XSGroupRoleAttributeValueElementTree           
+        }
+        
+        # Create ElementTree Assertion Element
+        assertionElem = AssertionElementTree.create(assertion,
+                            customClassMap=attributeValueElementTreeClassMap)
+        
+        self.assert_(iselement(assertionElem))
+        
+        # Serialise to output 
+        xmlOutput = prettyPrint(assertionElem)       
+                
+        assertionStream = StringIO()
+        assertionStream.write(xmlOutput)
+        assertionStream.seek(0)
+
+        tree = ElementTree.parse(assertionStream)
+        elem2 = tree.getroot()
+        
+        assertionElem2 = AssertionElementTree.parse(elem2)
+        
+    def test03CreateAttributeQuery(self):
         samlUtil = SAMLUtil()
         samlUtil.firstName = ''
         samlUtil.lastName = ''
@@ -256,7 +283,7 @@ class SAMLTestCase(unittest.TestCase):
         print(xmlOutput)
         print("_"*80)
 
-    def test03ParseAttributeQuery(self):
+    def test04ParseAttributeQuery(self):
         samlUtil = SAMLUtil()
         samlUtil.firstName = ''
         samlUtil.lastName = ''
@@ -291,7 +318,7 @@ class SAMLTestCase(unittest.TestCase):
         print(xmlOutput2)
         print("_"*80)
 
-    def test04createResponse(self):
+    def test05CreateResponse(self):
         response = Response()
         response.issueInstant = datetime.utcnow()
         

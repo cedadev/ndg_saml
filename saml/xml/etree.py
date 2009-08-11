@@ -39,7 +39,7 @@ except ImportError:
 
 from saml.saml2.core import SAMLObject, Attribute, AttributeStatement, \
     Assertion, Conditions, AttributeValue, AttributeQuery, Subject, NameID, \
-    Issuer, SAMLVersion, Response, Status, StatusCode , \
+    Issuer, SAMLVersion, Response, Status, StatusCode , Advice, \
     XSStringAttributeValue, XSGroupRoleAttributeValue
 from saml.common.xml import SAMLConstants
 from saml.xml import XMLObjectParseError
@@ -303,6 +303,83 @@ class AssertionElementTree(Assertion):
             elem.append(attributeStatementElem)
         
         return elem
+
+    
+    @classmethod
+    def parse(cls, elem):
+        """Make a tree of a XML elements based on the assertion"""
+        if not ElementTree.iselement(elem):
+            raise TypeError("Expecting %r input type for parsing; got %r" %
+                            (ElementTree.Element, elem))
+
+        localName = QName.getLocalPart(elem.tag)
+        if localName != cls.DEFAULT_ELEMENT_LOCAL_NAME:
+            raise XMLObjectParseError("No \"%s\" element found" %
+                                      cls.DEFAULT_ELEMENT_LOCAL_NAME)
+        
+        
+        # Unpack attributes from top-level element
+        attributeValues = []
+        for attributeName in (cls.VERSION_ATTRIB_NAME,
+                              cls.ISSUE_INSTANT_ATTRIB_NAME,
+                              cls.ID_ATTRIB_NAME):
+            attributeValue = elem.attrib.get(attributeName)
+            if attributeValue is None:
+                raise XMLObjectParseError('No "%s" attribute found in "%s" '
+                                 'element' %
+                                 (attributeName,
+                                  cls.DEFAULT_ELEMENT_LOCAL_NAME))
+                
+            attributeValues.append(attributeValue)
+        
+        attributeQuery = AttributeQuery()
+        attributeQuery.version = SAMLVersion(attributeValues[0])
+        if attributeQuery.version != SAMLVersion.VERSION_20:
+            raise NotImplementedError("Parsing for %r is implemented for "
+                                      "SAML version %s only; version %s is " 
+                                      "not supported" % 
+                                      (cls,
+                                       SAMLVersion(SAMLVersion.VERSION_20),
+                                       SAMLVersion(attributeQuery.version)))
+            
+        attributeQuery.issueInstant = SAMLDateTime.fromString(
+                                                            attributeValues[1])
+        attributeQuery.id = attributeValues[2]
+        
+        for childElem in elem:
+            localName = QName.getLocalPart(childElem.tag)
+            if localName == Issuer.DEFAULT_ELEMENT_LOCAL_NAME:
+                # Parse Issuer
+                assertion.issuer = IssuerElementTree.parse(childElem)
+                
+            elif localName == Subject.DEFAULT_ELEMENT_LOCAL_NAME:
+                # Parse Issuer
+                assertion.subject = SubjectElementTree.parse(childElem)
+                
+            elif localName == Advice.DEFAULT_ELEMENT_LOCAL_NAME:
+                raise NotImplementedError("Assertion Advice creation is not "
+                                          "implemented")
+            elif localName == "Conditions":
+            
+            statement in assertion.statements:
+            raise NotImplementedError("Assertion Statement creation is not "
+                                      "implemented")
+        
+        for authnStatement in assertion.authnStatements:
+            raise NotImplementedError("Assertion Authentication Statement "
+                                      "creation is not implemented")
+        
+        for authzDecisionStatement in assertion.authzDecisionStatements:
+            raise NotImplementedError("Assertion Authorisation Decision "
+                                      "Statement creation is not implemented")
+            
+        for attributeStatement in assertion.attributeStatements:
+            attributeStatementElem = AttributeStatementElementTree.create(
+                                        attributeStatement,
+                                        **attributeValueElementTreeFactoryKw)
+            elem.append(attributeStatementElem)
+        
+        return assertion
 
   
 class AttributeStatementElementTree(AttributeStatement):
@@ -824,7 +901,8 @@ class StatusCodeElementTree(StatusCode):
                                       cls.DEFAULT_ELEMENT_LOCAL_NAME)
             
         statusCode = StatusCode()
-        statusCode.value = elem.text.strip() 
+        if elem.text is not None:
+            statusCode.value = elem.text.strip() 
         
         return statusCode
 
