@@ -28,66 +28,7 @@ __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __license__ = "BSD - see LICENSE file in top-level directory"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = "$Id$"
-
-class XMLConstants(object):
-    '''XML related constants.'''
-
-    # XML Tooling
-
-    # Configuration namespace
-    XMLTOOLING_CONFIG_NS = "http:#www.opensaml.org/xmltooling-config"
-
-    # Configuration namespace prefix
-    XMLTOOLING_CONFIG_PREFIX = "xt"
-    
-    # Name of the object provider used for objects that don't have a registered
-    # object provider
-    XMLTOOLING_DEFAULT_OBJECT_PROVIDER = "DEFAULT"
-
-    # Core XML
-
-    # XML core namespace
-    XML_NS = "http:#www.w3.org/XML/1998/namespace"
-    
-    # XML core prefix for xml attributes
-    XML_PREFIX = "xml"
-
-    # XML namespace for xmlns attributes
-    XMLNS_NS = "http://www.w3.org/2000/xmlns/"
-
-    # XML namespace prefix for xmlns attributes
-    XMLNS_PREFIX = "xmlns"
-
-    # XML Schema namespace
-    XSD_NS = "http://www.w3.org/2001/XMLSchema"
-
-    # XML Schema QName prefix
-    XSD_PREFIX = "xs"
-
-    # XML Schema Instance namespace
-    XSI_NS = "http://www.w3.org/2001/XMLSchema-instance"
-
-    # XML Schema Instance QName prefix
-    XSI_PREFIX = "xsi"
-
-    # XML XMLSecSignatureImpl namespace
-    XMLSIG_NS = "http://www.w3.org/2000/09/xmldsig#"
-
-    # XML XMLSecSignatureImpl QName prefix
-    XMLSIG_PREFIX = "ds"
-
-    # XML Encryption namespace
-    XMLENC_NS = "http://www.w3.org/2001/04/xmlenc#"
-
-    # XML Encryption QName prefix
-    XMLENC_PREFIX = "xenc"
-    
-    # Local name of EncryptedData element
-    XMLENC_ENCDATA_LOCAL_NAME = "EncryptedData"
-    
-    # Local name of EncryptedKey element
-    XMLENC_ENCKEY_LOCAL_NAME = "EncryptedKey"
-    
+from saml.xml import XMLConstants    
 
 class SAMLConstants(XMLConstants):
     '''XML related constants used in the SAML specifications.'''

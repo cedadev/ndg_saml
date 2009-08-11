@@ -19,15 +19,13 @@ import unittest
 
 from xml.etree.ElementTree import iselement
 from xml.etree import ElementTree
-from saml.xml.etree import prettyPrint
 
-from saml import XSStringAttributeValue, XSGroupRoleAttributeValue
-    
 from saml.saml2.core import SAMLVersion, Attribute, AttributeStatement, \
     Assertion, AttributeValue, AttributeQuery, Response, Issuer, Subject, \
-    NameID, StatusCode, Status, Conditions
+    NameID, StatusCode, Status, Conditions, XSStringAttributeValue, \
+    XSGroupRoleAttributeValue
 from saml.common.xml import SAMLConstants
-from saml.xml.etree import AssertionElementTree, \
+from saml.xml.etree import prettyPrint, AssertionElementTree, \
     XSGroupRoleAttributeValueElementTree, AttributeQueryElementTree, \
     ResponseElementTree, ConditionsElementTree
 

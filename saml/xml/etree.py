@@ -37,16 +37,17 @@ except ImportError:
     # if you've installed it yourself it comes this way
     import cElementTree, ElementTree
 
-from saml import XSStringAttributeValue, XSGroupRoleAttributeValue
-
 from saml.saml2.core import SAMLObject, Attribute, AttributeStatement, \
     Assertion, Conditions, AttributeValue, AttributeQuery, Subject, NameID, \
-    Issuer, SAMLVersion, Response, Status, StatusCode
+    Issuer, SAMLVersion, Response, Status, StatusCode , \
+    XSStringAttributeValue, XSGroupRoleAttributeValue
 from saml.common.xml import SAMLConstants
-from saml.xml import IssueInstantXMLObject, XMLObjectParseError
+from saml.xml import XMLObjectParseError
+from saml.utils import SAMLDateTime
 from saml.xml import QName as GenericQName
 
-# Generic Helper classes
+
+# Generic ElementTree Helper classes
 class QName(ElementTree.QName):
     """Extend ElementTree implementation for improved attribute access support
     """ 
@@ -59,15 +60,28 @@ class QName(ElementTree.QName):
                                              
     getLocalPart = staticmethod(lambda tag: tag.rsplit('}',1)[-1])
 
-    def __init__(self, namespaceURI, tag=None, prefix=None):
-        ElementTree.QName.__init__(self, namespaceURI, tag=tag)
+    def __init__(self, input, tag=None, prefix=None):
+        """
+        @type input: basestring
+        @param input: ElementTree style namespace URI + tag name -
+        {namespace URI}tag - OR if tag keyword is set, the namespace URI alone
+        @type tag: basestring / None
+        @param tag: element tag name.  If None, input must contain the 
+        namespace URI and tag name in the ElementTree form {namespace URI}tag.
+        @type prefix: basestring / None
+        @param prefix: namespace prefix
+        """
+        
+        ElementTree.QName.__init__(self, input, tag=tag)
         
         if tag:
-            self.namespaceURI = namespaceURI
+            self.namespaceURI = input
             self.localPart = tag
         else:
-            self.namespaceURI = QName.getNs(namespaceURI)
-            self.localPart = QName.getLocalPart(namespaceURI)
+            # No tag provided namespace and locatPart of QN must be parsed from
+            # the namespace
+            self.namespaceURI = QName.getNs(input)
+            self.localPart = QName.getLocalPart(input)
             
         self.prefix = prefix
     
@@ -196,7 +210,7 @@ class PrettyPrint(object):
 
 
 # ElementTree SAML wrapper classes
-class ConditionsElementTree(Conditions, IssueInstantXMLObject):
+class ConditionsElementTree(Conditions):
     """ElementTree based XML representation of Conditions class
     """
     
@@ -208,8 +222,8 @@ class ConditionsElementTree(Conditions, IssueInstantXMLObject):
             raise TypeError("Expecting %r type got: %r" % (Conditions,
                                                            conditions))
         
-        notBeforeStr = cls.datetime2Str(conditions.notBefore)
-        notOnOrAfterStr = cls.datetime2Str(conditions.notOnOrAfter)
+        notBeforeStr = SAMLDateTime.toString(conditions.notBefore)
+        notOnOrAfterStr = SAMLDateTime.toString(conditions.notOnOrAfter)
         attrib = {
             cls.NOT_BEFORE_ATTRIB_NAME: notBeforeStr,
             cls.NOT_ON_OR_AFTER_ATTRIB_NAME: notOnOrAfterStr,
@@ -227,7 +241,7 @@ class ConditionsElementTree(Conditions, IssueInstantXMLObject):
                 
         return elem
                
-class AssertionElementTree(Assertion, IssueInstantXMLObject):
+class AssertionElementTree(Assertion):
     """ElementTree based XML representation of Assertion class
     """
     
@@ -240,7 +254,7 @@ class AssertionElementTree(Assertion, IssueInstantXMLObject):
         if not isinstance(assertion, Assertion):
             raise TypeError("Expecting %r type got: %r"%(Assertion, assertion))
         
-        issueInstant = cls.datetime2Str(assertion.issueInstant)
+        issueInstant = SAMLDateTime.toString(assertion.issueInstant)
         attrib = {
             cls.ID_ATTRIB_NAME: assertion.id,
             cls.ISSUE_INSTANT_ATTRIB_NAME: issueInstant,
@@ -868,7 +882,7 @@ class StatusElementTree(Status):
         return status
     
     
-class AttributeQueryElementTree(AttributeQuery, IssueInstantXMLObject):
+class AttributeQueryElementTree(AttributeQuery):
     """Represent a SAML Attribute Query in XML using ElementTree"""
         
     @classmethod
@@ -888,7 +902,7 @@ class AttributeQueryElementTree(AttributeQuery, IssueInstantXMLObject):
                                                         type(attributeQuery)))
             
         
-        issueInstant = cls.datetime2Str(attributeQuery.issueInstant)
+        issueInstant = SAMLDateTime.toString(attributeQuery.issueInstant)
         attrib = {
             cls.ID_ATTRIB_NAME: attributeQuery.id,
             cls.ISSUE_INSTANT_ATTRIB_NAME: issueInstant,
@@ -958,7 +972,8 @@ class AttributeQueryElementTree(AttributeQuery, IssueInstantXMLObject):
                                        SAMLVersion(SAMLVersion.VERSION_20),
                                        SAMLVersion(attributeQuery.version)))
             
-        attributeQuery.issueInstant = cls.str2Datetime(attributeValues[1])
+        attributeQuery.issueInstant = SAMLDateTime.fromString(
+                                                            attributeValues[1])
         attributeQuery.id = attributeValues[2]
         
         for childElem in elem:
@@ -981,7 +996,7 @@ class AttributeQueryElementTree(AttributeQuery, IssueInstantXMLObject):
         return attributeQuery
         
     
-class ResponseElementTree(Response, IssueInstantXMLObject):
+class ResponseElementTree(Response):
     """Represent a SAML Response in XML using ElementTree"""
         
     @classmethod
@@ -1001,7 +1016,7 @@ class ResponseElementTree(Response, IssueInstantXMLObject):
                                                             type(response)))
             
         
-        issueInstant = cls.datetime2Str(response.issueInstant)
+        issueInstant = SAMLDateTime.toString(response.issueInstant)
         attrib = {
             cls.ID_ATTRIB_NAME: response.id,
             cls.ISSUE_INSTANT_ATTRIB_NAME: issueInstant,
@@ -1073,7 +1088,7 @@ class ResponseElementTree(Response, IssueInstantXMLObject):
                                        SAMLVersion(SAMLVersion.VERSION_20),
                                        SAMLVersion(response.version)))
             
-        response.issueInstant = cls.str2Datetime(attributeValues[1])
+        response.issueInstant = SAMLDateTime.fromString(attributeValues[1])
         response.id = attributeValues[2]
         response.inResponseTo = attributeValues[3]
         

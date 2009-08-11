@@ -1,13 +1,56 @@
-"""Utilities package for NDG Security SAML implementation
+"""Utilities module for NDG Security SAML implementation
 
 NERC DataGrid Project
 """
 __author__ = "P J Kershaw"
-__date__ = "02/04/09"
-__copyright__ = ""
+__date__ = "10/08/09"
+__copyright__ = "(C) 2009 Science and Technology Facilities Council"
 __license__ = "BSD - see LICENSE file in top-level directory"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = '$Id: $'
+try:
+    from datetime import strptime
+except ImportError:
+    # Allow for Python < 2.5
+    from time import strptime as _strptime
+    strptime = lambda datetimeStr, format: datetime(*(_strptime(datetimeStr, 
+                                                                format)[0:6]))
+from datetime import datetime
+        
+        
+class SAMLDateTime(object):
+    """Generic datetime formatting utility for SAML timestamps
+    """
+    DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
+    
+    @classmethod
+    def toString(cls, dtIssueInstant):
+        """Convert issue instant datetime to correct string type for output
+        @type dtIssueInstant: datetime.datetime
+        @param dtIssueInstant: issue instance as a datetime
+        @rtype: basestring
+        @return: issue instance as a string
+        """
+        if not isinstance(dtIssueInstant, datetime):
+            raise TypeError("Expecting datetime type for string conversion, "
+                            "got %r" % dtIssueInstant)
+            
+        return dtIssueInstant.strftime(cls.DATETIME_FORMAT)
+
+    @classmethod
+    def fromString(cls, issueInstant):
+        """Convert issue instant string to datetime type
+        @type issueInstant: basestring
+        @param issueInstant: issue instance as a string
+        @rtype: datetime.datetime
+        @return: issue instance as a datetime
+        """
+        if not isinstance(issueInstant, basestring):
+            raise TypeError("Expecting basestring derived type for string "
+                            "conversion, got %r" % issueInstant)
+            
+        return datetime.strptime(issueInstant, cls.DATETIME_FORMAT)
+
 
 class TypedList(list):
     """Extend list type to enabled only items of a given type.  Supports

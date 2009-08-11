@@ -26,82 +26,74 @@ __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __license__ = "BSD - see LICENSE file in top-level directory"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = "$Id$"
-try:
-    from datetime import strptime
-except ImportError:
-    # Allow for Python < 2.5
-    from time import strptime as _strptime
-    strptime = lambda datetimeStr, format: datetime(*(_strptime(datetimeStr, 
-                                                                format)[0:6]))
-from datetime import datetime
+import logging
+log = logging.getLogger(__name__)
+   
+class XMLConstants(object):
+    '''XML related constants.'''
+
+    # XML Tooling
+
+    # Configuration namespace
+    XMLTOOLING_CONFIG_NS = "http:#www.opensaml.org/xmltooling-config"
+
+    # Configuration namespace prefix
+    XMLTOOLING_CONFIG_PREFIX = "xt"
+    
+    # Name of the object provider used for objects that don't have a registered
+    # object provider
+    XMLTOOLING_DEFAULT_OBJECT_PROVIDER = "DEFAULT"
+
+    # Core XML
+
+    # XML core namespace
+    XML_NS = "http:#www.w3.org/XML/1998/namespace"
+    
+    # XML core prefix for xml attributes
+    XML_PREFIX = "xml"
+
+    # XML namespace for xmlns attributes
+    XMLNS_NS = "http://www.w3.org/2000/xmlns/"
+
+    # XML namespace prefix for xmlns attributes
+    XMLNS_PREFIX = "xmlns"
+
+    # XML Schema namespace
+    XSD_NS = "http://www.w3.org/2001/XMLSchema"
+
+    # XML Schema QName prefix
+    XSD_PREFIX = "xs"
+
+    # XML Schema Instance namespace
+    XSI_NS = "http://www.w3.org/2001/XMLSchema-instance"
+
+    # XML Schema Instance QName prefix
+    XSI_PREFIX = "xsi"
+
+    # XML XMLSecSignatureImpl namespace
+    XMLSIG_NS = "http://www.w3.org/2000/09/xmldsig#"
+
+    # XML XMLSecSignatureImpl QName prefix
+    XMLSIG_PREFIX = "ds"
+
+    # XML Encryption namespace
+    XMLENC_NS = "http://www.w3.org/2001/04/xmlenc#"
+
+    # XML Encryption QName prefix
+    XMLENC_PREFIX = "xenc"
+    
+    # Local name of EncryptedData element
+    XMLENC_ENCDATA_LOCAL_NAME = "EncryptedData"
+    
+    # Local name of EncryptedKey element
+    XMLENC_ENCKEY_LOCAL_NAME = "EncryptedKey"
+
 
 class XMLObjectError(Exception):
     pass
 
 class XMLObjectParseError(Exception):
     pass
-
-class XMLObject(object):
-    """Abstract base class for XML representations of SAML objects"""
-    
-    def create(self, samlObject):
-        """Create an XML representation from the input SAML object
-        @type samlObject: SAMLObject
-        param samlObject: SAML object to render into XML
-        """
-        raise NotImplementedError()
-
-    def parse(self, elem):
-        """Parse into XML representation
-        @type elem: object
-        @param elem: XML object - type depends on XML class representation
-        @rtype: SAMLObject
-        @return: equivalent SAML object
-        @raise XMLObjectParsingError: error parsing content into SAML 
-        representation
-        """
-        raise NotImplementedError()
-    
-    def serialize(self):
-        """Serialize the XML object into a string representation
-        """
-        raise NotImplementedError()
-        
-        
-class IssueInstantXMLObject(XMLObject):
-    """Specialisation to enable inclusion of datetime formatting for issue
-    instant
-    """
-    issueInstantFmt = "%Y-%m-%dT%H:%M:%SZ"
-    
-    @classmethod
-    def datetime2Str(cls, dtIssueInstant):
-        """Convert issue instant datetime to correct string type for output
-        @type dtIssueInstant: datetime.datetime
-        @param dtIssueInstant: issue instance as a datetime
-        @rtype: basestring
-        @return: issue instance as a string
-        """
-        if not isinstance(dtIssueInstant, datetime):
-            raise TypeError("Expecting datetime type for string conversion, "
-                            "got %r" % dtIssueInstant)
-            
-        return dtIssueInstant.strftime(IssueInstantXMLObject.issueInstantFmt)
-
-    @classmethod
-    def str2Datetime(cls, issueInstant):
-        """Convert issue instant string to datetime type
-        @type issueInstant: basestring
-        @param issueInstant: issue instance as a string
-        @rtype: datetime.datetime
-        @return: issue instance as a datetime
-        """
-        if not isinstance(issueInstant, basestring):
-            raise TypeError("Expecting basestring derived type for string "
-                            "conversion, got %r" % issueInstant)
-            
-        return datetime.strptime(issueInstant, 
-                                 IssueInstantXMLObject.issueInstantFmt)
         
     
 class QName(object):
@@ -121,7 +113,7 @@ class QName(object):
                             type(value))
         self.__prefix = value
     
-    prefix = property(_getPrefix, _setPrefix, None, "Prefix")
+    prefix = property(_getPrefix, _setPrefix, None, "Namespace Prefix")
 
     def _getLocalPart(self):
         return self.__localPart
@@ -144,4 +136,4 @@ class QName(object):
         self.__namespaceURI = value
   
     namespaceURI = property(_getNamespaceURI, _setNamespaceURI, None, 
-                            "Namespace URI'")
+                            "Namespace URI")
