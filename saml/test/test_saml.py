@@ -21,11 +21,12 @@ from xml.etree.ElementTree import iselement
 from xml.etree import ElementTree
 from saml.xml.etree import prettyPrint
 
-from saml import Assertion, Attribute, AttributeValue, AttributeStatement, \
-    SAMLVersion, XSStringAttributeValue, XSGroupRoleAttributeValue, \
-    AttributeQuery, Response, Issuer, Subject, NameID, StatusCode, Status, \
-    Conditions
-from saml.xml import XMLConstants
+from saml import XSStringAttributeValue, XSGroupRoleAttributeValue
+    
+from saml.saml2.core import SAMLVersion, Attribute, AttributeStatement, \
+    Assertion, AttributeValue, AttributeQuery, Response, Issuer, Subject, \
+    NameID, StatusCode, Status, Conditions
+from saml.common.xml import SAMLConstants
 from saml.xml.etree import AssertionElementTree, \
     XSGroupRoleAttributeValueElementTree, AttributeQueryElementTree, \
     ResponseElementTree, ConditionsElementTree
@@ -141,7 +142,7 @@ class SAMLUtil(object):
             # special case handling for 'LastName' attribute
             emailAddressAttribute = Attribute()
             emailAddressAttribute.name = "urn:esg:email:address"
-            emailAddressAttribute.nameFormat = XMLConstants.XSD_NS+"#"+\
+            emailAddressAttribute.nameFormat = SAMLConstants.XSD_NS+"#"+\
                                         XSStringAttributeValue.TYPE_LOCAL_NAME
             emailAddressAttribute.friendlyName = "emailAddress"
 

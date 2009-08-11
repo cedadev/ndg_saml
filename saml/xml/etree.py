@@ -37,13 +37,13 @@ except ImportError:
     # if you've installed it yourself it comes this way
     import cElementTree, ElementTree
 
-from saml import SAMLObject, Conditions, Assertion, Attribute, \
-    AttributeStatement, AttributeValue, XSStringAttributeValue, \
-    Response, AttributeQuery, Subject, NameID, Issuer, SAMLVersion, Response, \
-    Status, StatusCode, XSGroupRoleAttributeValue
-    
-from saml.xml import XMLObject, IssueInstantXMLObject, XMLObjectParseError, \
-    SAMLConstants
+from saml import XSStringAttributeValue, XSGroupRoleAttributeValue
+
+from saml.saml2.core import SAMLObject, Attribute, AttributeStatement, \
+    Assertion, Conditions, AttributeValue, AttributeQuery, Subject, NameID, \
+    Issuer, SAMLVersion, Response, Status, StatusCode
+from saml.common.xml import SAMLConstants
+from saml.xml import IssueInstantXMLObject, XMLObjectParseError
 from saml.xml import QName as GenericQName
 
 # Generic Helper classes
