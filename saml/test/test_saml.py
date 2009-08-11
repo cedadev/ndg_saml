@@ -19,14 +19,14 @@ import unittest
 
 from xml.etree.ElementTree import iselement
 from xml.etree import ElementTree
-from ndg.security.common.utils.etree import prettyPrint
+from saml.xml.etree import prettyPrint
 
-from ndg.security.common.saml import Assertion, Attribute, AttributeValue, \
-    AttributeStatement, SAMLVersion, XSStringAttributeValue, \
-    XSGroupRoleAttributeValue, AttributeQuery, Response, Issuer, Subject, \
-    NameID, StatusCode, Status, Conditions
-from ndg.security.common.saml.xml import XMLConstants
-from ndg.security.common.saml.xml.etree import AssertionElementTree, \
+from saml import Assertion, Attribute, AttributeValue, AttributeStatement, \
+    SAMLVersion, XSStringAttributeValue, XSGroupRoleAttributeValue, \
+    AttributeQuery, Response, Issuer, Subject, NameID, StatusCode, Status, \
+    Conditions
+from saml.xml import XMLConstants
+from saml.xml.etree import AssertionElementTree, \
     XSGroupRoleAttributeValueElementTree, AttributeQueryElementTree, \
     ResponseElementTree, ConditionsElementTree
 
@@ -233,10 +233,13 @@ class SAMLTestCase(unittest.TestCase):
         
         self.assert_(iselement(assertionElem))
         
-        # Serialise to output
-        xmlOutput = prettyPrint(assertionElem)
+        # Serialise to output 
+        xmlOutput = prettyPrint(assertionElem)       
         self.assert_(len(xmlOutput))
+        
+        print("\n"+"_"*80)
         print(xmlOutput)
+        print("_"*80)
 
     def test02CreateAttributeQuery(self):
         samlUtil = SAMLUtil()
@@ -247,9 +250,12 @@ class SAMLTestCase(unittest.TestCase):
                         "/O=NDG/OU=BADC/CN=attributeauthority.badc.rl.ac.uk",
                         "https://openid.localhost/philip.kershaw")
         
-        elem = AttributeQueryElementTree.create(attributeQuery)
+        elem = AttributeQueryElementTree.create(attributeQuery)        
         xmlOutput = prettyPrint(elem)
+           
+        print("\n"+"_"*80)
         print(xmlOutput)
+        print("_"*80)
 
     def test03ParseAttributeQuery(self):
         samlUtil = SAMLUtil()
@@ -260,8 +266,9 @@ class SAMLTestCase(unittest.TestCase):
                         "/O=NDG/OU=BADC/CN=attributeauthority.badc.rl.ac.uk",
                         "https://openid.localhost/philip.kershaw")
         
-        elem = AttributeQueryElementTree.create(attributeQuery)
-        xmlOutput = prettyPrint(elem)
+        elem = AttributeQueryElementTree.create(attributeQuery)        
+        xmlOutput = prettyPrint(elem)       
+        print("\n"+"_"*80)
         print(xmlOutput)
                 
         attributeQueryStream = StringIO()
@@ -280,8 +287,10 @@ class SAMLTestCase(unittest.TestCase):
         self.assert_(attributeQuery2.attributes[1].name == \
                      attributeQuery.attributes[1].name)
         
-        xmlOutput2 = prettyPrint(elem2)
+        xmlOutput2 = prettyPrint(elem2)       
+        print("_"*80)
         print(xmlOutput2)
+        print("_"*80)
 
     def test04createResponse(self):
         response = Response()
@@ -334,10 +343,12 @@ class SAMLTestCase(unittest.TestCase):
         
         self.assert_(iselement(responseElem))
         
-        # Serialise to output
-        xmlOutput = prettyPrint(responseElem)
+        # Serialise to output        
+        xmlOutput = prettyPrint(responseElem)       
         self.assert_(len(xmlOutput))
+        print("\n"+"_"*80)
         print(xmlOutput)
+        print("_"*80)
     
 if __name__ == "__main__":
     unittest.main()        

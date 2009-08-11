@@ -36,19 +36,18 @@ from datetime import datetime
    
 # TODO: remove ElementTree dependency - package should XML implementation
 # independent
-from ndg.security.common.utils.etree import QName
-from ndg.security.common.utils import TypedList
-from ndg.security.common.saml.xml import SAMLConstants, XMLConstants
+from saml.utils import TypedList
+from saml.xml import QName, SAMLConstants, XMLConstants
 
       
 class SAMLObject(object):
     """Base class for all SAML types"""
     @classmethod
-    def parse(cls):
+    def parse(cls, xmlObject):
         raise NotImplementedError()
     
     @classmethod
-    def create(cls):
+    def create(cls, samlObject):
         raise NotImplementedError()
     
 
@@ -885,8 +884,8 @@ class Subject(SAMLObject):
         @param namespacePrefix the prefix for the given namespace
         '''
         self.__qname = QName(namespaceURI, 
-                             tag=elementLocalName, 
-                             prefix=namespacePrefix)
+                             elementLocalName, 
+                             namespacePrefix)
         
         # BaseID child element.
         self.__baseID = None
@@ -1191,10 +1190,9 @@ class StatusDetail(SAMLObject):
     def __init__(self):
         # child "any" elements.
         self.__unknownChildren = TypedList(SAMLObject)         
-        self.__qname = QName(
-                namespaceURI=StatusDetail.DEFAULT_ELEMENT_NAME.namespaceURI,
-                tag=StatusDetail.DEFAULT_ELEMENT_NAME,
-                prefix=StatusDetail.DEFAULT_ELEMENT_NAME.prefix)
+        self.__qname = QName(StatusDetail.DEFAULT_ELEMENT_NAME.namespaceURI,
+                             StatusDetail.DEFAULT_ELEMENT_NAME,
+                             StatusDetail.DEFAULT_ELEMENT_NAME.prefix)
     
     def getUnknownXMLObjects(self, qname=None): 
         if qname is not None:
@@ -1373,10 +1371,9 @@ class StatusCode(SAMLObject):
         # Nested secondary StatusCode child element.
         self.__childStatusCode = None
         
-        self.__qname = QName(
-                    namespaceURI=StatusCode.DEFAULT_ELEMENT_NAME.namespaceURI,
-                    tag=StatusCode.DEFAULT_ELEMENT_NAME,
-                    prefix=StatusCode.DEFAULT_ELEMENT_NAME.prefix)
+        self.__qname = QName(StatusCode.DEFAULT_ELEMENT_NAME.namespaceURI,
+                             StatusCode.DEFAULT_ELEMENT_NAME.localPart,
+                             StatusCode.DEFAULT_ELEMENT_NAME.prefix)
 
     def _getStatusCode(self): 
         return self.__childStatusCode
@@ -1448,10 +1445,9 @@ class Status(SAMLObject):
         # StatusDetail element. 
         self.__statusDetail = None
         
-        self.__qname = QName(
-                        namespaceURI=Status.DEFAULT_ELEMENT_NAME.namespaceURI,
-                        tag=Status.DEFAULT_ELEMENT_NAME,
-                        prefix=Status.DEFAULT_ELEMENT_NAME.prefix)
+        self.__qname = QName(Status.DEFAULT_ELEMENT_NAME.namespaceURI,
+                             Status.DEFAULT_ELEMENT_NAME.localPart,
+                             Status.DEFAULT_ELEMENT_NAME.prefix)
                 
     def _getQName(self):
         return self.__qname

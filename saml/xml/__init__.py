@@ -370,3 +370,46 @@ class IssueInstantXMLObject(XMLObject):
             
         return datetime.strptime(issueInstant, 
                                  IssueInstantXMLObject.issueInstantFmt)
+        
+    
+class QName(object):
+    """XML Qualified Name""" 
+
+    def __init__(self, namespaceURI, localPart, prefix):
+        self.namespaceURI = namespaceURI
+        self.localPart = localPart
+        self.prefix = prefix
+    
+    def _getPrefix(self):
+        return self.__prefix
+
+    def _setPrefix(self, value):
+        if not isinstance(value, basestring):
+            raise TypeError('Expected string type for "prefix"; got %r' %
+                            type(value))
+        self.__prefix = value
+    
+    prefix = property(_getPrefix, _setPrefix, None, "Prefix")
+
+    def _getLocalPart(self):
+        return self.__localPart
+    
+    def _setLocalPart(self, value):
+        if not isinstance(value, basestring):
+            raise TypeError('Expected string type for "localPart"; got %r' %
+                            type(value))
+        self.__localPart = value
+        
+    localPart = property(_getLocalPart, _setLocalPart, None, "LocalPart")
+
+    def _getNamespaceURI(self):
+        return self.__namespaceURI
+
+    def _setNamespaceURI(self, value):
+        if not isinstance(value, basestring):
+            raise TypeError('Expected string type for "namespaceURI"; got %r' %
+                            type(value))
+        self.__namespaceURI = value
+  
+    namespaceURI = property(_getNamespaceURI, _setNamespaceURI, None, 
+                            "Namespace URI'")

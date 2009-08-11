@@ -29,6 +29,7 @@ __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = "$Id$"
 import logging
 log = logging.getLogger(__name__)
+import re
 
 try: # python 2.5
     from xml.etree import cElementTree, ElementTree
@@ -43,11 +44,21 @@ from saml import SAMLObject, Conditions, Assertion, Attribute, \
     
 from saml.xml import XMLObject, IssueInstantXMLObject, XMLObjectParseError, \
     SAMLConstants
+from saml.xml import QName as GenericQName
 
 # Generic Helper classes
 class QName(ElementTree.QName):
     """Extend ElementTree implementation for improved attribute access support
     """ 
+
+    # ElementTree tag is of the form {namespace}localPart.  getNs extracts the
+    # namespace from within the brackets but if not found returns ''
+    getNs = staticmethod(lambda tag: getattr(re.search('(?<=\{).+(?=\})', tag),
+                                             'group', 
+                                             str)())
+                                             
+    getLocalPart = staticmethod(lambda tag: tag.rsplit('}',1)[-1])
+
     def __init__(self, namespaceURI, tag=None, prefix=None):
         ElementTree.QName.__init__(self, namespaceURI, tag=tag)
         
@@ -55,21 +66,10 @@ class QName(ElementTree.QName):
             self.namespaceURI = namespaceURI
             self.localPart = tag
         else:
-            self.namespaceURI = QName.getNs(self.text)
-            self.localPart = QName.getLocalName(self.text)
+            self.namespaceURI = QName.getNs(namespaceURI)
+            self.localPart = QName.getLocalPart(namespaceURI)
             
         self.prefix = prefix
-
-    getNs = staticmethod(lambda elem: elem.tag.split('}')[0][1:])
-    getLocalName = staticmethod(lambda elem: elem.tag.rsplit('}',1)[-1])
-    
-#    @staticmethod
-#    def getNs(tag):
-#        return tag.split('}')[0][1:]
-#
-#    @staticmethod
-#    def getLocalName(tag):
-#        return tag.rsplit('}',1)[-1]
     
     def _getPrefix(self):
         return self.__prefix
@@ -95,6 +95,19 @@ class QName(ElementTree.QName):
   
     namespaceURI = property(_getNamespaceURI, _setNamespaceURI, None, 
                             "Namespace URI'")
+
+    @classmethod
+    def fromGeneric(cls, genericQName):
+        '''Cast the generic QName type in saml.xml to the ElementTree specific
+        implementation'''
+        if not isinstance(genericQName, GenericQName):
+            raise TypeError("Expecting %r for QName, got %r" % (GenericQName,
+                                                        type(genericQName)))
+            
+        qname = cls(genericQName.namespaceURI, 
+                    tag=genericQName.localPart,
+                    prefix=genericQName.prefix)
+        return qname
     
     
 def prettyPrint(*arg, **kw):
@@ -125,16 +138,34 @@ class PrettyPrint(object):
         '''Most of the work done in this wrapped function - wrapped so that
         state can be maintained for declared namespace declarations during
         recursive calls using "declaredNss" above'''  
-        strAttrib = ''.join([' %s="%s"' % (att, attVal) 
-                             for att, attVal in elem.attrib.items()])
+        strAttribs = []
+        for attr, attrVal in elem.attrib.items():
+            nsDeclaration = ''
+            
+            attrNamespace = QName.getNs(attr)
+            if attrNamespace:
+                nsPrefix = ElementTree._namespace_map.get(attrNamespace)
+                if nsPrefix is None:
+                    raise KeyError('prettyPrint: missing namespace "%s" for ' 
+                                   'ElementTree._namespace_map'%attrNamespace)
+                
+                attr = "%s:%s" % (nsPrefix, QName.getLocalPart(attr))
+                
+                if attrNamespace not in self.declaredNss:
+                    nsDeclaration = ' xmlns:%s="%s"' % (nsPrefix,attrNamespace)
+                    self.declaredNss.append(attrNamespace)
+                
+            strAttribs.append('%s %s="%s"' % (nsDeclaration, attr, attrVal))
+            
+        strAttrib = ''.join(strAttribs)
         
-        namespace = getNs(elem)
+        namespace = QName.getNs(elem.tag)
         nsPrefix = ElementTree._namespace_map.get(namespace)
         if nsPrefix is None:
             raise KeyError('prettyPrint: missing namespace "%s" for ' 
                            'ElementTree._namespace_map' % namespace)
             
-        tag = "%s:%s" % (nsPrefix, getLocalName(elem))
+        tag = "%s:%s" % (nsPrefix, QName.getLocalPart(elem.tag))
         
         # Put in namespace declaration if one doesn't already exist
         # FIXME: namespace declaration handling is wrong for handling child
@@ -174,7 +205,8 @@ class ConditionsElementTree(Conditions, IssueInstantXMLObject):
         """Make a tree of a XML elements based on the assertion conditions"""
         
         if not isinstance(conditions, Conditions):
-            raise TypeError("Expecting %r type got: %r"%(Conditions,condition))
+            raise TypeError("Expecting %r type got: %r" % (Conditions,
+                                                           conditions))
         
         notBeforeStr = cls.datetime2Str(conditions.notBefore)
         notOnOrAfterStr = cls.datetime2Str(conditions.notOnOrAfter)
@@ -182,7 +214,9 @@ class ConditionsElementTree(Conditions, IssueInstantXMLObject):
             cls.NOT_BEFORE_ATTRIB_NAME: notBeforeStr,
             cls.NOT_ON_OR_AFTER_ATTRIB_NAME: notOnOrAfterStr,
         }
-        elem = ElementTree.Element(str(cls.DEFAULT_ELEMENT_NAME), **attrib)
+        
+        tag = str(QName.fromGeneric(cls.DEFAULT_ELEMENT_NAME))
+        elem = ElementTree.Element(tag, **attrib)
         
         ElementTree._namespace_map[cls.DEFAULT_ELEMENT_NAME.namespaceURI
                                    ] = cls.DEFAULT_ELEMENT_NAME.prefix
@@ -214,7 +248,8 @@ class AssertionElementTree(Assertion, IssueInstantXMLObject):
             # Nb. Version is a SAMLVersion instance and requires explicit cast
             cls.VERSION_ATTRIB_NAME: str(assertion.version)
         }
-        elem = ElementTree.Element(str(cls.DEFAULT_ELEMENT_NAME), **attrib)
+        tag = str(QName.fromGeneric(cls.DEFAULT_ELEMENT_NAME))
+        elem = ElementTree.Element(tag, **attrib)
         
         ElementTree._namespace_map[cls.DEFAULT_ELEMENT_NAME.namespaceURI
                                    ] = cls.DEFAULT_ELEMENT_NAME.prefix
@@ -267,7 +302,8 @@ class AttributeStatementElementTree(AttributeStatement):
             raise TypeError("Expecting %r type got: %r" % (AttributeStatement, 
                                                            attributeStatement))
             
-        elem = ElementTree.Element(str(cls.DEFAULT_ELEMENT_NAME))
+        tag = str(QName.fromGeneric(cls.DEFAULT_ELEMENT_NAME))  
+        elem = ElementTree.Element(tag)
         ElementTree._namespace_map[cls.DEFAULT_ELEMENT_NAME.namespaceURI
                                    ] = cls.DEFAULT_ELEMENT_NAME.prefix 
 
@@ -292,8 +328,9 @@ class AttributeElementTree(Attribute):
         
         if not isinstance(attribute, Attribute):
             raise TypeError("Expecting %r type got: %r"%(Attribute, attribute))
-            
-        elem = ElementTree.Element(str(Attribute.DEFAULT_ELEMENT_NAME))
+        
+        tag = str(QName.fromGeneric(Attribute.DEFAULT_ELEMENT_NAME))    
+        elem = ElementTree.Element(tag)
         ElementTree._namespace_map[cls.DEFAULT_ELEMENT_NAME.namespaceURI
                                    ] = cls.DEFAULT_ELEMENT_NAME.prefix 
         
@@ -330,7 +367,7 @@ class AttributeElementTree(Attribute):
             raise TypeError("Expecting %r input type for parsing; got %r" %
                             (ElementTree.Element, elem))
 
-        if getLocalName(elem) != cls.DEFAULT_ELEMENT_LOCAL_NAME:
+        if QName.getLocalPart(elem.tag) != cls.DEFAULT_ELEMENT_LOCAL_NAME:
             raise XMLObjectParseError("No \"%s\" element found" %
                                       cls.DEFAULT_ELEMENT_LOCAL_NAME)
             
@@ -349,12 +386,11 @@ class AttributeElementTree(Attribute):
             attribute.nameFormat = nameFormat
 
         for childElem in elem:
-            localName = getLocalName(childElem)
-            if localName != cls.DEFAULT_ELEMENT_LOCAL_NAME:
-                raise XMLObjectParseError('Expecting "%s" element; found '
-                                          '"%s"' %
-                                          (cls.DEFAULT_ELEMENT_LOCAL_NAME,
-                                           localName))
+            localName = QName.getLocalPart(childElem.tag)
+            if localName != AttributeValue.DEFAULT_ELEMENT_LOCAL_NAME:
+                raise XMLObjectParseError('Expecting "%s" element; found "%s"'%
+                                    (AttributeValue.DEFAULT_ELEMENT_LOCAL_NAME,
+                                     localName))
             
             # Find XML type attribute to key which AttributeValue sub type to 
             # instantiate
@@ -390,7 +426,8 @@ class AttributeValueElementTreeBase(AttributeValue):
             raise TypeError("Expecting %r type got: %r" % (AttributeValue, 
                                                            attributeValue))
             
-        elem = ElementTree.Element(str(cls.DEFAULT_ELEMENT_NAME))
+        tag = str(QName.fromGeneric(cls.DEFAULT_ELEMENT_NAME))   
+        elem = ElementTree.Element(tag)
         ElementTree._namespace_map[cls.DEFAULT_ELEMENT_NAME.namespaceURI
                                    ] = cls.DEFAULT_ELEMENT_NAME.prefix
 
@@ -443,7 +480,7 @@ class XSStringAttributeValueElementTree(AttributeValueElementTreeBase,
             raise TypeError("Expecting %r input type for parsing; got %r" %
                             (ElementTree.Element, elem))
 
-        localName = getLocalName(elem)
+        localName = QName.getLocalPart(elem.tag)
         if localName != cls.DEFAULT_ELEMENT_LOCAL_NAME:
             raise XMLObjectParseError("No \"%s\" element found" %
                                       cls.DEFAULT_ELEMENT_LOCAL_NAME)
@@ -460,7 +497,7 @@ class XSStringAttributeValueElementTree(AttributeValueElementTreeBase,
                                        typeValueLocalName))
         
         # Update namespace map as an XSI type has been referenced.  This will
-        # ensure the correct prefix is applied if it re-serialised.
+        # ensure the correct prefix is applied if it is re-serialised.
         ElementTree._namespace_map[SAMLConstants.XSI_NS
                                    ] = SAMLConstants.XSI_PREFIX
                                       
@@ -483,7 +520,7 @@ class XSGroupRoleAttributeValueElementTree(AttributeValueElementTreeBase,
         
         if not isinstance(attributeValue, XSGroupRoleAttributeValue):
             raise TypeError("Expecting %r type; got: %r" % 
-                            (XSGroupRole, type(attributeValue)))
+                            (XSGroupRoleAttributeValue, type(attributeValue)))
             
         ElementTree._namespace_map[attributeValue.namespaceURI
                                    ] = attributeValue.namespacePrefix
@@ -584,7 +621,8 @@ class IssuerElementTree(Issuer):
         attrib = {
             cls.FORMAT_ATTRIB_NAME: issuer.format
         }
-        elem = ElementTree.Element(str(cls.DEFAULT_ELEMENT_NAME), **attrib)
+        tag = str(QName.fromGeneric(cls.DEFAULT_ELEMENT_NAME))
+        elem = ElementTree.Element(tag, **attrib)
         ElementTree._namespace_map[issuer.qname.namespaceURI
                                    ] = issuer.qname.prefix
                                    
@@ -599,7 +637,7 @@ class IssuerElementTree(Issuer):
             raise TypeError("Expecting %r input type for parsing; got %r" %
                             (ElementTree.Element, elem))
 
-        if getLocalName(elem) != cls.DEFAULT_ELEMENT_LOCAL_NAME:
+        if QName.getLocalPart(elem.tag) != cls.DEFAULT_ELEMENT_LOCAL_NAME:
             raise XMLObjectParseError('No "%s" element found' %
                                       cls.DEFAULT_ELEMENT_LOCAL_NAME)
             
@@ -634,7 +672,8 @@ class NameIdElementTree(NameID):
         attrib = {
             cls.FORMAT_ATTRIB_NAME: nameID.format
         }
-        elem = ElementTree.Element(str(cls.DEFAULT_ELEMENT_NAME), **attrib)
+        tag = str(QName.fromGeneric(cls.DEFAULT_ELEMENT_NAME))
+        elem = ElementTree.Element(tag, **attrib)
         
         ElementTree._namespace_map[nameID.qname.namespaceURI
                                    ] = nameID.qname.prefix
@@ -656,7 +695,7 @@ class NameIdElementTree(NameID):
             raise TypeError("Expecting %r input type for parsing; got %r" %
                             (ElementTree.Element, elem))
 
-        if getLocalName(elem) != cls.DEFAULT_ELEMENT_LOCAL_NAME:
+        if QName.getLocalPart(elem.tag) != cls.DEFAULT_ELEMENT_LOCAL_NAME:
             raise XMLObjectParseError("No \"%s\" element found" %
                                       cls.DEFAULT_ELEMENT_LOCAL_NAME)
             
@@ -688,7 +727,8 @@ class SubjectElementTree(Subject):
             raise TypeError("Expecting %r class got %r" % (Subject, 
                                                            type(subject)))
             
-        elem = ElementTree.Element(str(cls.DEFAULT_ELEMENT_NAME))
+        tag = str(QName.fromGeneric(cls.DEFAULT_ELEMENT_NAME))  
+        elem = ElementTree.Element(tag)
         
         ElementTree._namespace_map[cls.DEFAULT_ELEMENT_NAME.namespaceURI
                                    ] = cls.DEFAULT_ELEMENT_NAME.prefix
@@ -712,7 +752,7 @@ class SubjectElementTree(Subject):
             raise TypeError("Expecting %r input type for parsing; got %r" %
                             (ElementTree.Element, elem))
 
-        if getLocalName(elem) != cls.DEFAULT_ELEMENT_LOCAL_NAME:
+        if QName.getLocalPart(elem.tag) != cls.DEFAULT_ELEMENT_LOCAL_NAME:
             raise XMLObjectParseError("No \"%s\" element found" %
                                       cls.DEFAULT_ELEMENT_LOCAL_NAME)
             
@@ -741,8 +781,9 @@ class StatusCodeElementTree(StatusCode):
         if not isinstance(statusCode, StatusCode):
             raise TypeError("Expecting %r class got %r" % (StatusCode, 
                                                            type(statusCode)))
-
-        elem = ElementTree.Element(str(cls.DEFAULT_ELEMENT_NAME))
+            
+        tag = str(QName.fromGeneric(cls.DEFAULT_ELEMENT_NAME))
+        elem = ElementTree.Element(tag)
         
         ElementTree._namespace_map[statusCode.qname.namespaceURI
                                    ] = statusCode.qname.prefix
@@ -764,12 +805,11 @@ class StatusCodeElementTree(StatusCode):
             raise TypeError("Expecting %r input type for parsing; got %r" %
                             (ElementTree.Element, elem))
 
-        if getLocalName(elem) != cls.DEFAULT_ELEMENT_LOCAL_NAME:
+        if QName.getLocalPart(elem.tag) != cls.DEFAULT_ELEMENT_LOCAL_NAME:
             raise XMLObjectParseError('No "%s" element found' %
                                       cls.DEFAULT_ELEMENT_LOCAL_NAME)
             
         statusCode = StatusCode()
-        statusCode.format = format
         statusCode.value = elem.text.strip() 
         
         return statusCode
@@ -790,7 +830,8 @@ class StatusElementTree(Status):
             raise TypeError("Expecting %r class got %r" % (status, 
                                                            type(Status)))
             
-        elem = ElementTree.Element(str(Status.DEFAULT_ELEMENT_NAME))
+        tag = str(QName.fromGeneric(Status.DEFAULT_ELEMENT_NAME))  
+        elem = ElementTree.Element(tag)
         
         ElementTree._namespace_map[cls.DEFAULT_ELEMENT_NAME.namespaceURI
                                    ] = cls.DEFAULT_ELEMENT_NAME.prefix
@@ -813,7 +854,7 @@ class StatusElementTree(Status):
             raise TypeError("Expecting %r input type for parsing; got %r" %
                             (ElementTree.Element, elem))
 
-        if getLocalName(elem) != Status.DEFAULT_ELEMENT_LOCAL_NAME:
+        if QName.getLocalPart(elem.tag) != Status.DEFAULT_ELEMENT_LOCAL_NAME:
             raise XMLObjectParseError('No "%s" element found' %
                                       Status.DEFAULT_ELEMENT_LOCAL_NAME)
             
@@ -855,8 +896,9 @@ class AttributeQueryElementTree(AttributeQuery, IssueInstantXMLObject):
             # Nb. Version is a SAMLVersion instance and requires explicit cast
             cls.VERSION_ATTRIB_NAME: str(attributeQuery.version)
         }
-                 
-        elem = ElementTree.Element(str(cls.DEFAULT_ELEMENT_NAME), **attrib)
+        
+        tag = str(QName.fromGeneric(cls.DEFAULT_ELEMENT_NAME))
+        elem = ElementTree.Element(tag, **attrib)
         
         ElementTree._namespace_map[cls.DEFAULT_ELEMENT_NAME.namespaceURI
                                    ] = cls.DEFAULT_ELEMENT_NAME.prefix
@@ -888,7 +930,7 @@ class AttributeQueryElementTree(AttributeQuery, IssueInstantXMLObject):
             raise TypeError("Expecting %r input type for parsing; got %r" %
                             (ElementTree.Element, elem))
 
-        if getLocalName(elem) != cls.DEFAULT_ELEMENT_LOCAL_NAME:
+        if QName.getLocalPart(elem.tag) != cls.DEFAULT_ELEMENT_LOCAL_NAME:
             raise XMLObjectParseError("No \"%s\" element found" %
                                     cls.DEFAULT_ELEMENT_LOCAL_NAME)
         
@@ -920,7 +962,7 @@ class AttributeQueryElementTree(AttributeQuery, IssueInstantXMLObject):
         attributeQuery.id = attributeValues[2]
         
         for childElem in elem:
-            localName = getLocalName(childElem)
+            localName = QName.getLocalPart(childElem.tag)
             if localName == Issuer.DEFAULT_ELEMENT_LOCAL_NAME:
                 # Parse Issuer
                 attributeQuery.issuer = IssuerElementTree.parse(childElem)
@@ -968,8 +1010,9 @@ class ResponseElementTree(Response, IssueInstantXMLObject):
             # Nb. Version is a SAMLVersion instance and requires explicit cast
             cls.VERSION_ATTRIB_NAME: str(response.version)
         }
-                 
-        elem = ElementTree.Element(str(cls.DEFAULT_ELEMENT_NAME), **attrib)
+        
+        tag = str(QName.fromGeneric(cls.DEFAULT_ELEMENT_NAME))        
+        elem = ElementTree.Element(tag, **attrib)
         
         ElementTree._namespace_map[cls.DEFAULT_ELEMENT_NAME.namespaceURI
                                    ] = cls.DEFAULT_ELEMENT_NAME.prefix
@@ -1001,9 +1044,9 @@ class ResponseElementTree(Response, IssueInstantXMLObject):
             raise TypeError("Expecting %r input type for parsing; got %r" %
                             (ElementTree.Element, elem))
 
-        if getLocalName(elem) != Response.DEFAULT_ELEMENT_LOCAL_NAME:
+        if QName.getLocalPart(elem.tag) != Response.DEFAULT_ELEMENT_LOCAL_NAME:
             raise XMLObjectParseError("No \"%s\" element found" %
-                                    Response.DEFAULT_ELEMENT_LOCAL_NAME)
+                                      Response.DEFAULT_ELEMENT_LOCAL_NAME)
         
         # Unpack attributes from top-level element
         attributeValues = []
@@ -1035,7 +1078,7 @@ class ResponseElementTree(Response, IssueInstantXMLObject):
         response.inResponseTo = attributeValues[3]
         
         for childElem in elem:
-            localName = getLocalName(childElem)
+            localName = QName.getLocalPart(childElem.tag)
             if localName == Issuer.DEFAULT_ELEMENT_LOCAL_NAME:
                 # Parse Issuer
                 response.issuer = IssuerElementTree.parse(childElem)
