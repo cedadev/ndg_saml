@@ -135,10 +135,29 @@ class Attribute(SAMLObject):
                                fset=_set_attributeValues,
                                doc="the list of attribute values for this "
                                "attribute.")
-   
-class Statement(SAMLObject):
-    pass
 
+
+class Statement(SAMLObject):
+    '''SAML 2.0 Core Statement.  Abstract base class which all statement 
+    types must implement.'''
+    
+    # Element local name
+    DEFAULT_ELEMENT_LOCAL_NAME = "Statement"
+
+    # Default element name
+    DEFAULT_ELEMENT_NAME = QName(SAMLConstants.SAML20_NS, 
+                                 DEFAULT_ELEMENT_LOCAL_NAME,
+                                 SAMLConstants.SAML20_PREFIX)
+
+    # Local name of the XSI type
+    TYPE_LOCAL_NAME = "StatementAbstractType"
+
+    # QName of the XSI type
+    TYPE_NAME = QName(SAMLConstants.SAML20_NS, 
+                      TYPE_LOCAL_NAME,
+                      SAMLConstants.SAML20_PREFIX)
+    
+            
 class AttributeStatement(Statement):
     '''SAML 2.0 Core AttributeStatement'''
 
@@ -175,8 +194,210 @@ class AttributeStatement(Statement):
        return self.__encryptedAttributes
    
     encryptedAttributes = property(fget=_get_encryptedAttributes)
+
+
+class AuthnStatement(Statement):
+    '''SAML 2.0 Core AuthnStatement.  Currently implemented in abstract form
+    only
+    '''
+
+    # Element local name
+    DEFAULT_ELEMENT_LOCAL_NAME = "AuthnStatement"
+
+    # Default element name
+    DEFAULT_ELEMENT_NAME = QName(SAMLConstants.SAML20_NS, 
+                                 DEFAULT_ELEMENT_LOCAL_NAME,
+                                 SAMLConstants.SAML20_PREFIX)
+
+    # Local name of the XSI type
+    TYPE_LOCAL_NAME = "AuthnStatementType"
+
+    # QName of the XSI type
+    TYPE_NAME = QName(SAMLConstants.SAML20_NS, 
+                      TYPE_LOCAL_NAME,
+                      SAMLConstants.SAML20_PREFIX)
+
+    # AuthnInstant attribute name
+    AUTHN_INSTANT_ATTRIB_NAME = "AuthnInstant"
+
+    # SessionIndex attribute name
+    SESSION_INDEX_ATTRIB_NAME = "SessionIndex"
+
+    # SessionNoOnOrAfter attribute name
+    SESSION_NOT_ON_OR_AFTER_ATTRIB_NAME = "SessionNotOnOrAfter"
+
+    def _getAuthnInstant(self):
+        '''Gets the time when the authentication took place.
         
+        @return the time when the authentication took place
+        '''
+        raise NotImplementedError()
+
+    def _setAuthnInstant(self, value):
+        '''Sets the time when the authentication took place.
+        
+        @param newAuthnInstant the time when the authentication took place
+        '''
+        raise NotImplementedError()
+
+    def _getSessionIndex(self):
+        '''Get the session index between the principal and the authenticating 
+        authority.
+        
+        @return the session index between the principal and the authenticating 
+        authority
+        '''
+        raise NotImplementedError()
+
+    def _setSessionIndex(self, value):
+        '''Sets the session index between the principal and the authenticating 
+        authority.
+        
+        @param newIndex the session index between the principal and the 
+        authenticating authority
+        '''
+        raise NotImplementedError()
+
+    def _getSessionNotOnOrAfter(self):
+        '''Get the time when the session between the principal and the SAML 
+        authority ends.
+        
+        @return the time when the session between the principal and the SAML 
+        authority ends
+        '''
+        raise NotImplementedError()
+
+    def _setSessionNotOnOrAfter(self, value):
+        '''Set the time when the session between the principal and the SAML 
+        authority ends.
+        
+        @param newSessionNotOnOrAfter the time when the session between the 
+        principal and the SAML authority ends
+        '''
+        raise NotImplementedError()
+
+    def _getSubjectLocality(self):
+        '''Get the DNS domain and IP address of the system where the principal 
+        was authenticated.
+        
+        @return the DNS domain and IP address of the system where the principal
+        was authenticated
+        '''
+        raise NotImplementedError()
+
+    def _setSubjectLocality(self, value):
+        '''Set the DNS domain and IP address of the system where the principal 
+        was authenticated.
+        
+        @param newLocality the DNS domain and IP address of the system where 
+        the principal was authenticated
+        '''
+        raise NotImplementedError()
+
+    def _getAuthnContext(self):
+        '''Gets the context used to authenticate the subject.
+        
+        @return the context used to authenticate the subject
+        '''
+        raise NotImplementedError()
+
+    def _setAuthnContext(self, value):
+        '''Sets the context used to authenticate the subject.
+        
+        @param newAuthnContext the context used to authenticate the subject
+        '''
+        raise NotImplementedError()
+            
+
+class AuthzDecisionStatement(Statement):
+    '''SAML 2.0 Core AuthzDecisionStatement.  Currently implemented in abstract
+    form only'''
     
+    # Element local name
+    DEFAULT_ELEMENT_LOCAL_NAME = "AuthzDecisionStatement"
+
+    # Default element name
+    DEFAULT_ELEMENT_NAME = QName(SAMLConstants.SAML20_NS, 
+                                 DEFAULT_ELEMENT_LOCAL_NAME,
+                                 SAMLConstants.SAML20_PREFIX)
+
+    # Local name of the XSI type
+    TYPE_LOCAL_NAME = "AuthzDecisionStatementType"
+
+    # QName of the XSI type
+    TYPE_NAME = QName(SAMLConstants.SAML20_NS, 
+                      TYPE_LOCAL_NAME,
+                      SAMLConstants.SAML20_PREFIX)
+
+    # Resource attribute name
+    RESOURCE_ATTRIB_NAME = "Resource"
+
+    # Decision attribute name
+    DECISION_ATTRIB_NAME = "Decision"
+
+    def _getResource(self):
+        '''
+        Get URI of the resource to which authorization is saught.
+        
+        @return URI of the resource to which authorization is saught
+        '''
+        raise NotImplementedError()
+
+    def _setResource(self, value):
+        '''
+        Sets URI of the resource to which authorization is saught.
+        
+        @param newResourceURI URI of the resource to which authorization is 
+        saught
+        '''
+        raise NotImplementedError()
+
+    def _getDecision(self):
+        '''
+        Gets the decision of the authorization request.
+        
+        @return the decision of the authorization request
+        '''
+        raise NotImplementedError()
+
+    def _setDecision(self, value):
+        '''
+        Sets the decision of the authorization request.
+        
+        @param newDecision the decision of the authorization request
+        '''
+        raise NotImplementedError()
+
+    def _getActions(self):
+        '''
+        Gets the actions authorized to be performed.
+        
+        @return the actions authorized to be performed
+        '''
+        raise NotImplementedError()
+
+
+    def _getEvidence(self):
+        '''
+        Get the SAML assertion the authority relied on when making the 
+        authorization decision.
+        
+        @return the SAML assertion the authority relied on when making the 
+        authorization decision
+        '''
+        raise NotImplementedError()
+
+    def _setEvidence(self, value):
+        '''
+        Sets the SAML assertion the authority relied on when making the 
+        authorization decision.
+        
+        @param newEvidence the SAML assertion the authority relied on when 
+        making the authorization decision
+        '''
+        raise NotImplementedError()
+        
+
 class Subject(SAMLObject):
     '''Concrete implementation of @link org.opensaml.saml2.core.Subject.'''
     
@@ -836,7 +1057,8 @@ class Assertion(SAMLObject):
     
 
 class AttributeValue(SAMLObject):
-
+    """Base class for Attribute Value type"""
+    
     # Element name, no namespace
     DEFAULT_ELEMENT_LOCAL_NAME = "AttributeValue"
 
@@ -845,8 +1067,10 @@ class AttributeValue(SAMLObject):
                                  DEFAULT_ELEMENT_LOCAL_NAME,
                                  SAMLConstants.SAML20_PREFIX)
 
-class XSStringAttributeValue(AttributeValue):
 
+class XSStringAttributeValue(AttributeValue):
+    """XML XS:String Attribute Value type"""
+    
     # Local name of the XSI type
     TYPE_LOCAL_NAME = "string"
         
@@ -989,7 +1213,7 @@ class StatusDetail(SAMLObject):
                              StatusDetail.DEFAULT_ELEMENT_NAME,
                              StatusDetail.DEFAULT_ELEMENT_NAME.prefix)
     
-    def getUnknownXMLObjects(self, qname=None): 
+    def getUnknownXMLTypes(self, qname=None): 
         if qname is not None:
             if not isinstance(qname, QName):
                 raise TypeError("\"qname\" must be a %r derived type, "
@@ -1007,7 +1231,7 @@ class StatusDetail(SAMLObject):
         else:
             return self.__unknownChildren
     
-    unknownChildren = property(fget=getUnknownXMLObjects,
+    unknownChildren = property(fget=getUnknownXMLTypes,
                                doc="Child objects of Status Detail - may be "
                                    "any type")
                 

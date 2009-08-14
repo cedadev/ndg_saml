@@ -89,10 +89,10 @@ class XMLConstants(object):
     XMLENC_ENCKEY_LOCAL_NAME = "EncryptedKey"
 
 
-class XMLObjectError(Exception):
+class XMLTypeError(Exception):
     pass
 
-class XMLObjectParseError(Exception):
+class XMLTypeParseError(Exception):
     pass
         
     

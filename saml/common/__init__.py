@@ -32,16 +32,29 @@ __revision__ = "$Id$"
 class SAMLObject(object):
     """Base class for all SAML types"""
     @classmethod
-    def parse(cls, xmlObject):
+    def fromXML(cls, xmlObject):
+        '''Parse from an XML representation into a SAML object
+        @type: XML class e.g. ElementTree or 4Suite XML
+        @param: XML representation of SAML Object
+        @rtype: saml.saml2.common.SAMLObject derived type
+        @return: SAML object
+        '''
         raise NotImplementedError()
     
     @classmethod
-    def create(cls, samlObject):
+    def toXML(cls, samlObject):
+        '''Convert the input SAML object into an XML representation
+        @type: saml.saml2.common.SAMLObject derived type
+        @param: SAML object
+        @rtype: XML class e.g. ElementTree or 4Suite XML
+        @return: XML representation of SAML Object
+        '''
         raise NotImplementedError()
 
 
 class SAMLVersion(SAMLObject):
     """Version helper class"""
+    
     VERSION_10 = (1, 0)
     VERSION_11 = (1, 1)
     VERSION_20 = (2, 0)

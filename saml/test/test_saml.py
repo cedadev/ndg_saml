@@ -21,13 +21,12 @@ from xml.etree.ElementTree import iselement
 from xml.etree import ElementTree
 
 from saml.saml2.core import SAMLVersion, Attribute, AttributeStatement, \
-    Assertion, AttributeValue, AttributeQuery, Response, Issuer, Subject, \
-    NameID, StatusCode, Status, Conditions, XSStringAttributeValue, \
-    XSGroupRoleAttributeValue
+    Assertion, AttributeQuery, Response, Issuer, Subject, NameID, StatusCode, \
+    Status, Conditions, XSStringAttributeValue, XSGroupRoleAttributeValue
 from saml.common.xml import SAMLConstants
 from saml.xml.etree import prettyPrint, AssertionElementTree, \
     XSGroupRoleAttributeValueElementTree, AttributeQueryElementTree, \
-    ResponseElementTree, ConditionsElementTree
+    ResponseElementTree
 
 
 class SAMLUtil(object):
@@ -43,6 +42,7 @@ class SAMLUtil(object):
         self.lastName = None
         self.emailAddress = None
         
+        # ESG Group/Role attribute type
         self.__groupRoleList = []
         self.__miscAttrList = []
 
@@ -86,7 +86,12 @@ class SAMLUtil(object):
         return assertion
 
     def buildAttributeQuery(self, issuer, subjectNameID):
-        
+        """Make a SAML Attribute Query
+        @type issuer: basestring
+        @param issuer: attribute issuer name
+        @type subjectNameID: basestring
+        @param subjectNameID: identity to query attributes for
+        """
         attributeQuery = AttributeQuery()
         attributeQuery.version = SAMLVersion(SAMLVersion.VERSION_20)
         attributeQuery.id = str(uuid4())
@@ -106,6 +111,7 @@ class SAMLUtil(object):
         return attributeQuery
     
     def createAttributes(self):
+        """Create SAML Attributes for use in an Assertion or AttributeQuery"""
         
         attributes = []
         if self.firstName is not None:    
@@ -222,13 +228,13 @@ class SAMLTestCase(unittest.TestCase):
         
         # Add mapping for ESG Group/Role Attribute Value to enable ElementTree
         # Attribute Value factory to render the XML output
-        attributeValueElementTreeClassMap = {
+        toXMLTypeMap = {
             XSGroupRoleAttributeValue: XSGroupRoleAttributeValueElementTree           
         }
         
         # Create ElementTree Assertion Element
-        assertionElem = AssertionElementTree.create(assertion,
-                            customClassMap=attributeValueElementTreeClassMap)
+        assertionElem = AssertionElementTree.toXML(assertion,
+                                            customToXMLTypeMap=toXMLTypeMap)
         
         self.assert_(iselement(assertionElem))
         
@@ -245,13 +251,13 @@ class SAMLTestCase(unittest.TestCase):
         
         # Add mapping for ESG Group/Role Attribute Value to enable ElementTree
         # Attribute Value factory to render the XML output
-        attributeValueElementTreeClassMap = {
+        toXMLTypeMap = {
             XSGroupRoleAttributeValue: XSGroupRoleAttributeValueElementTree           
         }
         
         # Create ElementTree Assertion Element
-        assertionElem = AssertionElementTree.create(assertion,
-                            customClassMap=attributeValueElementTreeClassMap)
+        assertionElem = AssertionElementTree.toXML(assertion,
+                                            customToXMLTypeMap=toXMLTypeMap)
         
         self.assert_(iselement(assertionElem))
         
@@ -265,7 +271,11 @@ class SAMLTestCase(unittest.TestCase):
         tree = ElementTree.parse(assertionStream)
         elem2 = tree.getroot()
         
-        assertionElem2 = AssertionElementTree.parse(elem2)
+        toSAMLTypeMap = [XSGroupRoleAttributeValueElementTree.factoryMatchFunc]
+        
+        assertionElem2 = AssertionElementTree.fromXML(elem2,
+                                            customToSAMLTypeMap=toSAMLTypeMap)
+        self.assert_(assertionElem2)
         
     def test03CreateAttributeQuery(self):
         samlUtil = SAMLUtil()
@@ -276,7 +286,7 @@ class SAMLTestCase(unittest.TestCase):
                         "/O=NDG/OU=BADC/CN=attributeauthority.badc.rl.ac.uk",
                         "https://openid.localhost/philip.kershaw")
         
-        elem = AttributeQueryElementTree.create(attributeQuery)        
+        elem = AttributeQueryElementTree.toXML(attributeQuery)        
         xmlOutput = prettyPrint(elem)
            
         print("\n"+"_"*80)
@@ -292,7 +302,7 @@ class SAMLTestCase(unittest.TestCase):
                         "/O=NDG/OU=BADC/CN=attributeauthority.badc.rl.ac.uk",
                         "https://openid.localhost/philip.kershaw")
         
-        elem = AttributeQueryElementTree.create(attributeQuery)        
+        elem = AttributeQueryElementTree.toXML(attributeQuery)        
         xmlOutput = prettyPrint(elem)       
         print("\n"+"_"*80)
         print(xmlOutput)
@@ -304,7 +314,7 @@ class SAMLTestCase(unittest.TestCase):
         tree = ElementTree.parse(attributeQueryStream)
         elem2 = tree.getroot()
         
-        attributeQuery2 = AttributeQueryElementTree.parse(elem2)
+        attributeQuery2 = AttributeQueryElementTree.fromXML(elem2)
         self.assert_(attributeQuery2.id == attributeQuery.id)
         self.assert_(attributeQuery2.issuer.value==attributeQuery.issuer.value)
         self.assert_(attributeQuery2.subject.nameID.value == \
@@ -359,13 +369,13 @@ class SAMLTestCase(unittest.TestCase):
         
         # Add mapping for ESG Group/Role Attribute Value to enable ElementTree
         # Attribute Value factory to render the XML output
-        attributeValueElementTreeClassMap = {
+        toXMLTypeMap = {
             XSGroupRoleAttributeValue: XSGroupRoleAttributeValueElementTree           
         }
         
         # Create ElementTree Assertion Element
-        responseElem = ResponseElementTree.create(response,
-                            customClassMap=attributeValueElementTreeClassMap)
+        responseElem = ResponseElementTree.toXML(response,
+                                            customToXMLTypeMap=toXMLTypeMap)
         
         self.assert_(iselement(responseElem))
         
