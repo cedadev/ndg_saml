@@ -263,6 +263,10 @@ class SAMLTestCase(unittest.TestCase):
         
         # Serialise to output 
         xmlOutput = prettyPrint(assertionElem)       
+           
+        print("\n"+"_"*80)
+        print(xmlOutput)
+        print("_"*80)
                 
         assertionStream = StringIO()
         assertionStream.write(xmlOutput)
@@ -273,9 +277,18 @@ class SAMLTestCase(unittest.TestCase):
         
         toSAMLTypeMap = [XSGroupRoleAttributeValueElementTree.factoryMatchFunc]
         
-        assertionElem2 = AssertionElementTree.fromXML(elem2,
+        assertion2 = AssertionElementTree.fromXML(elem2,
                                             customToSAMLTypeMap=toSAMLTypeMap)
-        self.assert_(assertionElem2)
+        self.assert_(assertion2)
+        xsGroupRoleAttrFound = False
+        for attr in assertion2.attributeStatements[0].attributes:
+            for attrValue in attr.attributeValues:
+                if isinstance(attrValue, XSGroupRoleAttributeValue):
+                    self.assert_(attrValue.group)
+                    self.assert_(attrValue.role)
+                    xsGroupRoleAttrFound = True
+        
+        self.assert_(xsGroupRoleAttrFound)
         
     def test03CreateAttributeQuery(self):
         samlUtil = SAMLUtil()

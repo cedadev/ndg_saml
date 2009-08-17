@@ -752,7 +752,7 @@ class XSGroupRoleAttributeValueElementTree(AttributeValueElementTreeBase,
         localName = QName.getLocalPart(elem.tag)
         if localName != cls.DEFAULT_ELEMENT_LOCAL_NAME:
             raise XMLTypeParseError("No \"%s\" element found" %
-                                      cls.DEFAULT_ELEMENT_LOCAL_NAME)
+                                    cls.DEFAULT_ELEMENT_LOCAL_NAME)
 
         
         # Update namespace map as an XSI type has been referenced.  This will
@@ -761,8 +761,19 @@ class XSGroupRoleAttributeValueElementTree(AttributeValueElementTreeBase,
                                    ] = SAMLConstants.XSI_PREFIX
                                       
         attributeValue = XSGroupRoleAttributeValue()
-        if elem.text is not None:
-            attributeValue.value = elem.text.strip()
+        groupName = elem.attrib.get(cls.GROUP_ATTRIB_NAME)
+        if groupName is None:
+            raise XMLTypeParseError('No "%s" attribute found in Group/Role '
+                                    'attribute element' % 
+                                    cls.GROUP_ATTRIB_NAME)
+        attributeValue.group = groupName
+        
+        roleName = elem.attrib.get(cls.ROLE_ATTRIB_NAME)
+        if roleName is None:
+            raise XMLTypeParseError('No "%s" attribute found in Group/Role '
+                                    'attribute element' % 
+                                    cls.GROUP_ATTRIB_NAME)
+        attributeValue.role = roleName
 
         return attributeValue
     
