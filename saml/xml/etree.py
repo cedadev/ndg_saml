@@ -361,6 +361,8 @@ class AssertionElementTree(Assertion):
         
         @type elem: ElementTree.Element
         @param elem: ElementTree element containing the assertion
+        @type attributeValueElementTreeFactoryKw: dict
+        @param attributeValueElementTreeFactoryKw: keywords for AttributeValue
         @rtype: saml.saml2.core.Assertion
         @return: Assertion object"""
         if not ElementTree.iselement(elem):
@@ -524,7 +526,7 @@ class AttributeElementTree(Attribute):
         if not isinstance(attribute, Attribute):
             raise TypeError("Expecting %r type got: %r"%(Attribute, attribute))
         
-        tag = str(QName.fromGeneric(Attribute.DEFAULT_ELEMENT_NAME))    
+        tag = str(QName.fromGeneric(cls.DEFAULT_ELEMENT_NAME))    
         elem = ElementTree.Element(tag)
         ElementTree._namespace_map[cls.DEFAULT_ELEMENT_NAME.namespaceURI
                                    ] = cls.DEFAULT_ELEMENT_NAME.prefix 
@@ -571,9 +573,14 @@ class AttributeElementTree(Attribute):
             
         attribute = Attribute()
             
+        # Name is mandatory in the schema
         name = elem.attrib.get(cls.NAME_ATTRIB_NAME)
-        if name is not None:
-            attribute.name = name
+        if name is None:
+            raise XMLTypeParseError('No "%s" attribute found in the "%s" '
+                                    'element' %
+                                    (cls.NAME_ATTRIB_NAME,
+                                     cls.DEFAULT_ELEMENT_LOCAL_NAME))
+        attribute.name = name
             
         friendlyName = elem.attrib.get(cls.FRIENDLY_NAME_ATTRIB_NAME)
         if friendlyName is not None:
@@ -729,10 +736,17 @@ class XSGroupRoleAttributeValueElementTree(AttributeValueElementTreeBase,
             
         ElementTree._namespace_map[attributeValue.namespaceURI
                                    ] = attributeValue.namespacePrefix
+                                   
+        tag = str(QName.fromGeneric(cls.TYPE_NAME))    
+        groupRoleElem = ElementTree.Element(tag)
+        ElementTree._namespace_map[cls.DEFAULT_ELEMENT_NAME.namespaceURI
+                                   ] = cls.DEFAULT_ELEMENT_NAME.prefix 
         
-        elem.set(cls.GROUP_ATTRIB_NAME, attributeValue.group)
-        elem.set(cls.ROLE_ATTRIB_NAME, attributeValue.role)
+        groupRoleElem.set(cls.GROUP_ATTRIB_NAME, attributeValue.group)
+        groupRoleElem.set(cls.ROLE_ATTRIB_NAME, attributeValue.role)
 
+        elem.append(groupRoleElem)
+        
         return elem
 
     @classmethod
@@ -753,22 +767,33 @@ class XSGroupRoleAttributeValueElementTree(AttributeValueElementTreeBase,
         if localName != cls.DEFAULT_ELEMENT_LOCAL_NAME:
             raise XMLTypeParseError("No \"%s\" element found" %
                                     cls.DEFAULT_ELEMENT_LOCAL_NAME)
+                                   
+        # Check for group/role child element
+        if len(elem) == 0:
+            raise XMLTypeParseError('Expecting "%s" child element to "%s" '
+                                    'element' % (cls.TYPE_LOCAL_NAME,
+                                               cls.DEFAULT_ELEMENT_LOCAL_NAME))
+        
+        childElem = elem[0]
+        childLocalName = QName.getLocalPart(childElem.tag)
+        if childLocalName != cls.TYPE_LOCAL_NAME:
+            raise XMLTypeParseError("No \"%s\" element found" %
+                                    cls.TYPE_LOCAL_NAME)
 
         
-        # Update namespace map as an XSI type has been referenced.  This will
+        # Update namespace map for the Group/Role type referenced.  This will
         # ensure the correct prefix is applied if it is re-serialised.
-        ElementTree._namespace_map[SAMLConstants.XSI_NS
-                                   ] = SAMLConstants.XSI_PREFIX
+        ElementTree._namespace_map[cls.DEFAULT_NS] = cls.DEFAULT_PREFIX
                                       
         attributeValue = XSGroupRoleAttributeValue()
-        groupName = elem.attrib.get(cls.GROUP_ATTRIB_NAME)
+        groupName = childElem.attrib.get(cls.GROUP_ATTRIB_NAME)
         if groupName is None:
             raise XMLTypeParseError('No "%s" attribute found in Group/Role '
                                     'attribute element' % 
                                     cls.GROUP_ATTRIB_NAME)
         attributeValue.group = groupName
         
-        roleName = elem.attrib.get(cls.ROLE_ATTRIB_NAME)
+        roleName = childElem.attrib.get(cls.ROLE_ATTRIB_NAME)
         if roleName is None:
             raise XMLTypeParseError('No "%s" attribute found in Group/Role '
                                     'attribute element' % 
@@ -781,9 +806,25 @@ class XSGroupRoleAttributeValueElementTree(AttributeValueElementTreeBase,
     def factoryMatchFunc(cls, elem):
         """Match function used by AttributeValueElementTreeFactory to
         determine whether the given attribute is XSGroupRole type
+        
+        @type elem: ElementTree.Element
+        @param elem: Attribute value as ElementTree XML element
+        @rtype: saml.saml2.core.XSGroupRoleAttributeValue or None
+        @return: SAML ESG Group/Role Attribute Value class if elem is an
+        Group/role type element or None if if doesn't match this type 
         """
-        if cls.GROUP_ATTRIB_NAME in elem.attrib and \
-           cls.ROLE_ATTRIB_NAME in elem.attrib:
+        
+        # Group/role element is a child of the AttributeValue element
+        if len(elem) == 0:
+            return None
+        
+        childLocalName = QName.getLocalPart(elem[0].tag)
+        if childLocalName != cls.TYPE_LOCAL_NAME:
+            raise XMLTypeParseError('No "%s" child element found in '
+                                    'AttributeValue' % cls.TYPE_LOCAL_NAME)
+               
+        if cls.GROUP_ATTRIB_NAME in elem[0].attrib and \
+           cls.ROLE_ATTRIB_NAME in elem[0].attrib:
             return cls
 
         return None
@@ -919,9 +960,13 @@ class IssuerElementTree(Issuer):
         if not isinstance(issuer, Issuer):
             raise TypeError("Expecting %r class got %r" % (Issuer, 
                                                            type(issuer)))
-        attrib = {
-            cls.FORMAT_ATTRIB_NAME: issuer.format
-        }
+            
+        # Issuer format may be omitted from a response: saml-profiles-2.0-os,
+        # Section 4.1.4.2
+        attrib = {}
+        if issuer.format is not None:
+            attrib[cls.FORMAT_ATTRIB_NAME] = issuer.format
+        
         tag = str(QName.fromGeneric(cls.DEFAULT_ELEMENT_NAME))
         elem = ElementTree.Element(tag, **attrib)
         ElementTree._namespace_map[issuer.qname.namespaceURI
@@ -948,13 +993,13 @@ class IssuerElementTree(Issuer):
                                       cls.DEFAULT_ELEMENT_LOCAL_NAME)
             
         issuerFormat = elem.attrib.get(cls.FORMAT_ATTRIB_NAME)
-        if issuerFormat is None:
-            raise XMLTypeParseError('No "%s" attribute found in "%s" '
-                                      'element' %
-                                      (issuerFormat,
-                                       cls.DEFAULT_ELEMENT_LOCAL_NAME))
         issuer = Issuer()
-        issuer.format = issuerFormat
+        
+        # Issuer format may be omitted from a response: saml-profiles-2.0-os,
+        # Section 4.1.4.2
+        if issuerFormat is not None:
+            issuer.format = issuerFormat
+        
         issuer.value = elem.text.strip() 
         
         return issuer
@@ -1309,7 +1354,18 @@ class ResponseElementTree(Response):
         if not isinstance(response, Response):
             raise TypeError("Expecting %r class, got %r" % (Response, 
                                                             type(response)))
-            
+         
+        if response.id is None:
+            raise TypeError("SAML Response id is not set")
+          
+        if response.issueInstant is None:
+            raise TypeError("SAML Response issueInstant is not set")
+        
+        # TODO: Does inResponseTo have to be set?  This implementation 
+        # currently enforces this ...
+        if response.inResponseTo is None:
+            raise TypeError("SAML Response inResponseTo identifier is not set")
+        
         issueInstant = SAMLDateTime.toString(response.issueInstant)
         attrib = {
             cls.ID_ATTRIB_NAME: response.id,
@@ -1325,9 +1381,11 @@ class ResponseElementTree(Response):
         
         ElementTree._namespace_map[cls.DEFAULT_ELEMENT_NAME.namespaceURI
                                    ] = cls.DEFAULT_ELEMENT_NAME.prefix
-            
-        issuerElem = IssuerElementTree.toXML(response.issuer)
-        elem.append(issuerElem)
+
+        # Issuer may be omitted: saml-profiles-2.0-os Section 4.1.4.2
+        if response.issuer is not None: 
+            issuerElem = IssuerElementTree.toXML(response.issuer)
+            elem.append(issuerElem)
 
         statusElem = StatusElementTree.toXML(response.status)       
         elem.append(statusElem)
@@ -1341,11 +1399,13 @@ class ResponseElementTree(Response):
         return elem
 
     @classmethod
-    def fromXML(cls, elem):
+    def fromXML(cls, elem, **attributeValueElementTreeFactoryKw):
         """Parse ElementTree element into a SAML Response object
         
         @type elem: ElementTree.Element
         @param elem: XML element containing the Response
+        @type attributeValueElementTreeFactoryKw: dict
+        @param attributeValueElementTreeFactoryKw: keywords for AttributeValue
         @rtype: saml.saml2.core.Response
         @return: Response object
         """
@@ -1401,8 +1461,9 @@ class ResponseElementTree(Response):
                 response.subject = SubjectElementTree.fromXML(childElem)
             
             elif localName == Assertion.DEFAULT_ELEMENT_LOCAL_NAME:
-                response.assertions.append(
-                                    AssertionElementTree.fromXML(childElem))
+                assertion = AssertionElementTree.fromXML(childElem,
+                                        **attributeValueElementTreeFactoryKw)
+                response.assertions.append(assertion)
             else:
                 raise XMLTypeParseError('Unrecognised Response child '
                                           'element "%s"' % localName)
