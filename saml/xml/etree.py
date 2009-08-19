@@ -759,6 +759,10 @@ class XSGroupRoleAttributeValueElementTree(AttributeValueElementTreeBase,
         @rtype: saml.saml2.core.XSGroupRoleAttributeValue
         @return: SAML ESG Group/Role Attribute value
         """
+        
+        # Update namespace map for the Group/Role type referenced.  
+        ElementTree._namespace_map[cls.DEFAULT_NS] = cls.DEFAULT_PREFIX
+        
         if not ElementTree.iselement(elem):
             raise TypeError("Expecting %r input type for parsing; got %r" %
                             (ElementTree.Element, elem))
@@ -780,10 +784,6 @@ class XSGroupRoleAttributeValueElementTree(AttributeValueElementTreeBase,
             raise XMLTypeParseError("No \"%s\" element found" %
                                     cls.TYPE_LOCAL_NAME)
 
-        
-        # Update namespace map for the Group/Role type referenced.  This will
-        # ensure the correct prefix is applied if it is re-serialised.
-        ElementTree._namespace_map[cls.DEFAULT_NS] = cls.DEFAULT_PREFIX
                                       
         attributeValue = XSGroupRoleAttributeValue()
         groupName = childElem.attrib.get(cls.GROUP_ATTRIB_NAME)
