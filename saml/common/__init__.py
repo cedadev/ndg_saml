@@ -85,7 +85,43 @@ class SAMLVersion(SAMLObject):
             
     def __ne__(self, version):
         return self.__eq__(version)
-    
+            
+    def __gt__(self, version):                
+        if isinstance(version, basestring):
+            return self.__version > SAMLVersion.valueOf(version)
+        elif isinstance(version, (tuple, list)):
+            return self.__version > tuple(version)
+        else:
+            raise TypeError("Expecting string, tuple or list type for SAML "
+                            "version comparison; got %r" % version)
+            
+    def __lt__(self, version):
+        if isinstance(version, basestring):
+            return self.__version < SAMLVersion.valueOf(version)
+        elif isinstance(version, (tuple, list)):
+            return self.__version < tuple(version)
+        else:
+            raise TypeError("Expecting string, tuple or list type for SAML "
+                            "version comparison; got %r" % version)
+            
+    def __ge__(self, version):                
+        if isinstance(version, basestring):
+            return self.__version >= SAMLVersion.valueOf(version)
+        elif isinstance(version, (tuple, list)):
+            return self.__version >= tuple(version)
+        else:
+            raise TypeError("Expecting string, tuple or list type for SAML "
+                            "version comparison; got %r" % version)
+            
+    def __le__(self, version):                
+        if isinstance(version, basestring):
+            return self.__version <= SAMLVersion.valueOf(version)
+        elif isinstance(version, (tuple, list)):
+            return self.__version <= tuple(version)
+        else:
+            raise TypeError("Expecting string, tuple or list type for SAML "
+                            "version comparison; got %r" % version)
+   
     @staticmethod
     def valueOf(version):
         """Parse input string into version tuple
