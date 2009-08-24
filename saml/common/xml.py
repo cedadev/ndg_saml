@@ -237,3 +237,64 @@ class SAMLConstants(XMLConstants):
     
     # URI for SAML 2 SOAP binding.
     SAML2_SOAP11_BINDING_URI = "urn:oasis:names:tc:SAML:2.0:bindings:SOAP"
+  
+    
+class QName(object):
+    """XML Qualified Name""" 
+
+    def __init__(self, namespaceURI, localPart, prefix):
+        self.namespaceURI = namespaceURI
+        self.localPart = localPart
+        self.prefix = prefix
+    
+    def _getPrefix(self):
+        return self.__prefix
+
+    def _setPrefix(self, value):
+        if not isinstance(value, basestring):
+            raise TypeError('Expected string type for "prefix"; got %r' %
+                            type(value))
+        self.__prefix = value
+    
+    prefix = property(_getPrefix, _setPrefix, None, "Namespace Prefix")
+
+    def _getLocalPart(self):
+        return self.__localPart
+    
+    def _setLocalPart(self, value):
+        if not isinstance(value, basestring):
+            raise TypeError('Expected string type for "localPart"; got %r' %
+                            type(value))
+        self.__localPart = value
+        
+    localPart = property(_getLocalPart, _setLocalPart, None, "LocalPart")
+
+    def _getNamespaceURI(self):
+        return self.__namespaceURI
+
+    def _setNamespaceURI(self, value):
+        if not isinstance(value, basestring):
+            raise TypeError('Expected string type for "namespaceURI"; got %r' %
+                            type(value))
+        self.__namespaceURI = value
+  
+    namespaceURI = property(_getNamespaceURI, _setNamespaceURI, None, 
+                            "Namespace URI")
+
+    def __eq__(self, qname):
+        """Enable equality check for QName
+        @type qname: saml.common.xml.QName
+        @param qname: Qualified Name to compare with self 
+        """
+        if not isinstance(qname, QName):
+            raise TypeError('Expecting %r; got %r' % (QName, type(qname)))
+                            
+        return (self.prefix, self.namespaceURI, self.localPart) == \
+               (qname.prefix, qname.namespaceURI, qname.localPart)
+
+    def __ne__(self, qname):
+        """Enable equality check for QName
+        @type qname: saml.common.xml.QName
+        @param qname: Qualified Name to compare with self 
+        """
+        return not self.__eq__(qname)

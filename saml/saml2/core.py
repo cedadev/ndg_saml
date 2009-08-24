@@ -31,8 +31,7 @@ __revision__ = "$Id$"
 from datetime import datetime
 
 from saml.common import SAMLObject, SAMLVersion
-from saml.common.xml import SAMLConstants
-from saml.xml import QName
+from saml.common.xml import SAMLConstants, QName
 from saml.utils import TypedList
 
 

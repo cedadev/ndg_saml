@@ -38,14 +38,15 @@ except ImportError:
     import cElementTree, ElementTree
 
 from saml.saml2.core import SAMLObject, Attribute, AttributeStatement, \
-    AuthnStatement, AuthzDecisionStatement, \
-    Assertion, Conditions, AttributeValue, AttributeQuery, Subject, NameID, \
-    Issuer, SAMLVersion, Response, Status, StatusCode, Advice, \
-    XSStringAttributeValue, XSGroupRoleAttributeValue
+    AuthnStatement, AuthzDecisionStatement, Assertion, Conditions, \
+    AttributeValue, AttributeQuery, Subject, NameID, Issuer, Response, \
+    Status, StatusCode, Advice, XSStringAttributeValue, \
+    XSGroupRoleAttributeValue
+from saml.common import SAMLVersion
 from saml.common.xml import SAMLConstants
+from saml.common.xml import QName as GenericQName
 from saml.xml import XMLTypeParseError
 from saml.utils import SAMLDateTime
-from saml.xml import QName as GenericQName
 
 
 # Generic ElementTree Helper classes
@@ -111,10 +112,33 @@ class QName(ElementTree.QName):
     namespaceURI = property(_getNamespaceURI, _setNamespaceURI, None, 
                             "Namespace URI'")
 
+    def __eq__(self, qname):
+        """Enable equality check for QName.  Note that prefixes don't need to
+        match
+        
+        @type qname: ndg.security.common.utils.etree.QName
+        @param qname: Qualified Name to compare with self 
+        """
+        if not isinstance(qname, QName):
+            raise TypeError('Expecting %r; got %r' % (QName, type(qname)))
+                   
+        # Nb. prefixes don't need to agree!         
+        return (self.namespaceURI, self.localPart) == \
+               (qname.namespaceURI, qname.localPart)
+
+    def __ne__(self, qname):
+        """Enable equality check for QName.  Note that prefixes don't need to
+        match
+        
+        @type qname: ndg.security.common.utils.etree.QName
+        @param qname: Qualified Name to compare with self 
+        """
+        return not self.__eq__(qname)
+
     @classmethod
     def fromGeneric(cls, genericQName):
-        '''Cast the generic QName type in saml.xml to the ElementTree specific
-        implementation'''
+        '''Cast the generic QName type in saml.common.xml to the 
+        ElementTree specific implementation'''
         if not isinstance(genericQName, GenericQName):
             raise TypeError("Expecting %r for QName, got %r" % (GenericQName,
                                                         type(genericQName)))
@@ -920,8 +944,9 @@ class AttributeValueElementTreeFactory(object):
         if isinstance(input, AttributeValue):
             XMLTypeClass = self.__toXMLTypeMap.get(input.__class__)
             if XMLTypeClass is None:
-                raise TypeError("no matching XMLType class representation "
-                                "for SAML class %r" % input.__class__)
+                raise UnknownAttrProfile("no matching XMLType class "
+                                         "representation for class %r" % 
+                                         input.__class__)
                 
         elif ElementTree.iselement(input):
             XMLTypeClasses = []
@@ -937,8 +962,9 @@ class AttributeValueElementTreeFactory(object):
             
             nXMLTypeClasses = len(XMLTypeClasses)
             if nXMLTypeClasses == 0:
-                raise TypeError("no matching XMLType class representation "
-                                "for SAML AttributeValue type %r" % input)
+                raise UnknownAttrProfile("no matching XMLType class "
+                                         "representation for SAML "
+                                         "AttributeValue type %r" % input)
             elif nXMLTypeClasses > 1:
                 raise TypeError("Multiple XMLType classes %r matched for "
                                 "for SAML AttributeValue type %r" % 

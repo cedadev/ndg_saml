@@ -84,7 +84,7 @@ class SAMLVersion(SAMLObject):
                             "version comparison; got %r" % version)
             
     def __ne__(self, version):
-        return self.__eq__(version)
+        return not self.__eq__(version)
             
     def __gt__(self, version):                
         if isinstance(version, basestring):
@@ -129,4 +129,4 @@ class SAMLVersion(SAMLObject):
         @param version: SAML version
         @rtype: tuple
         @return: SAML version tuple"""
-        return tuple(version.split("."))
+        return tuple([int(i) for i in version.split(".")])
