@@ -1250,10 +1250,17 @@ class StatusDetail(SAMLObject):
 class StatusMessage(SAMLObject):
     '''Implementation of SAML 2.0 Status Message'''
 
+    DEFAULT_ELEMENT_LOCAL_NAME = "StatusMessage"
+    DEFAULT_ELEMENT_NAME = QName(SAMLConstants.SAML20P_NS, 
+                                 DEFAULT_ELEMENT_LOCAL_NAME,
+                                 SAMLConstants.SAML20P_PREFIX)
+    
     def __init__(self):
         # Value attribute URI.
         self.__value = None        
-        self.__qname = None
+        self.__qname = QName(StatusMessage.DEFAULT_ELEMENT_NAME.namespaceURI,
+                             StatusMessage.DEFAULT_ELEMENT_NAME.localPart,
+                             StatusMessage.DEFAULT_ELEMENT_NAME.prefix)
               
     def _getValue(self):
         return self.__value
@@ -1261,7 +1268,7 @@ class StatusMessage(SAMLObject):
     def _setValue(self, value):
         if not isinstance(value, basestring):
             raise TypeError("\"value\" must be a basestring derived type, "
-                            "got %r" % value.__class__)
+                            "got %r" % type(value))
             
         self.__value = value
 
@@ -1516,9 +1523,9 @@ class Status(SAMLObject):
         
         @param newStatusMessage the Message of this Status
         '''
-        if not isinstance(value, basestring):
+        if not isinstance(value, StatusMessage):
             raise TypeError('"statusMessage" must be a %r derived type, '
-                            "got %r" % (basestring, type(value)))
+                            "got %r" % (StatusMessage, type(value)))
             
         self.__statusMessage = value
         

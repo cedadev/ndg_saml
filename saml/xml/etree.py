@@ -40,12 +40,12 @@ except ImportError:
 from saml.saml2.core import SAMLObject, Attribute, AttributeStatement, \
     AuthnStatement, AuthzDecisionStatement, Assertion, Conditions, \
     AttributeValue, AttributeQuery, Subject, NameID, Issuer, Response, \
-    Status, StatusCode, Advice, XSStringAttributeValue, \
-    XSGroupRoleAttributeValue
+    Status, StatusCode, StatusMessage, StatusDetail, Advice, \
+    XSStringAttributeValue, XSGroupRoleAttributeValue
 from saml.common import SAMLVersion
 from saml.common.xml import SAMLConstants
 from saml.common.xml import QName as GenericQName
-from saml.xml import XMLTypeParseError
+from saml.xml import XMLTypeParseError, UnknownAttrProfile
 from saml.utils import SAMLDateTime
 
 
@@ -1074,14 +1074,14 @@ class NameIdElementTree(NameID):
 
         if QName.getLocalPart(elem.tag) != cls.DEFAULT_ELEMENT_LOCAL_NAME:
             raise XMLTypeParseError("No \"%s\" element found" %
-                                      cls.DEFAULT_ELEMENT_LOCAL_NAME)
+                                    cls.DEFAULT_ELEMENT_LOCAL_NAME)
             
         format = elem.attrib.get(cls.FORMAT_ATTRIB_NAME)
         if format is None:
             raise XMLTypeParseError('No "%s" attribute found in "%s" '
-                                      'element' %
-                                      (format,
-                                       cls.DEFAULT_ELEMENT_LOCAL_NAME))
+                                    'element' %
+                                    (cls.FORMAT_ATTRIB_NAME,
+                                     cls.DEFAULT_ELEMENT_LOCAL_NAME))
         nameID = NameID()
         nameID.format = format
         nameID.value = elem.text.strip() 
@@ -1144,7 +1144,7 @@ class SubjectElementTree(Subject):
 
         
 class StatusCodeElementTree(StatusCode):
-    """Represent a SAML Name Identifier in XML using ElementTree"""
+    """Represent a SAML Status Code in XML using ElementTree"""
     
     @classmethod
     def toXML(cls, statusCode):
@@ -1159,13 +1159,14 @@ class StatusCodeElementTree(StatusCode):
             raise TypeError("Expecting %r class got %r" % (StatusCode, 
                                                            type(statusCode)))
             
+        attrib = {
+            cls.VALUE_ATTRIB_NAME: statusCode.value
+        }
         tag = str(QName.fromGeneric(cls.DEFAULT_ELEMENT_NAME))
-        elem = ElementTree.Element(tag)
+        elem = ElementTree.Element(tag, **attrib)
         
         ElementTree._namespace_map[statusCode.qname.namespaceURI
                                    ] = statusCode.qname.prefix
-        
-        elem.text = statusCode.value
 
         return elem
 
@@ -1184,13 +1185,68 @@ class StatusCodeElementTree(StatusCode):
 
         if QName.getLocalPart(elem.tag) != cls.DEFAULT_ELEMENT_LOCAL_NAME:
             raise XMLTypeParseError('No "%s" element found' %
-                                      cls.DEFAULT_ELEMENT_LOCAL_NAME)
+                                    cls.DEFAULT_ELEMENT_LOCAL_NAME)
             
         statusCode = StatusCode()
-        if elem.text is not None:
-            statusCode.value = elem.text.strip() 
+            
+        value = elem.attrib.get(cls.VALUE_ATTRIB_NAME)
+        if value is None:
+            raise XMLTypeParseError('No "%s" attribute found in "%s" element' %
+                                    (cls.VALUE_ATTRIB_NAME,
+                                     cls.DEFAULT_ELEMENT_LOCAL_NAME))
+        statusCode.value = value
         
         return statusCode
+
+        
+class StatusMessageElementTree(StatusMessage):
+    """Represent a SAML Status Message in XML using ElementTree"""
+    
+    @classmethod
+    def toXML(cls, statusMessage):
+        """Create an XML representation of the input SAML Name Status Message
+        
+        @type statusMessage: saml.saml2.core.StatusMessage
+        @param statusMessage: SAML Status Message
+        @rtype: ElementTree.Element
+        @return: Status Code as ElementTree XML element"""
+        
+        if not isinstance(statusMessage, StatusMessage):
+            raise TypeError("Expecting %r class got %r" % (StatusMessage, 
+                                                           type(statusMessage)))
+            
+        tag = str(QName.fromGeneric(cls.DEFAULT_ELEMENT_NAME))
+        elem = ElementTree.Element(tag)
+        
+        ElementTree._namespace_map[statusMessage.qname.namespaceURI
+                                   ] = statusMessage.qname.prefix
+        
+        elem.text = statusMessage.value
+
+        return elem
+
+    @classmethod
+    def fromXML(cls, elem):
+        """Parse ElementTree element into a SAML StatusMessage object
+        
+        @type elem: ElementTree.Element
+        @param elem: Status Code as ElementTree XML element
+        @rtype: saml.saml2.core.StatusMessage
+        @return: SAML Status Message
+        """
+        if not ElementTree.iselement(elem):
+            raise TypeError("Expecting %r input type for parsing; got %r" %
+                            (ElementTree.Element, elem))
+
+        if QName.getLocalPart(elem.tag) != cls.DEFAULT_ELEMENT_LOCAL_NAME:
+            raise XMLTypeParseError('No "%s" element found' %
+                                    cls.DEFAULT_ELEMENT_LOCAL_NAME)
+            
+        statusMessage = StatusMessage()
+        if elem.text is not None:
+            statusMessage.value = elem.text.strip() 
+        
+        return statusMessage
 
 
 class StatusElementTree(Status):
@@ -1217,6 +1273,17 @@ class StatusElementTree(Status):
         statusCodeElem = StatusCodeElementTree.toXML(status.statusCode)
         elem.append(statusCodeElem)
         
+        # Status message is optional
+        if status.statusMessage is not None and \
+           status.statusMessage.value is not None:
+            statusMessageElem = StatusMessageElementTree.toXML(
+                                                        status.statusMessage)
+            elem.append(statusMessageElem)
+        
+        if status.statusDetail is not None:
+            raise NotImplementedError("StatusDetail XML serialisation is not "
+                                      "implemented")
+            
         return elem
 
     @classmethod
@@ -1236,13 +1303,27 @@ class StatusElementTree(Status):
             raise XMLTypeParseError('No "%s" element found' %
                                       Status.DEFAULT_ELEMENT_LOCAL_NAME)
             
-        if len(elem) != 1:
-            raise XMLTypeParseError("Expecting single StatusCode child "
-                                      "element for SAML Status element")
+        if len(elem) < 1:
+            raise XMLTypeParseError("Expecting a StatusCode child element for "
+                                    "SAML Status element")
             
         status = Status()
-        status.statusCode = StatusCodeElementTree.fromXML(elem[0])
-        
+        for childElem in elem:
+            localName = QName.getLocalPart(childElem.tag)
+            if localName == StatusCode.DEFAULT_ELEMENT_LOCAL_NAME:
+                status.statusCode = StatusCodeElementTree.fromXML(childElem)
+                
+            elif localName == StatusMessage.DEFAULT_ELEMENT_LOCAL_NAME:
+                status.statusMessage = StatusMessageElementTree.fromXML(
+                                                                childElem)
+            elif localName == StatusDetail.DEFAULT_ELEMENT_LOCAL_NAME:
+                raise NotImplementedError("XML parse of %s element is not "
+                                    "implemented" %
+                                    StatusDetail.DEFAULT_ELEMENT_LOCAL_NAME)
+            else:
+                raise XMLTypeParseError("Status child element name %r not "
+                                        "recognised" % localName)
+       
         return status
     
     

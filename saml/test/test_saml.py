@@ -22,7 +22,8 @@ from xml.etree import ElementTree
 
 from saml.saml2.core import SAMLVersion, Attribute, AttributeStatement, \
     Assertion, AttributeQuery, Response, Issuer, Subject, NameID, StatusCode, \
-    Status, Conditions, XSStringAttributeValue, XSGroupRoleAttributeValue
+    StatusMessage, Status, Conditions, XSStringAttributeValue, \
+    XSGroupRoleAttributeValue
 from saml.common.xml import SAMLConstants
 from saml.xml.etree import prettyPrint, AssertionElementTree, \
     XSGroupRoleAttributeValueElementTree, AttributeQueryElementTree, \
@@ -357,8 +358,10 @@ class SAMLTestCase(unittest.TestCase):
         
         response.status = Status()
         response.status.statusCode = StatusCode()
-        response.status.statusCode.value = StatusCode.SUCCESS_URI        
-                
+        response.status.statusCode.value = StatusCode.SUCCESS_URI
+        response.status.statusMessage = StatusMessage()        
+        response.status.statusMessage.value = "Response created successfully"
+           
         assertion = self._createAssertionHelper()
         
         # Add a conditions statement for a validity of 8 hours
