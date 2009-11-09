@@ -20,14 +20,15 @@ import unittest
 from xml.etree.ElementTree import iselement
 from xml.etree import ElementTree
 
-from saml.saml2.core import SAMLVersion, Attribute, AttributeStatement, \
-    Assertion, AttributeQuery, Response, Issuer, Subject, NameID, StatusCode, \
-    StatusMessage, Status, Conditions, XSStringAttributeValue, \
-    XSGroupRoleAttributeValue
+from saml.saml2.core import (SAMLVersion, Attribute, AttributeStatement, 
+                             Assertion, AttributeQuery, Response, Issuer, 
+                             Subject, NameID, StatusCode, 
+                             StatusMessage, Status, Conditions, 
+                             XSStringAttributeValue)
+
 from saml.common.xml import SAMLConstants
-from saml.xml.etree import prettyPrint, AssertionElementTree, \
-    XSGroupRoleAttributeValueElementTree, AttributeQueryElementTree, \
-    ResponseElementTree
+from saml.xml.etree import (prettyPrint, AssertionElementTree, 
+                            AttributeQueryElementTree, ResponseElementTree)
 
 
 class SAMLUtil(object):
@@ -43,18 +44,7 @@ class SAMLUtil(object):
         self.lastName = None
         self.emailAddress = None
         
-        # ESG Group/Role attribute type
-        self.__groupRoleList = []
         self.__miscAttrList = []
-
-    def addGroupRole(self, group, role):
-        """Add an ESG Group/Role attribute
-        @type group: basestring
-        @param group: group name
-        @type role: basestring
-        @param role: role name
-        """
-        self.__groupRoleList.append((group, role))
     
     def addAttribute(self, name, value):
         """Add a generic attribute
@@ -157,22 +147,6 @@ class SAMLUtil(object):
 
             attributes.append(emailAddressAttribute)
         
-        if len(self.__groupRoleList) > 0:
-            # custom group/role attribute to be added to attr statement
-            groupRoleAttribute = Attribute()
-            groupRoleAttribute.name = "GroupRole"
-            groupRoleAttribute.nameFormat = \
-                                    XSGroupRoleAttributeValue.TYPE_LOCAL_NAME
-
-            for group, role in self.__groupRoleList:
-                groupRole = XSGroupRoleAttributeValue()
-                groupRole.group = group
-                groupRole.role = role
-
-                groupRoleAttribute.attributeValues.append(groupRole)
-            
-            attributes.append(groupRoleAttribute)
-        
         for name, value in self.__miscAttrList:
             attribute = Attribute()
             attribute.name = name
@@ -210,14 +184,6 @@ class SAMLTestCase(unittest.TestCase):
         for role in badcRoleList:
             samlUtil.addAttribute("urn:badc:security:authz:1.0:attr", role)
         
-        # ESG Group/Role type list
-        esgGroupRoleList = (
-            ("ESG-NCAR", "admin"),
-            ("ESG-PCMDI", "testUser"),
-        )
-        for group, role in esgGroupRoleList:
-            samlUtil.addGroupRole(group, role)
-        
         # Make an assertion object
         assertion = samlUtil.buildAssertion()
         
@@ -226,16 +192,10 @@ class SAMLTestCase(unittest.TestCase):
     def test01CreateAssertion(self):
          
         assertion = self._createAssertionHelper()
-        
-        # Add mapping for ESG Group/Role Attribute Value to enable ElementTree
-        # Attribute Value factory to render the XML output
-        toXMLTypeMap = {
-            XSGroupRoleAttributeValue: XSGroupRoleAttributeValueElementTree           
-        }
+
         
         # Create ElementTree Assertion Element
-        assertionElem = AssertionElementTree.toXML(assertion,
-                                            customToXMLTypeMap=toXMLTypeMap)
+        assertionElem = AssertionElementTree.toXML(assertion)
         
         self.assert_(iselement(assertionElem))
         
@@ -250,15 +210,8 @@ class SAMLTestCase(unittest.TestCase):
     def test02ParseAssertion(self):
         assertion = self._createAssertionHelper()
         
-        # Add mapping for ESG Group/Role Attribute Value to enable ElementTree
-        # Attribute Value factory to render the XML output
-        toXMLTypeMap = {
-            XSGroupRoleAttributeValue: XSGroupRoleAttributeValueElementTree           
-        }
-        
         # Create ElementTree Assertion Element
-        assertionElem = AssertionElementTree.toXML(assertion,
-                                            customToXMLTypeMap=toXMLTypeMap)
+        assertionElem = AssertionElementTree.toXML(assertion)
         
         self.assert_(iselement(assertionElem))
         
@@ -276,20 +229,8 @@ class SAMLTestCase(unittest.TestCase):
         tree = ElementTree.parse(assertionStream)
         elem2 = tree.getroot()
         
-        toSAMLTypeMap = [XSGroupRoleAttributeValueElementTree.factoryMatchFunc]
-        
-        assertion2 = AssertionElementTree.fromXML(elem2,
-                                            customToSAMLTypeMap=toSAMLTypeMap)
+        assertion2 = AssertionElementTree.fromXML(elem2)
         self.assert_(assertion2)
-        xsGroupRoleAttrFound = False
-        for attr in assertion2.attributeStatements[0].attributes:
-            for attrValue in attr.attributeValues:
-                if isinstance(attrValue, XSGroupRoleAttributeValue):
-                    self.assert_(attrValue.group)
-                    self.assert_(attrValue.role)
-                    xsGroupRoleAttrFound = True
-        
-        self.assert_(xsGroupRoleAttrFound)
         
     def test03CreateAttributeQuery(self):
         samlUtil = SAMLUtil()
@@ -383,15 +324,8 @@ class SAMLTestCase(unittest.TestCase):
 
         response.assertions.append(assertion)
         
-        # Add mapping for ESG Group/Role Attribute Value to enable ElementTree
-        # Attribute Value factory to render the XML output
-        toXMLTypeMap = {
-            XSGroupRoleAttributeValue: XSGroupRoleAttributeValueElementTree           
-        }
-        
         # Create ElementTree Assertion Element
-        responseElem = ResponseElementTree.toXML(response,
-                                            customToXMLTypeMap=toXMLTypeMap)
+        responseElem = ResponseElementTree.toXML(response)
         
         self.assert_(iselement(responseElem))
         
