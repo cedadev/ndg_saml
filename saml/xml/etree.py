@@ -50,7 +50,7 @@ from saml.common.xml import QName as GenericQName
 from saml.xml import XMLTypeParseError, UnknownAttrProfile
 from saml.utils import SAMLDateTime
 
-from ndg.security.common.saml.esg import XSGroupRoleAttributeValue
+from ndg.security.common.saml_utils.esg import XSGroupRoleAttributeValue
 
 
 # Generic ElementTree Helper classes
