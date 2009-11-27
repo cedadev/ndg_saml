@@ -1077,6 +1077,8 @@ class XSStringAttributeValue(AttributeValue):
     TYPE_NAME = QName(SAMLConstants.XSD_NS, 
                       TYPE_LOCAL_NAME, 
                       SAMLConstants.XSD_PREFIX)
+    
+    DEFAULT_FORMAT = "%s#%s" % (SAMLConstants.XSD_NS, TYPE_LOCAL_NAME)
   
     def __init__(self):
         self.__value = None

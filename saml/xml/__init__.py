@@ -35,7 +35,7 @@ class XMLConstants(object):
     # XML Tooling
 
     # Configuration namespace
-    XMLTOOLING_CONFIG_NS = "http:#www.opensaml.org/xmltooling-config"
+    XMLTOOLING_CONFIG_NS = "http://www.opensaml.org/xmltooling-config"
 
     # Configuration namespace prefix
     XMLTOOLING_CONFIG_PREFIX = "xt"
@@ -47,7 +47,7 @@ class XMLConstants(object):
     # Core XML
 
     # XML core namespace
-    XML_NS = "http:#www.w3.org/XML/1998/namespace"
+    XML_NS = "http://www.w3.org/XML/1998/namespace"
     
     # XML core prefix for xml attributes
     XML_PREFIX = "xml"
