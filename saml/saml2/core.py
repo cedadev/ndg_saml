@@ -27,7 +27,7 @@ __copyright__ = "(C) 2009 Science and Technology Facilities Council"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __license__ = "BSD - see LICENSE file in top-level directory"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
-__revision__ = "$Id$"
+__revision__ = "$Id: $"
 from datetime import datetime
 
 from saml.common import SAMLObject, SAMLVersion
