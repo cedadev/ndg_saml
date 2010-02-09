@@ -20,6 +20,7 @@ import unittest
 from xml.etree.ElementTree import iselement
 from xml.etree import ElementTree
 
+from saml.saml2.core import Action
 from saml.saml2.core import (SAMLVersion, Attribute, AttributeStatement, 
                              Assertion, AttributeQuery, Response, Issuer, 
                              Subject, NameID, StatusCode, 
@@ -339,7 +340,17 @@ class SAMLTestCase(unittest.TestCase):
         
     def test06CreateAuthzDecisionQuery(self):
         authzDecisionQuery = AuthzDecisionQuery()
-        self.assert_(authzDecisionQuery)
-    
+        authzDecisionQuery.resource = "http://LOCALHOST:80/My Secured URI"
+        self.assert_(":80" not in authzDecisionQuery.resource)
+        self.assert_("localhost" in authzDecisionQuery.resource)
+        self.assert_(" " not in authzDecisionQuery.resource)
+        
+        authzDecisionQuery.resource = \
+            "https://Somewhere.ac.uk:443/My Secured URI?blah=4&yes=True"
+            
+        self.assert_(":443" not in authzDecisionQuery.resource)
+        self.assert_("somewhere.ac.uk" in authzDecisionQuery.resource)
+        self.assert_("yes=True" in authzDecisionQuery.resource)
+   
 if __name__ == "__main__":
     unittest.main()        

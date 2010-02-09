@@ -800,6 +800,12 @@ class Conditions(SAMLObject):
                             'got %r' % type(value))
         self.__notOnOrAfter = value  
 
+    notBefore = property(_getNotBefore, _setNotBefore, 
+                         doc="Not before time restriction")
+
+    notOnOrAfter = property(_getNotOnOrAfter, _setNotOnOrAfter, 
+                            doc="Not on or after time restriction")
+
     def _getConditions(self):
         '''Gets all the conditions on the assertion.
         
@@ -2184,15 +2190,10 @@ class AuthzDecisionQuery(SubjectQuery):
        '__actions'
     )
     
-    def __init__(self, namespaceURI, elementLocalName, namespacePrefix):
-        '''@param namespaceURI: the namespace the element is in
-        @param elementLocalName: the local name of the XML element this Object 
-        represents
-        @param namespacePrefix: the prefix for the given namespace
+    def __init__(self):
+        '''Create new authorisation decision query
         '''
-        super(AuthzDecisionQuery, self).__init__(namespaceURI, 
-                                                 elementLocalName, 
-                                                 namespacePrefix)
+        super(AuthzDecisionQuery, self).__init__()
 
         # Resource attribute value. 
         self.__resource = None
@@ -2227,14 +2228,14 @@ class AuthzDecisionQuery(SubjectQuery):
         # hostname attribute is lowercase
         uriComponents[1] = splitResult.hostname
         
-        isHttpWithStdPort = (splitResult.port == '80' and 
+        isHttpWithStdPort = (splitResult.port == 80 and 
                              splitResult.scheme == 'http')
         
-        isHttpsWithStdPort = (splitResult.port == '443' and
+        isHttpsWithStdPort = (splitResult.port == 443 and
                               splitResult.scheme == 'https')
         
         if not isHttpWithStdPort and not isHttpsWithStdPort:
-            uriComponents[1] += ":" + splitResult.port
+            uriComponents[1] += ":%d" % splitResult.port
         
         uriComponents[2] = urllib.quote(splitResult.path)
         
@@ -2580,7 +2581,7 @@ class Response(StatusResponseType):
                       TYPE_LOCAL_NAME, 
                       SAMLConstants.SAML20P_PREFIX)
     
-    __slots__ = ()
+    __slots__ = ('__indexedChildren',)
     
     def __init__(self):
         '''''' 
