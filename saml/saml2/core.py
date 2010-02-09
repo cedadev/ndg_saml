@@ -29,6 +29,8 @@ __license__ = "BSD - see LICENSE file in top-level directory"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = "$Id: $"
 from datetime import datetime
+from urlparse import urlsplit, urlunsplit
+import urllib
 
 from saml.common import SAMLObject, SAMLVersion
 from saml.common.xml import SAMLConstants, QName
@@ -72,6 +74,13 @@ class Attribute(SAMLObject):
     # Basic attribute format ID. 
     BASIC = "urn:oasis:names:tc:SAML:2.0:attrname-format:basic"
 
+    __slots__ = (
+        '__name',
+        '__nameFormat',
+        '__friendlyName',
+        '__attributeValues'
+    )
+    
     def __init__(self):
         """Initialise Attribute Class attributes"""
         self.__name = None
@@ -139,6 +148,7 @@ class Attribute(SAMLObject):
 class Statement(SAMLObject):
     '''SAML 2.0 Core Statement.  Abstract base class which all statement 
     types must implement.'''
+    __slots__ = ()
     
     # Element local name
     DEFAULT_ELEMENT_LOCAL_NAME = "Statement"
@@ -159,7 +169,8 @@ class Statement(SAMLObject):
             
 class AttributeStatement(Statement):
     '''SAML 2.0 Core AttributeStatement'''
-
+    __slots__ = ('__attributes', '__encryptedAttributes')
+    
     def __init__(self):
         self.__attributes = TypedList(Attribute)
         self.__encryptedAttributes = TypedList(Attribute)
@@ -181,14 +192,14 @@ class AttributeStatement(Statement):
                       SAMLConstants.SAML20_PREFIX)
 
     def _get_attributes(self):
-        '''@return the attributes expressed in this statement
+        '''@return: the attributes expressed in this statement
         '''
         return self.__attributes
 
     attributes = property(fget=_get_attributes)
     
     def _get_encryptedAttributes(self):
-       '''@return the encrypted attribtues expressed in this statement
+       '''@return: the encrypted attribtues expressed in this statement
        '''
        return self.__encryptedAttributes
    
@@ -228,14 +239,14 @@ class AuthnStatement(Statement):
     def _getAuthnInstant(self):
         '''Gets the time when the authentication took place.
         
-        @return the time when the authentication took place
+        @return: the time when the authentication took place
         '''
         raise NotImplementedError()
 
     def _setAuthnInstant(self, value):
         '''Sets the time when the authentication took place.
         
-        @param newAuthnInstant the time when the authentication took place
+        @param value: the time when the authentication took place
         '''
         raise NotImplementedError()
 
@@ -243,7 +254,7 @@ class AuthnStatement(Statement):
         '''Get the session index between the principal and the authenticating 
         authority.
         
-        @return the session index between the principal and the authenticating 
+        @return: the session index between the principal and the authenticating 
         authority
         '''
         raise NotImplementedError()
@@ -252,7 +263,7 @@ class AuthnStatement(Statement):
         '''Sets the session index between the principal and the authenticating 
         authority.
         
-        @param newIndex the session index between the principal and the 
+        @param value: the session index between the principal and the 
         authenticating authority
         '''
         raise NotImplementedError()
@@ -261,7 +272,7 @@ class AuthnStatement(Statement):
         '''Get the time when the session between the principal and the SAML 
         authority ends.
         
-        @return the time when the session between the principal and the SAML 
+        @return: the time when the session between the principal and the SAML 
         authority ends
         '''
         raise NotImplementedError()
@@ -270,7 +281,7 @@ class AuthnStatement(Statement):
         '''Set the time when the session between the principal and the SAML 
         authority ends.
         
-        @param newSessionNotOnOrAfter the time when the session between the 
+        @param value: the time when the session between the 
         principal and the SAML authority ends
         '''
         raise NotImplementedError()
@@ -279,7 +290,7 @@ class AuthnStatement(Statement):
         '''Get the DNS domain and IP address of the system where the principal 
         was authenticated.
         
-        @return the DNS domain and IP address of the system where the principal
+        @return: the DNS domain and IP address of the system where the principal
         was authenticated
         '''
         raise NotImplementedError()
@@ -288,7 +299,7 @@ class AuthnStatement(Statement):
         '''Set the DNS domain and IP address of the system where the principal 
         was authenticated.
         
-        @param newLocality the DNS domain and IP address of the system where 
+        @param value: the DNS domain and IP address of the system where 
         the principal was authenticated
         '''
         raise NotImplementedError()
@@ -296,14 +307,14 @@ class AuthnStatement(Statement):
     def _getAuthnContext(self):
         '''Gets the context used to authenticate the subject.
         
-        @return the context used to authenticate the subject
+        @return: the context used to authenticate the subject
         '''
         raise NotImplementedError()
 
     def _setAuthnContext(self, value):
         '''Sets the context used to authenticate the subject.
         
-        @param newAuthnContext the context used to authenticate the subject
+        @param value: the context used to authenticate the subject
         '''
         raise NotImplementedError()
             
@@ -338,7 +349,7 @@ class AuthzDecisionStatement(Statement):
         '''
         Get URI of the resource to which authorization is saught.
         
-        @return URI of the resource to which authorization is saught
+        @return: URI of the resource to which authorization is saught
         '''
         raise NotImplementedError()
 
@@ -346,7 +357,7 @@ class AuthzDecisionStatement(Statement):
         '''
         Sets URI of the resource to which authorization is saught.
         
-        @param newResourceURI URI of the resource to which authorization is 
+        @param value: URI of the resource to which authorization is 
         saught
         '''
         raise NotImplementedError()
@@ -355,7 +366,7 @@ class AuthzDecisionStatement(Statement):
         '''
         Gets the decision of the authorization request.
         
-        @return the decision of the authorization request
+        @return: the decision of the authorization request
         '''
         raise NotImplementedError()
 
@@ -363,7 +374,7 @@ class AuthzDecisionStatement(Statement):
         '''
         Sets the decision of the authorization request.
         
-        @param newDecision the decision of the authorization request
+        @param value: the decision of the authorization request
         '''
         raise NotImplementedError()
 
@@ -371,7 +382,7 @@ class AuthzDecisionStatement(Statement):
         '''
         Gets the actions authorized to be performed.
         
-        @return the actions authorized to be performed
+        @return: the actions authorized to be performed
         '''
         raise NotImplementedError()
 
@@ -381,7 +392,7 @@ class AuthzDecisionStatement(Statement):
         Get the SAML assertion the authority relied on when making the 
         authorization decision.
         
-        @return the SAML assertion the authority relied on when making the 
+        @return: the SAML assertion the authority relied on when making the 
         authorization decision
         '''
         raise NotImplementedError()
@@ -391,7 +402,7 @@ class AuthzDecisionStatement(Statement):
         Sets the SAML assertion the authority relied on when making the 
         authorization decision.
         
-        @param newEvidence the SAML assertion the authority relied on when 
+        @param value: the SAML assertion the authority relied on when 
         making the authorization decision
         '''
         raise NotImplementedError()
@@ -415,15 +426,22 @@ class Subject(SAMLObject):
     TYPE_NAME = QName(SAMLConstants.SAML20_NS, 
                       TYPE_LOCAL_NAME,
                       SAMLConstants.SAML20_PREFIX)
-
+    __slots__ = (
+        '__qname',
+        '__baseID',
+        '__nameID',
+        '__encryptedID',
+        '__subjectConfirmations'
+    )
+    
     def __init__(self, 
                  namespaceURI=SAMLConstants.SAML20_NS, 
                  elementLocalName=DEFAULT_ELEMENT_LOCAL_NAME, 
                  namespacePrefix=SAMLConstants.SAML20_PREFIX):
-        '''@param namespaceURI the namespace the element is in
-        @param elementLocalName the local name of the XML element this Object 
+        '''@param namespaceURI: the namespace the element is in
+        @param elementLocalName: the local name of the XML element this Object 
         represents
-        @param namespacePrefix the prefix for the given namespace
+        @param namespacePrefix: the prefix for the given namespace
         '''
         self.__qname = QName(namespaceURI, 
                              elementLocalName, 
@@ -480,12 +498,14 @@ class Subject(SAMLObject):
 
     encryptedID = property(fget=_getEncryptedID, 
                            fset=_setEncryptedID, 
-                           doc="EncryptedID's Docstring")    
+                           doc="EncryptedID's Docstring")
+    
     def _getSubjectConfirmations(self): 
         return self.__subjectConfirmations
 
     subjectConfirmations = property(fget=_getSubjectConfirmations, 
                                     doc="Subject Confirmations")    
+    
     def getOrderedChildren(self): 
         children = []
 
@@ -543,11 +563,21 @@ class AbstractNameIDType(SAMLObject):
     # Special URI used by NameIDPolicy to indicate a NameID should be encrypted
     ENCRYPTED = "urn:oasis:names:tc:SAML:2.0:nameid-format:encrypted"
     
+    __slots__ = (
+        '__qname',
+        '__name',
+        '__nameQualifier',
+        '__spNameQualifier',
+        '__format',
+        '__spProvidedID',
+        '__value'
+    )
+    
     def __init__(self, namespaceURI, elementLocalName, namespacePrefix): 
-        '''@param namespaceURI the namespace the element is in
-        @param elementLocalName the local name of the XML element this Object 
+        '''@param namespaceURI: the namespace the element is in
+        @param elementLocalName: the local name of the XML element this Object 
         represents
-        @param namespacePrefix the prefix for the given namespace
+        @param namespacePrefix: the prefix for the given namespace
         '''
         self.__qname = QName(namespaceURI, elementLocalName, namespacePrefix)
     
@@ -683,6 +713,8 @@ class NameID(AbstractNameIDType):
                       TYPE_LOCAL_NAME,
                       SAMLConstants.SAML20_PREFIX)
     
+    __slots__ = ()
+    
     def __init__(self, 
                  namespaceURI=SAMLConstants.SAML20_NS, 
                  localPart=DEFAULT_ELEMENT_LOCAL_NAME, 
@@ -717,6 +749,12 @@ class Conditions(SAMLObject):
     # NotOnOrAfter attribute name.
     NOT_ON_OR_AFTER_ATTRIB_NAME = "NotOnOrAfter"
 
+    __slots__ = (
+        '__conditions',
+        '__notBefore',
+        '__notOnOrAfter'
+    )
+    
     def __init__(self):
         
         # A Condition.
@@ -731,13 +769,13 @@ class Conditions(SAMLObject):
     def _getNotBefore(self):
         '''Get the date/time before which the assertion is invalid.
         
-        @return the date/time before which the assertion is invalid'''
+        @return: the date/time before which the assertion is invalid'''
         return self.__notBefore
     
     def _setNotBefore(self, value):
         '''Sets the date/time before which the assertion is invalid.
         
-        @param newNotBefore the date/time before which the assertion is invalid
+        @param value: the date/time before which the assertion is invalid
         '''
         if not isinstance(value, datetime):
             raise TypeError('Expecting "datetime" type for "notBefore", '
@@ -747,14 +785,14 @@ class Conditions(SAMLObject):
     def _getNotOnOrAfter(self):
         '''Gets the date/time on, or after, which the assertion is invalid.
         
-        @return the date/time on, or after, which the assertion is invalid'
+        @return: the date/time on, or after, which the assertion is invalid'
         '''
         return self.__notBefore
     
     def _setNotOnOrAfter(self, value):
         '''Sets the date/time on, or after, which the assertion is invalid.
         
-        @param newNotOnOrAfter the date/time on, or after, which the assertion 
+        @param value: the date/time on, or after, which the assertion 
         is invalid
         '''
         if not isinstance(value, datetime):
@@ -765,7 +803,7 @@ class Conditions(SAMLObject):
     def _getConditions(self):
         '''Gets all the conditions on the assertion.
         
-        @return all the conditions on the assertion
+        @return: all the conditions on the assertion
         '''
         return self.__conditions
     
@@ -775,21 +813,21 @@ class Conditions(SAMLObject):
     def _getAudienceRestrictions(self):
         '''Gets the audience restriction conditions for the assertion.
         
-        @return the audience restriction conditions for the assertion
+        @return: the audience restriction conditions for the assertion
         '''
         raise NotImplementedError()
 
     def _getOneTimeUse(self):
         '''Gets the OneTimeUse condition for the assertion.
         
-        @return the OneTimeUse condition for the assertion
+        @return: the OneTimeUse condition for the assertion
         '''
         raise NotImplementedError()
 
     def _getProxyRestriction(self):    
         '''Gets the ProxyRestriction condition for the assertion.
         
-        @return the ProxyRestriction condition for the assertion
+        @return: the ProxyRestriction condition for the assertion
         '''
         raise NotImplementedError()
     
@@ -818,35 +856,35 @@ class Advice(SAMLObject):
         '''
         Gets the list of all child elements attached to this advice.
         
-        @return the list of all child elements attached to this advice
+        @return: the list of all child elements attached to this advice
         '''
         raise NotImplementedError()
 
     def _getAssertionIDReferences(self):
         '''Gets the list of AssertionID references used as advice.
         
-        @return the list of AssertionID references used as advice
+        @return: the list of AssertionID references used as advice
         '''
         raise NotImplementedError()
 
     def _getAssertionURIReferences(self):
         '''Gets the list of AssertionURI references used as advice.
         
-        @return the list of AssertionURI references used as advice
+        @return: the list of AssertionURI references used as advice
         '''
         raise NotImplementedError()
     
     def _getAssertions(self):
         '''Gets the list of Assertions used as advice.
         
-        @return the list of Assertions used as advice
+        @return: the list of Assertions used as advice
         '''
         raise NotImplementedError()
     
     def _getEncryptedAssertions(self):
         '''Gets the list of EncryptedAssertions used as advice.
         
-        @return the list of EncryptedAssertions used as advice
+        @return: the list of EncryptedAssertions used as advice
         '''
         raise NotImplementedError()
         
@@ -884,6 +922,20 @@ class Assertion(SAMLObject):
     # ID attribute name.
     ID_ATTRIB_NAME = "ID"
 
+    __slots__ = (
+        '__version',
+        '__issueInstant',
+        '__id',
+        '__issuer',
+        '__subject',
+        '__conditions',
+        '__advice',
+        '__statements',
+        '__authnStatements',
+        '__authzDecisionStatements',
+        '__attributeStatements'
+    )
+    
     def __init__(self):
         # Base class initialisation
         super(Assertion, self).__init__()
@@ -904,12 +956,12 @@ class Assertion(SAMLObject):
         self.__attributeStatements = TypedList(AttributeStatement)
         
     def _get_version(self):
-        '''@return the SAML Version of this assertion.
+        '''@return: the SAML Version of this assertion.
         '''
         return self.__version
     
     def _set_version(self, version):
-        '''@param version the SAML Version of this assertion
+        '''@param version: the SAML Version of this assertion
         '''
         if not isinstance(version, SAMLVersion):
             raise TypeError("Expecting SAMLVersion type got: %r" % 
@@ -924,13 +976,13 @@ class Assertion(SAMLObject):
     def _get_issueInstant(self):
         '''Gets the issue instance of this assertion.
         
-        @return the issue instance of this assertion'''
+        @return: the issue instance of this assertion'''
         return self.__issueInstant
     
     def _set_issueInstant(self, issueInstant):
         '''Sets the issue instance of this assertion.
         
-        @param newIssueInstance the issue instance of this assertion
+        @param issueInstant: the issue instance of this assertion
         '''
         if not isinstance(issueInstant, datetime):
             raise TypeError('Expecting "datetime" type for "issueInstant", '
@@ -945,14 +997,14 @@ class Assertion(SAMLObject):
     def _get_id(self):
         '''Sets the ID of this assertion.
         
-        @return the ID of this assertion
+        @return: the ID of this assertion
         '''
         return self.__id
     
     def _set_id(self, _id):
         '''Sets the ID of this assertion.
         
-        @param newID the ID of this assertion
+        @param _id: the ID of this assertion
         '''
         if not isinstance(_id, basestring):
             raise TypeError('Expecting basestring derived type for "id", got '
@@ -1065,6 +1117,7 @@ class AttributeValue(SAMLObject):
     DEFAULT_ELEMENT_NAME = QName(SAMLConstants.SAML20_NS, 
                                  DEFAULT_ELEMENT_LOCAL_NAME,
                                  SAMLConstants.SAML20_PREFIX)
+    __slots__ = ()
 
 
 class XSStringAttributeValue(AttributeValue):
@@ -1080,6 +1133,8 @@ class XSStringAttributeValue(AttributeValue):
     
     DEFAULT_FORMAT = "%s#%s" % (SAMLConstants.XSD_NS, TYPE_LOCAL_NAME)
   
+    __slots__ = ('__value',)
+    
     def __init__(self):
         self.__value = None
         
@@ -1114,6 +1169,8 @@ class StatusDetail(SAMLObject):
     TYPE_NAME = QName(SAMLConstants.SAML20P_NS, 
                       TYPE_LOCAL_NAME,
                       SAMLConstants.SAML20P_PREFIX)
+    
+    __slots__ = ('__unknownChildren', '__qname')
     
     def __init__(self):
         # child "any" elements.
@@ -1164,6 +1221,8 @@ class StatusMessage(SAMLObject):
     DEFAULT_ELEMENT_NAME = QName(SAMLConstants.SAML20P_NS, 
                                  DEFAULT_ELEMENT_LOCAL_NAME,
                                  SAMLConstants.SAML20P_PREFIX)
+    
+    __slots__ = ('__value', '__qname')
     
     def __init__(self):
         # Value attribute URI.
@@ -1300,6 +1359,8 @@ class StatusCode(SAMLObject):
     UNSUPPORTED_BINDING_URI = \
                 "urn:oasis:names:tc:SAML:2.0:status:UnsupportedBinding"
 
+    __slots__ = ('__value', '__childStatusCode', '__qname')
+    
     def __init__(self):
         # Value attribute URI.
         self.__value = None
@@ -1369,6 +1430,8 @@ class Status(SAMLObject):
                       TYPE_LOCAL_NAME,
                       SAMLConstants.SAML20P_PREFIX)
 
+    __slots__ = ('__statusCode', '__statusMessage', '__statusDetail', '__qname')
+    
     def __init__(self):
         # StatusCode element.
         self.__statusCode = None
@@ -1399,7 +1462,7 @@ class Status(SAMLObject):
         '''
         Gets the Code of this Status.
         
-        @return Status StatusCode
+        @return: Status StatusCode
         '''
         return self.__statusCode
 
@@ -1407,7 +1470,7 @@ class Status(SAMLObject):
         '''
         Sets the Code of this Status.
         
-        @param newStatusCode the Code of this Status
+        @param value:         the Code of this Status
         '''
         if not isinstance(value, StatusCode):
             raise TypeError('"statusCode" must be a %r derived type, '
@@ -1423,7 +1486,7 @@ class Status(SAMLObject):
         '''
         Gets the Message of this Status.
         
-        @return Status StatusMessage
+        @return: Status StatusMessage
         '''
         return self.__statusMessage
 
@@ -1431,7 +1494,7 @@ class Status(SAMLObject):
         '''
         Sets the Message of this Status.
         
-        @param newStatusMessage the Message of this Status
+        @param value: the Message of this Status
         '''
         if not isinstance(value, StatusMessage):
             raise TypeError('"statusMessage" must be a %r derived type, '
@@ -1447,7 +1510,7 @@ class Status(SAMLObject):
         '''
         Gets the Detail of this Status.
         
-        @return Status StatusDetail
+        @return: Status StatusDetail
         '''
         return self.__statusDetail
     
@@ -1455,7 +1518,7 @@ class Status(SAMLObject):
         '''
         Sets the Detail of this Status.
         
-        @param newStatusDetail the Detail of this Status
+        @param value: the Detail of this Status
         '''
         self.__statusDetail = value
         
@@ -1463,6 +1526,143 @@ class Status(SAMLObject):
                             fset=_setStatusDetail,
                             doc="status message")
 
+
+class Action(SAMLObject): 
+    '''SAML 2.0 Core Action'''
+    
+    # Element local name. 
+    DEFAULT_ELEMENT_LOCAL_NAME = "Action"
+
+    # Default element name. 
+    DEFAULT_ELEMENT_NAME = QName(SAMLConstants.SAML20_NS, 
+                                 DEFAULT_ELEMENT_LOCAL_NAME,
+                                 SAMLConstants.SAML20_PREFIX)
+
+    # Local name of the XSI type. 
+    TYPE_LOCAL_NAME = "ActionType"
+
+    # QName of the XSI type 
+    TYPE_NAME = QName(SAMLConstants.SAML20_NS, 
+                      TYPE_LOCAL_NAME,
+                      SAMLConstants.SAML20_PREFIX)
+
+    # Name of the Namespace attribute. 
+    NAMEPSACE_ATTRIB_NAME = "Namespace"
+
+    # Read/Write/Execute/Delete/Control action namespace. 
+    RWEDC_NS_URI = "urn:oasis:names:tc:SAML:1.0:action:rwedc"
+
+    # Read/Write/Execute/Delete/Control negation action namespace. 
+    RWEDC_NEGATION_NS_URI = "urn:oasis:names:tc:SAML:1.0:action:rwedc-negation"
+
+    # Get/Head/Put/Post action namespace. 
+    GHPP_NS_URI = "urn:oasis:names:tc:SAML:1.0:action:ghpp"
+
+    # UNIX file permission action namespace. 
+    UNIX_NS_URI = "urn:oasis:names:tc:SAML:1.0:action:unix"
+
+    # Read action. 
+    READ_ACTION = "Read"
+
+    # Write action. 
+    WRITE_ACTION = "Write"
+
+    # Execute action. 
+    EXECUTE_ACTION = "Execute"
+
+    # Delete action. 
+    DELETE_ACTION = "Delete"
+
+    # Control action. 
+    CONTROL_ACTION = "Control"
+
+    # Negated Read action. 
+    NEG_READ_ACTION = "~Read"
+
+    # Negated Write action. 
+    NEG_WRITE_ACTION = "~Write"
+
+    # Negated Execute action. 
+    NEG_EXECUTE_ACTION = "~Execute"
+
+    # Negated Delete action. 
+    NEG_DELETE_ACTION = "~Delete"
+
+    # Negated Control action. 
+    NEG_CONTROL_ACTION = "~Control"
+
+    # HTTP GET action. 
+    HTTP_GET_ACTION = "GET"
+
+    # HTTP HEAD action. 
+    HTTP_HEAD_ACTION = "HEAD"
+
+    # HTTP PUT action. 
+    HTTP_PUT_ACTION = "PUT"
+
+    # HTTP POST action. 
+    HTTP_POST_ACTION = "POST"
+    
+    def __init__(self, namespaceURI, elementLocalName, namespacePrefix):
+        '''
+        @param namespaceURI: the namespace the element is in
+        @param elementLocalName: the local name of the XML element this object 
+        represents
+        @param namespacePrefix: the prefix for the given namespace'''
+        super(Action, self).__init__(namespaceURI, 
+                                     elementLocalName, 
+                                     namespacePrefix)
+        
+        # URI of the Namespace of this Action
+        self.__namespace = None
+
+        # Action value
+        self.__action = None
+    
+    def _getNamespace(self):
+        '''
+        gets the namespace scope of the specified action.
+        
+        @return: the namespace scope of the specified action
+        '''
+        self.__namespace
+
+    def _setNamespace(self, value):
+        '''
+        Sets the namespace scope of the specified action.
+        
+        @param value: the namespace scope of the specified action
+        '''
+        if not isinstance(value, basestring):
+            raise TypeError('Expecting string type for "namespace" '
+                            'attribute; got %r' % type(value))
+        self.__namespace = value
+
+    namespace = property(_getNamespace, _setNamespace, 
+                         doc="Action Namespace")
+
+    def _getAction(self):
+        '''
+        gets the URI of the action to be performed.
+        
+        @return: the URI of the action to be performed
+        '''
+        return self.__action
+
+    def _setAction(self, value):
+        '''
+        Sets the URI of the action to be performed.
+        
+        @param value: the URI of the action to be performed
+        '''
+        if not isinstance(value, basestring):
+            raise TypeError('Expecting string type for "action" '
+                            'attribute; got %r' % type(value))
+        self.__action = value
+
+    action = property(_getAction, _setAction, 
+                      doc="Action string")
+        
 
 class RequestAbstractType(SAMLObject): 
     '''SAML 2.0 Core RequestAbstractType'''
@@ -1509,8 +1709,18 @@ class RequestAbstractType(SAMLObject):
     UNAVAILABLE_CONSENT = "urn:oasis:names:tc:SAML:2.0:consent:unavailable"
 
     # Inapplicable consent URI.
-    INAPPLICABLE_CONSENT = "urn:oasis:names:tc:SAML:2.0:consent:inapplicable" 
-
+    INAPPLICABLE_CONSENT = "urn:oasis:names:tc:SAML:2.0:consent:inapplicable"
+     
+    __slots__ = (
+        '__version',
+        '__id',
+        '__issueInstant',
+        '__destination',
+        '__consent',
+        '__issuer',
+        '__extensions'
+    )
+    
     def __init__(self):
         # SAML Version of the request. 
         self.__version = None
@@ -1534,12 +1744,12 @@ class RequestAbstractType(SAMLObject):
         self.__extensions = None
         
     def _get_version(self):
-        '''@return the SAML Version of this assertion.
+        '''@return: the SAML Version of this assertion.
         '''
         return self.__version
     
     def _set_version(self, version):
-        '''@param version the SAML Version of this assertion
+        '''@param version: the SAML Version of this assertion
         '''
         if not isinstance(version, SAMLVersion):
             raise TypeError("Expecting SAMLVersion type got: %r" % 
@@ -1554,13 +1764,13 @@ class RequestAbstractType(SAMLObject):
     def _get_issueInstant(self):
         '''Gets the date/time the request was issued
         
-        @return the issue instance of this request'''
+        @return: the issue instance of this request'''
         return self.__issueInstant
     
     def _set_issueInstant(self, value):
         '''Sets the date/time the request was issued
         
-        @param value the issue instance of this request
+        @param value: the issue instance of this request
         '''
         if not isinstance(value, datetime):
             raise TypeError('Expecting "datetime" type for "issueInstant", '
@@ -1575,14 +1785,14 @@ class RequestAbstractType(SAMLObject):
     def _get_id(self):
         '''Sets the unique identifier for this request.
         
-        @return the ID of this request
+        @return: the ID of this request
         '''
         return self.__id
     
     def _set_id(self, value):
         '''Sets the unique identifier for this request
         
-        @param newID the ID of this assertion
+        @param value: the ID of this assertion
         '''
         if not isinstance(value, basestring):
             raise TypeError('Expecting basestring derived type for "id", got '
@@ -1594,14 +1804,14 @@ class RequestAbstractType(SAMLObject):
     def _get_destination(self):
         '''Gets the URI of the destination of the request.
         
-        @return the URI of the destination of the request
+        @return: the URI of the destination of the request
         '''
         return self.__destination
     
     def _set_destination(self, value):
         '''Sets the URI of the destination of the request.
         
-        @param newDestination the URI of the destination of the request'''
+        @param value: the URI of the destination of the request'''
         if not isinstance(value, basestring):
             raise TypeError('Expecting basestring derived type for '
                             '"destination", got %r' % type(value))
@@ -1673,6 +1883,7 @@ class RequestAbstractType(SAMLObject):
 
 class SubjectQuery(RequestAbstractType):
     """SAML 2.0 Core Subject Query type"""
+    __slots__ = ('__subject', )
     
     def __init__(self):
         self.__subject = None
@@ -1680,13 +1891,13 @@ class SubjectQuery(RequestAbstractType):
     def _getSubject(self):
         '''Gets the Subject of this request.
         
-        @return the Subject of this request'''   
+        @return: the Subject of this request'''   
         return self.__subject
     
     def _setSubject(self, value):
         '''Sets the Subject of this request.
         
-        @param newSubject the Subject of this request'''
+        @param value: the Subject of this request'''
         if not isinstance(value, Subject):
             raise TypeError('Setting "subject", got %r, expecting %r' %
                             (Subject, type(value)))
@@ -1715,13 +1926,15 @@ class AttributeQuery(SubjectQuery):
                       TYPE_LOCAL_NAME,
                       SAMLConstants.SAML20P_PREFIX)
 
+    __slots__ = ('__attributes',)
+    
     def __init__(self):
         self.__attributes = TypedList(Attribute)
  
     def _getAttributes(self):
         '''Gets the Attributes of this query.
         
-        @return the list of Attributes of this query'''
+        @return: the list of Attributes of this query'''
         return self.__attributes
 
     def _setAttributes(self, value):
@@ -1730,6 +1943,350 @@ class AttributeQuery(SubjectQuery):
     attributes = property(fget=_getAttributes, 
                           fset=_setAttributes, 
                           doc="Attributes")
+
+
+class Evidentiary(SAMLObject):
+    """Base class for types set in an evidence object"""
+    __slots__ = ()
+
+
+class AssertionURIRef(Evidentiary):
+    __slots__ = ('__assertionURI',)
+    
+    def __init__(self, namespaceURI, elementLocalName, namespacePrefix):
+        '''
+        @param namespaceURI: the namespace the element is in
+        @param elementLocalName: the local name of the XML element this Object 
+        represents
+        @param namespacePrefix: the prefix for the given namespace'''
+        super(AssertionURIRef, self).__init__(namespaceURI, 
+                                              elementLocalName, 
+                                              namespacePrefix)
+        
+        # URI of the Assertion
+        self.__assertionURI = None   
+
+    def _getAssertionURI(self):
+        return self.__assertionURI
+
+    def _setAssertionURI(self, value):
+        if not isinstance(value, basestring):
+            raise TypeError('Expecting string type for "assertionID" '
+                            'attribute; got %r' % type(value))
+        self.__assertionURI = value
+
+    def getOrderedChildren(self):
+        return None
+
+    assertionURI = property(_getAssertionURI, _setAssertionURI, 
+                            doc="Assertion URI")
+    
+    
+class AssertionIDRef(Evidentiary):
+    '''SAML 2.0 Core AssertionIDRef.'''
+
+    # Element local name.
+    DEFAULT_ELEMENT_LOCAL_NAME = "AssertionIDRef"
+
+    # Default element name.
+    DEFAULT_ELEMENT_NAME = QName(SAMLConstants.SAML20_NS, 
+                                 DEFAULT_ELEMENT_LOCAL_NAME,
+                                 SAMLConstants.SAML20_PREFIX)
+    
+    __slots__ = ("_AssertionID",)
+    
+    def __init__(self, namespaceURI, elementLocalName, namespacePrefix):
+        '''
+        @param namespaceURI: the namespace the element is in
+        @param elementLocalName: the local name of the XML element this Object 
+        represents
+        @param namespacePrefix: the prefix for the given namespace
+        '''
+        super(AssertionIDRef, self).__init__(namespaceURI, 
+                                             elementLocalName, 
+                                             namespacePrefix)
+        self.__assertionID = None
+    
+    def _getAssertionID(self):
+        '''Gets the ID of the assertion this references.
+        
+        @return: the ID of the assertion this references'''
+        return self.__assertionID
+        
+    def _setAssertionID(self, value):
+        '''Sets the ID of the assertion this references.
+        
+        @param value: the ID of the assertion this references'''
+        if not isinstance(value, basestring):
+            raise TypeError('Expecting string type for "assertionID" '
+                            'attribute; got %r' % type(value))
+        self.__assertionID = value
+
+    def getOrderedChildren(self):
+        return None
+
+    assertionID = property(_getAssertionID, _setAssertionID, 
+                           doc="Assertion ID")
+        
+    
+class EncryptedElementType(SAMLObject):
+    '''SAML 2.0 Core EncryptedElementType'''
+    
+    # Local name of the XSI type.
+    TYPE_LOCAL_NAME = "EncryptedElementType"
+        
+    # QName of the XSI type.
+    TYPE_NAME = QName(SAMLConstants.SAML20_NS, 
+                      TYPE_LOCAL_NAME, 
+                      SAMLConstants.SAML20_PREFIX)
+    
+    __slots__ = ()
+    
+    def _getEncryptedData(self):
+        '''Get the EncryptedData child element.
+        
+        @return the EncryptedData child element'''
+        raise NotImplementedError()
+    
+    def _setEncryptedData(self, value):
+        '''Set the EncryptedData child element.
+        
+        @param newEncryptedData the new EncryptedData child element'''
+        raise NotImplementedError()
+    
+    def _getEncryptedKeys(self):
+        '''A list of EncryptedKey child elements.
+        
+        @return a list of EncryptedKey child elements'''
+        raise NotImplementedError()
+    
+    
+class EncryptedAssertion(EncryptedElementType, Evidentiary):
+    '''SAML 2.0 Core EncryptedAssertion.'''
+    
+    # Element local name. 
+    DEFAULT_ELEMENT_LOCAL_NAME = "EncryptedAssertion"
+
+    # Default element name. 
+    DEFAULT_ELEMENT_NAME = QName(SAMLConstants.SAML20_NS, 
+                                 DEFAULT_ELEMENT_LOCAL_NAME,
+                                 SAMLConstants.SAML20_PREFIX) 
+    __slots__ = ()
+      
+    
+class Evidence(SAMLObject):
+    '''SAML 2.0 Core Evidence.'''
+    
+    # Element local name.
+    DEFAULT_ELEMENT_LOCAL_NAME = "Evidence"
+    
+    # Default element name.
+    DEFAULT_ELEMENT_NAME = QName(SAMLConstants.SAML20_NS, 
+                                 DEFAULT_ELEMENT_LOCAL_NAME, 
+                                 SAMLConstants.SAML20_PREFIX)
+    
+    # Local name of the XSI type.
+    TYPE_LOCAL_NAME = "EvidenceType" 
+        
+    # QName of the XSI type.
+    TYPE_NAME = QName(SAMLConstants.SAML20_NS, 
+                      TYPE_LOCAL_NAME, 
+                      SAMLConstants.SAML20_PREFIX)
+
+    __slots__ = ('__evidence',)
+    
+    def __init__(self, namespaceURI, elementLocalName, namespacePrefix):
+        '''
+        @param namespaceURI: the namespace the element is in
+        @param elementLocalName: the local name of the XML element this Object 
+        represents
+        @param namespacePrefix: the prefix for the given namespace'''
+        super(Evidence, self).__init__(namespaceURI, 
+                                       elementLocalName, 
+                                       namespacePrefix)
+        # Assertion of the Evidence. 
+        self.__evidence = TypedList(Evidentiary)
+        
+    def _getAssertionIDReferences(self):
+        '''Gets the list of AssertionID references used as evidence.
+    
+        @return: the list of AssertionID references used as evidence'''
+        return [i for i in self.__evidence 
+                if (getattr(i, "DEFAULT_ELEMENT_NAME") == 
+                    AssertionIDRef.DEFAULT_ELEMENT_NAME)]
+    
+    def _getAssertionURIReferences(self):
+        '''Gets the list of AssertionURI references used as evidence.
+       
+        @return: the list of AssertionURI references used as evidence'''
+        return [i for i in self.__evidence 
+                if (getattr(i, "DEFAULT_ELEMENT_NAME") == 
+                    AssertionURIRef.DEFAULT_ELEMENT_NAME)]
+    
+    def _getAssertions(self):
+        '''Gets the list of Assertions used as evidence.
+       
+        @return: the list of Assertions used as evidence'''
+        return [i for i in self.__evidence 
+                if (getattr(i, "DEFAULT_ELEMENT_NAME") == 
+                    Assertion.DEFAULT_ELEMENT_NAME)]
+    
+    def _getEncryptedAssertions(self):
+        '''Gets the list of EncryptedAssertions used as evidence.
+       
+        @return: the list of EncryptedAssertions used as evidence'''
+        return [i for i in self.__evidence 
+                if (getattr(i, "DEFAULT_ELEMENT_NAME") == 
+                    EncryptedAssertion.DEFAULT_ELEMENT_NAME)]
+
+    def _getEvidence(self):
+        '''Gets the list of all elements used as evidence.
+       
+        @return: the list of Evidentiary objects used as evidence'''
+        return self.__evidence
+    
+    def getOrderedChildren(self):
+        children = []
+
+        if len(self.evidence) == 0:
+            return None
+
+        children.extend(self.evidence)
+
+        return tuple(children)
+    
+
+class AuthzDecisionQuery(SubjectQuery):
+    '''SAML 2.0 AuthzDecisionQuery.'''
+
+    # Element local name.
+    DEFAULT_ELEMENT_LOCAL_NAME = "AuthzDecisionQuery"
+
+    # Default element name.
+    DEFAULT_ELEMENT_NAME = QName(SAMLConstants.SAML20P_NS, 
+                                 DEFAULT_ELEMENT_LOCAL_NAME,
+                                 SAMLConstants.SAML20P_PREFIX)
+
+    # Local name of the XSI type.
+    TYPE_LOCAL_NAME = "AuthzDecisionQueryType"
+
+    # QName of the XSI type.
+    TYPE_NAME = QName(SAMLConstants.SAML20P_NS, 
+                      TYPE_LOCAL_NAME,
+                      SAMLConstants.SAML20P_PREFIX)
+
+    # Resource attribute name.
+    RESOURCE_ATTRIB_NAME = "Resource"
+    
+    __slots__ = (
+       '__resource',
+       '__evidence',
+       '__actions'
+    )
+    
+    def __init__(self, namespaceURI, elementLocalName, namespacePrefix):
+        '''@param namespaceURI: the namespace the element is in
+        @param elementLocalName: the local name of the XML element this Object 
+        represents
+        @param namespacePrefix: the prefix for the given namespace
+        '''
+        super(AuthzDecisionQuery, self).__init__(namespaceURI, 
+                                                 elementLocalName, 
+                                                 namespacePrefix)
+
+        # Resource attribute value. 
+        self.__resource = None
+    
+        # Evidence child element.
+        self.__evidence = None
+    
+        # Action child elements.
+        self.__actions = TypedList(Action)
+        
+    def _getResource(self):
+        '''Gets the Resource attrib value of this query.
+
+        @return: the Resource attrib value of this query'''
+        return self.__resource
+    
+    def _setResource(self, value):
+        '''Sets the Resource attrib value of this query normalizing the path
+        component, removing spurious port numbers (80 for HTTP and 443 for 
+        HTTPS) and converting the host component to lower case.
+        
+        @param value: the new Resource attrib value of this query'''
+        if not isinstance(value, basestring):
+            raise TypeError('Expecting string type for "resource" attribute; '
+                            'got %r instead' % type(value))
+        
+        # Normalise the path, set the host name to lower case and remove 
+        # port redundant numbers 80 and 443
+        splitResult = urlsplit(value)
+        uriComponents = list(splitResult)
+        
+        # hostname attribute is lowercase
+        uriComponents[1] = splitResult.hostname
+        
+        isHttpWithStdPort = (splitResult.port == '80' and 
+                             splitResult.scheme == 'http')
+        
+        isHttpsWithStdPort = (splitResult.port == '443' and
+                              splitResult.scheme == 'https')
+        
+        if not isHttpWithStdPort and not isHttpsWithStdPort:
+            uriComponents[1] += ":" + splitResult.port
+        
+        uriComponents[2] = urllib.quote(splitResult.path)
+        
+        self.__resource = urlunsplit(uriComponents)
+    
+    resource = property(fget=_getResource, fset=_setResource,
+                        doc="Resource for which authorisation is requested")
+    
+    def _getActions(self):
+        '''Gets the Actions of this query.
+        
+        @return: the Actions of this query'''
+        return self.__actions
+    
+    actions = property(fget=_getActions, 
+                       doc="The actions for which authorisation is requested")
+   
+    def _getEvidence(self):
+        '''Gets the Evidence of this query.
+
+        @return: the Evidence of this query'''
+        return self.__evidence
+
+    def _setEvidence(self, value):
+        '''Sets the Evidence of this query.
+        @param newEvidence: the new Evidence of this query'''  
+        if not isinstance(value, Evidence):
+            raise TypeError('Expecting Evidence type for "evidence" '
+                            'attribute; got %r' % type(value))
+
+        self.__evidence = value  
+
+    evidence = property(fget=_getEvidence, fset=_setEvidence, 
+                        doc="A set of assertions which the Authority may use "
+                            "to base its authorisation decision on")
+    
+    def getOrderedChildren(self):
+        children = []
+
+        superChildren = super(AuthzDecisionQuery, self).getOrderedChildren()
+        if superChildren:
+            children.extend(superChildren)
+
+        children.extend(self.actions)
+        
+        if evidence is not None:
+            children.extend(evidence)
+
+        if len(children) == 0:
+            return None
+
+        return tuple(children)
 
 
 class StatusResponseType(SAMLObject):
@@ -1783,6 +2340,19 @@ class StatusResponseType(SAMLObject):
     # Inapplicable consent URI
     INAPPLICABLE_CONSENT = "urn:oasis:names:tc:SAML:2.0:consent:inapplicable"
 
+    __slots__ = (
+        '__qname',        
+        '__version',
+        '__id',
+        '__inResponseTo',
+        '__issueInstant',
+        '__destination',
+        '__consent',
+        '__issuer',
+        '__status',
+        '__extensions'                
+    )
+    
     def __init__(self):
         self.__qname = None
         
@@ -1809,12 +2379,12 @@ class StatusResponseType(SAMLObject):
     qname = property(fget=_getQName, fset=_setQName, doc="qualified name")
 
     def _get_version(self):
-        '''@return the SAML Version of this response.
+        '''@return: the SAML Version of this response.
         '''
         return self.__version
     
     def _set_version(self, version):
-        '''@param version the SAML Version of this response
+        '''@param version: the SAML Version of this response
         '''
         if not isinstance(version, SAMLVersion):
             raise TypeError("Expecting SAMLVersion type got: %r" % 
@@ -1829,7 +2399,7 @@ class StatusResponseType(SAMLObject):
     def _get_id(self):
         '''Sets the ID of this response.
         
-        @return the ID of this response
+        @return: the ID of this response
         '''
         return self.__id
     
@@ -1848,7 +2418,7 @@ class StatusResponseType(SAMLObject):
     def _getInResponseTo(self):
         '''Get the unique request identifier for which this is a response
         
-        @return value: the unique identifier of the originating 
+        @return: the unique identifier of the originating 
         request
         '''
         return self.__inResponseTo
@@ -1872,13 +2442,13 @@ class StatusResponseType(SAMLObject):
     def _get_issueInstant(self):
         '''Gets the issue instance of this response.
         
-        @return the issue instance of this response'''
+        @return: the issue instance of this response'''
         return self.__issueInstant
     
     def _set_issueInstant(self, issueInstant):
         '''Sets the issue instance of this response.
         
-        @param newIssueInstance the issue instance of this response
+        @param newIssueInstance: the issue instance of this response
         '''
         if not isinstance(issueInstant, datetime):
             raise TypeError('Expecting "datetime" type for "issueInstant", '
@@ -1893,7 +2463,7 @@ class StatusResponseType(SAMLObject):
     def _get_destination(self):
         '''Gets the URI of the destination of the response.
         
-        @return the URI of the destination of the response
+        @return: the URI of the destination of the response
         '''
         return self.__destination
     
@@ -1953,14 +2523,14 @@ class StatusResponseType(SAMLObject):
     def _getStatus(self):
         '''Gets the Status of this response.
         
-        @return the Status of this response
+        @return: the Status of this response
         '''
         return self.__status
 
     def _setStatus(self, value):
         '''Sets the Status of this response.
         
-        @param newStatus the Status of this response
+        @param newStatus: the Status of this response
         '''
         if not isinstance(value, Status):
             raise TypeError('"status" must be a %r, got %r' % (Status,
@@ -2009,6 +2579,8 @@ class Response(StatusResponseType):
     TYPE_NAME = QName(SAMLConstants.SAML20P_NS, 
                       TYPE_LOCAL_NAME, 
                       SAMLConstants.SAML20P_PREFIX)
+    
+    __slots__ = ()
     
     def __init__(self):
         '''''' 

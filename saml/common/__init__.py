@@ -31,6 +31,8 @@ __revision__ = "$Id: $"
   
 class SAMLObject(object):
     """Base class for all SAML types"""
+    __slots__ = ()
+    
     @classmethod
     def fromXML(cls, xmlObject):
         '''Parse from an XML representation into a SAML object

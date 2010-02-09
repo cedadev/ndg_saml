@@ -19,7 +19,7 @@ import os
 
 setup(
     name =           		'ndg_security_saml',
-    version =        		'0.2',
+    version =        		'0.3',
     description =    		'NERC DataGrid SAML Implementation',
     long_description =		('SAML 2.0 implementation for use with NDG '
                              'Attribute Interface'),

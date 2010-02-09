@@ -24,7 +24,8 @@ from saml.saml2.core import (SAMLVersion, Attribute, AttributeStatement,
                              Assertion, AttributeQuery, Response, Issuer, 
                              Subject, NameID, StatusCode, 
                              StatusMessage, Status, Conditions, 
-                             XSStringAttributeValue)
+                             XSStringAttributeValue,
+                             AuthzDecisionQuery)
 
 from saml.common.xml import SAMLConstants
 from saml.xml.etree import (prettyPrint, AssertionElementTree, 
@@ -308,8 +309,8 @@ class SAMLTestCase(unittest.TestCase):
         # Add a conditions statement for a validity of 8 hours
         assertion.conditions = Conditions()
         assertion.conditions.notBefore = datetime.utcnow()
-        assertion.conditions.notOnOrAfter = assertion.conditions.notBefore + \
-            timedelta(seconds=60*60*8)
+        assertion.conditions.notOnOrAfter = (assertion.conditions.notBefore + 
+                                             timedelta(seconds=60*60*8))
         
         assertion.subject = Subject()  
         assertion.subject.nameID = NameID()
@@ -335,6 +336,10 @@ class SAMLTestCase(unittest.TestCase):
         print("\n"+"_"*80)
         print(xmlOutput)
         print("_"*80)
+        
+    def test06CreateAuthzDecisionQuery(self):
+        authzDecisionQuery = AuthzDecisionQuery()
+        self.assert_(authzDecisionQuery)
     
 if __name__ == "__main__":
     unittest.main()        
