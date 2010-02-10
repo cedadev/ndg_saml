@@ -42,7 +42,7 @@ from saml.saml2.core import (SAMLObject, Attribute, AttributeStatement,
                              Conditions, AttributeValue, AttributeQuery, 
                              AuthzDecisionQuery, Subject, NameID, Issuer, 
                              Response, Status, StatusCode, StatusMessage, 
-                             StatusDetail, Advice, Action,
+                             StatusDetail, Advice, Action, Evidence,
                              XSStringAttributeValue) 
                              
 from saml.common import SAMLVersion
@@ -370,8 +370,10 @@ class AssertionElementTree(Assertion):
                                       "creation is not implemented")
         
         for authzDecisionStatement in assertion.authzDecisionStatements:
-            raise NotImplementedError("Assertion Authorisation Decision "
-                                      "Statement creation is not implemented")
+            authzDecisionStatementElem = AuthzDecisionStatementElementTree.toXML(
+                                        authzDecisionStatement,
+                                        **authzDecisionValueElementTreeFactoryKw)
+            elem.append(authzDecisionStatementElem)
             
         for attributeStatement in assertion.attributeStatements:
             attributeStatementElem = AttributeStatementElementTree.toXML(
@@ -416,7 +418,7 @@ class AssertionElementTree(Assertion):
                 
             attributeValues.append(attributeValue)
         
-        assertion = Assertion()
+        assertion = cls()
         assertion.version = SAMLVersion(attributeValues[0])
         if assertion.version != SAMLVersion.VERSION_20:
             raise NotImplementedError("Parsing for %r is implemented for "
@@ -450,10 +452,10 @@ class AssertionElementTree(Assertion):
                 raise NotImplementedError("Assertion Authentication Statement "
                                           "parsing is not implemented")
         
-            elif localName==AuthzDecisionStatement.DEFAULT_ELEMENT_LOCAL_NAME:
-                raise NotImplementedError("Assertion Authorisation Decision "
-                                          "Statement parsing is not "
-                                          "implemented")
+            elif localName == AuthzDecisionStatement.DEFAULT_ELEMENT_LOCAL_NAME:
+                authzDecisionStatement = \
+                    AuthzDecisionStatementElementTree.fromXML(childElem)
+                assertion.authzDecisionStatements.append(authzDecisionStatement)
             
             elif localName == AttributeStatement.DEFAULT_ELEMENT_LOCAL_NAME:
                 attributeStatement = AttributeStatementElementTree.fromXML(
@@ -462,7 +464,7 @@ class AssertionElementTree(Assertion):
                 assertion.attributeStatements.append(attributeStatement)
             else:
                 raise XMLTypeParseError('Assertion child element name "%s" '
-                                          'not recognised' % localName)
+                                        'not recognised' % localName)
         
         return assertion
 
@@ -532,6 +534,93 @@ class AttributeStatementElementTree(AttributeStatement):
             attributeStatement.attributes.append(attribute)
         
         return attributeStatement
+
+  
+class AuthzDecisionStatementElementTree(AuthzDecisionStatement):
+    """ElementTree XML representation of AuthzDecisionStatement"""
+    
+    @classmethod
+    def toXML(cls, authzDecisionStatement):
+        """Make a tree of a XML elements based on the authzDecision statement
+        
+        @type assertion: saml.saml2.core.AuthzDecisionStatement
+        @param assertion: AuthzDecision Statement to be represented as an 
+        ElementTree Element
+        factory
+        @rtype: ElementTree.Element
+        @return: ElementTree Element
+        """
+        if not isinstance(authzDecisionStatement, AuthzDecisionStatement):
+            raise TypeError("Expecting %r type got: %r" % 
+                            (AuthzDecisionStatement, authzDecisionStatement))
+          
+        if not authzDecisionStatement.resource:
+            raise AttributeError("Resource for AuthzDecisionStatement is not "
+                                 "set")
+              
+        attrib = {
+            cls.DECISION_ATTRIB_NAME: authzDecisionStatement.decision,
+            cls.RESOURCE_ATTRIB_NAME: authzDecisionStatement.resource
+        }
+            
+        tag = str(QName.fromGeneric(cls.DEFAULT_ELEMENT_NAME))  
+        elem = ElementTree.Element(tag, **attrib)
+        ElementTree._namespace_map[cls.DEFAULT_ELEMENT_NAME.namespaceURI
+                                   ] = cls.DEFAULT_ELEMENT_NAME.prefix 
+
+        for action in authzDecisionStatement.actions:
+            # Factory enables support for multiple authzDecision types
+            actionElem = ActionElementTree.toXML(action)
+            elem.append(actionElem)
+        
+        if (authzDecisionStatement.evidence and 
+            len(authzDecisionStatement.evidence.values) > 0):
+            raise NotImplementedError("authzDecisionStatementElementTree does "
+                                      "not currently support the Evidence type")
+            
+        return elem
+    
+    @classmethod
+    def fromXML(cls, elem, **authzDecisionValueElementTreeFactoryKw):
+        """Parse an ElementTree SAML AuthzDecisionStatement element into an
+        AuthzDecisionStatement object
+        
+        @type elem: ElementTree.Element
+        @param elem: ElementTree element containing the AuthzDecisionStatement
+        @type authzDecisionValueElementTreeFactoryKw: dict
+        @param authzDecisionValueElementTreeFactoryKw: keywords for AuthzDecisionValue
+        factory
+        @rtype: saml.saml2.core.AuthzDecisionStatement
+        @return: AuthzDecision Statement"""
+        
+        if not ElementTree.iselement(elem):
+            raise TypeError("Expecting %r input type for parsing; got %r" %
+                            (ElementTree.Element, elem))
+
+        localName = QName.getLocalPart(elem.tag)
+        if localName != cls.DEFAULT_ELEMENT_LOCAL_NAME:
+            raise XMLTypeParseError("No \"%s\" element found" %
+                                    cls.DEFAULT_ELEMENT_LOCAL_NAME)
+        
+        
+        authzDecisionStatement = cls()
+
+        for childElem in elem:
+            localName = QName.getLocalPart(childElem.tag)
+            
+            if localName == Action.DEFAULT_ELEMENT_LOCAL_NAME:
+                action = ActionElementTree.fromXML(childElem)
+                authzDecisionStatement.actions.append(action)
+                
+            elif localName == Evidence.DEFAULT_ELEMENT_LOCAL_NAME:
+                raise NotImplementedError("XML parse of %s element is not "
+                                          "implemented" %
+                                          Evidence.DEFAULT_ELEMENT_LOCAL_NAME)
+            else:
+                raise XMLTypeParseError("AuthzDecisionStatement child element "
+                                        "name %r not recognised" % localName)
+        
+        return authzDecisionStatement
 
 
 class AttributeElementTree(Attribute):

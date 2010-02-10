@@ -21,8 +21,8 @@ from xml.etree.ElementTree import iselement
 from xml.etree import ElementTree
 
 from saml.saml2.core import (SAMLVersion, Attribute, AttributeStatement, 
-                             Assertion, AttributeQuery, Response, Issuer, 
-                             Subject, NameID, StatusCode, 
+                             AuthzDecisionStatement, Assertion, AttributeQuery, 
+                             Response, Issuer, Subject, NameID, StatusCode, 
                              StatusMessage, Status, Conditions, 
                              XSStringAttributeValue, Action,
                              AuthzDecisionQuery)
@@ -195,8 +195,8 @@ class SAMLUtil(object):
         
         for action, namespace in actions:
             authzDecisionQuery.actions.append(Action())
-            authzDecisionQuery.actions[-1].value = action
             authzDecisionQuery.actions[-1].namespace = namespace
+            authzDecisionQuery.actions[-1].value = action
             
         return authzDecisionQuery
             
@@ -209,7 +209,7 @@ class SAMLTestCase(unittest.TestCase):
     UNCORRECTED_RESOURCE_URI = SAMLUtil.UNCORRECTED_RESOURCE_URI
     RESOURCE_URI = SAMLUtil.RESOURCE_URI
     
-    def _createAssertionHelper(self):
+    def _createAttributeAssertionHelper(self):
         samlUtil = SAMLUtil()
         
         # ESG core attributes
@@ -236,7 +236,7 @@ class SAMLTestCase(unittest.TestCase):
         
     def test01CreateAssertion(self):
          
-        assertion = self._createAssertionHelper()
+        assertion = self._createAttributeAssertionHelper()
 
         
         # Create ElementTree Assertion Element
@@ -253,7 +253,7 @@ class SAMLTestCase(unittest.TestCase):
         print("_"*80)
 
     def test02ParseAssertion(self):
-        assertion = self._createAssertionHelper()
+        assertion = self._createAttributeAssertionHelper()
         
         # Create ElementTree Assertion Element
         assertionElem = AssertionElementTree.toXML(assertion)
@@ -326,7 +326,7 @@ class SAMLTestCase(unittest.TestCase):
         print(xmlOutput2)
         print("_"*80)
 
-    def test05CreateResponse(self):
+    def test05CreateAttributeQueryResponse(self):
         response = Response()
         response.issueInstant = datetime.utcnow()
         
@@ -346,7 +346,7 @@ class SAMLTestCase(unittest.TestCase):
         response.status.statusMessage = StatusMessage()        
         response.status.statusMessage.value = "Response created successfully"
            
-        assertion = self._createAssertionHelper()
+        assertion = self._createAttributeAssertionHelper()
         
         # Add a conditions statement for a validity of 8 hours
         assertion.conditions = Conditions()
@@ -406,13 +406,28 @@ class SAMLTestCase(unittest.TestCase):
         self.assert_("yes=True" in authzDecisionQuery.resource)
         
         authzDecisionQuery.actions.append(Action())
-        authzDecisionQuery.actions[0].value = Action.HTTP_GET_ACTION
         authzDecisionQuery.actions[0].namespace = Action.GHPP_NS_URI
+        authzDecisionQuery.actions[0].value = Action.HTTP_GET_ACTION
         
         self.assert_(
             authzDecisionQuery.actions[0].value == Action.HTTP_GET_ACTION)
         self.assert_(
             authzDecisionQuery.actions[0].namespace == Action.GHPP_NS_URI)
+        
+        # Try out the restricted vocabulary
+        try:
+            authzDecisionQuery.actions[0].value = "delete everything"
+            self.fail("Expecting AttributeError raised for incorrect action "
+                      "setting.")
+        except AttributeError, e:
+            print("Caught incorrect action type setting: %s" % e)
+        
+        authzDecisionQuery.actions[0].actionTypes = {'urn:malicious': 
+                                                     ("delete everything",)}
+        
+        # Try again now that the actipn types have been adjusted
+        authzDecisionQuery.actions[0].namespace = 'urn:malicious'
+        authzDecisionQuery.actions[0].value = "delete everything"
         
     def test07SerializeAuthzDecisionQuery(self):
         samlUtil = SAMLUtil()
@@ -469,6 +484,58 @@ class SAMLTestCase(unittest.TestCase):
         self.assert_(
             authzDecisionQuery2.actions[0].namespace == Action.GHPP_NS_URI)
         self.assert_(authzDecisionQuery2.evidence is None)
+
+
+    def test05CreateAuthzDecisionQueryResponse(self):
+        response = Response()
+        response.issueInstant = datetime.utcnow()
+        
+        # Make up a request ID that this response is responding to
+        response.inResponseTo = str(uuid4())
+        response.id = str(uuid4())
+        response.version = SAMLVersion(SAMLVersion.VERSION_20)
+            
+        response.issuer = Issuer()
+        response.issuer.format = Issuer.X509_SUBJECT
+        response.issuer.value = \
+                        SAMLTestCase.ISSUER_DN
+        
+        response.status = Status()
+        response.status.statusCode = StatusCode()
+        response.status.statusCode.value = StatusCode.SUCCESS_URI
+        response.status.statusMessage = StatusMessage()        
+        response.status.statusMessage.value = "Response created successfully"
+           
+        assertion = Assertion()
+        authzDecisionStatement = AuthzDecisionStatement()
+        authzDecisionStatement.resource = SAMLTestCase.RESOURCE_URI
+        authzDecisionStatement.actions.append(Action())
+        authzDecisionStatement.actions[-1].namespace = Action.GHPP_NS_URI
+        authzDecisionStatement.actions[-1].value = Action.HTTP_GET_ACTION
+        assertion.authzDecisionStatements.append(authzDecisionStatement)
+        
+#        assertion.subject = Subject()  
+#        assertion.subject.nameID = NameID()
+#        assertion.subject.nameID.format = SAMLTestCase.NAMEID_FORMAT
+#        assertion.subject.nameID.value = SAMLTestCase.NAMEID_VALUE    
+#            
+#        assertion.issuer = Issuer()
+#        assertion.issuer.format = Issuer.X509_SUBJECT
+#        assertion.issuer.value = SAMLTestCase.ISSUER_DN
+
+        response.assertions.append(assertion)
+        
+        # Create ElementTree Assertion Element
+        responseElem = ResponseElementTree.toXML(response)
+        
+        self.assert_(iselement(responseElem))
+        
+        # Serialise to output        
+        xmlOutput = prettyPrint(responseElem)       
+        self.assert_(len(xmlOutput))
+        print("\n"+"_"*80)
+        print(xmlOutput)
+        print("_"*80)
 
        
 if __name__ == "__main__":

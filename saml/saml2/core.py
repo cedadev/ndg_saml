@@ -321,7 +321,47 @@ class AuthnStatement(Statement):
         @param value: the context used to authenticate the subject
         '''
         raise NotImplementedError()
+
+
+class DecisionType(object):
+    """Define decision types for the authorisation decisions"""
+    
+    # "Permit" decision type
+    PERMIT = "Permit"
+    
+    # "Deny" decision type
+    DENY = "Deny"
+    
+    # "Indeterminate" decision type
+    INDETERMINATE = "Indeterminate"
+        
+    TYPES = (PERMIT, DENY, INDETERMINATE)
+    
+    __slots__ = ('__value',)
+    
+    def __init__(self, decisionType):
+        self.__value = None
+        self.value = decisionType
+
+    def _setValue(self, value):
+        if not isinstance(value, basestring):
+            raise TypeError('Expecting string type for "value" attribute; got '
+                            'instead' % type(value))
             
+        if value not in DecisionType.TYPES:
+            raise AttributeError('Permissable decision types are %r; got %r '
+                                 'instead' % (DecisionType.TYPES,
+                                              value))
+        self.__value = value
+        
+    def _getValue(self):
+        return self.__value
+    
+    value = property(fget=_getValue, fset=_setValue, doc="Decision value")
+    
+    def __str__(self):
+        return self.__value
+
 
 class AuthzDecisionStatement(Statement):
     '''SAML 2.0 Core AuthzDecisionStatement.  Currently implemented in abstract
@@ -358,7 +398,11 @@ class AuthzDecisionStatement(Statement):
         super(AuthzDecisionStatement, self).__init__(**kw)
 
         # Resource attribute value. 
-        self.__resource = None
+        self.__resource = None  
+        
+        self.__decision = DecisionType(DecisionType.INDETERMINATE)    
+        self.__actions = TypedList(Action)
+        self.__evidence = None
         
         # Tuning for normalization of resource URIs in property set method
         self.normalizeResource = normalizeResource
@@ -453,7 +497,7 @@ class AuthzDecisionStatement(Statement):
         
         @return: the decision of the authorization request
         '''
-        raise NotImplementedError()
+        return self.__decision
 
     def _setDecision(self, value):
         '''
@@ -461,7 +505,10 @@ class AuthzDecisionStatement(Statement):
         
         @param value: the decision of the authorization request
         '''
-        raise NotImplementedError()
+        if not isinstance(value, basestring):
+            raise TypeError('Expecting %r type for "decision" attribute; '
+                            'got instead' % (DecisionType, type(value)))
+        self.__decision = value
     
     @property
     def actions(self):
@@ -1042,7 +1089,7 @@ class Assertion(SAMLObject):
         
         # TODO: Implement AuthnStatement and AuthzDecisionStatement classes
         self.__authnStatements = []
-        self.__authzDecisionStatements = []
+        self.__authzDecisionStatements = TypedList(AuthzDecisionStatement)
         self.__attributeStatements = TypedList(AttributeStatement)
         
     def _get_version(self):
@@ -1165,36 +1212,25 @@ class Assertion(SAMLObject):
                       fset=_set_advice, 
                       doc="Attribute Assertion advice")
     
-    def _get_statements(self):
-        """Get statements string."""
+    @property
+    def statements(self):
+        """Attribute Assertion statements"""
         return self.__statements
-
-    statements = property(fget=_get_statements,
-                          doc="Attribute Assertion statements")
     
-    def _get_authnStatements(self):
-        """Get authnStatements string."""
+    @property
+    def authnStatements(self):
+        """Attribute Assertion authentication"""
         return self.__authnStatements
-
-    authnStatements = property(fget=_get_authnStatements,
-                               doc="Attribute Assertion authentication "
-                                   "statements")
     
-    def _get_authzDecisionStatements(self):
-        """Get authorisation decision statements."""
+    @property
+    def authzDecisionStatements(self):
+        """Attribute Assertion authorisation decision statements"""
         return self.__authzDecisionStatements
-
-    authzDecisionStatements = property(fget=_get_authzDecisionStatements,
-                                       doc="Attribute Assertion authorisation "
-                                           "decision statements")
     
-    def _get_attributeStatements(self):
-        """Get attributeStatements string."""
+    @property
+    def attributeStatements(self):
+        """Attribute Assertion attribute statements"""
         return self.__attributeStatements
-
-    attributeStatements = property(fget=_get_attributeStatements,
-                                   doc="Attribute Assertion attribute "
-                                       "statements")
     
 
 class AttributeValue(SAMLObject):
@@ -1651,6 +1687,13 @@ class Action(SAMLObject):
     # UNIX file permission action namespace. 
     UNIX_NS_URI = "urn:oasis:names:tc:SAML:1.0:action:unix"
 
+    ACTION_NS_IDENTIFIERS = (
+        RWEDC_NS_URI,
+        RWEDC_NEGATION_NS_URI,    
+        GHPP_NS_URI,
+        UNIX_NS_URI       
+    )
+    
     # Read action. 
     READ_ACTION = "Read"
 
@@ -1693,34 +1736,76 @@ class Action(SAMLObject):
     # HTTP POST action. 
     HTTP_POST_ACTION = "POST"
     
+    ACTION_TYPES = {
+        RWEDC_NS_URI: (READ_ACTION, WRITE_ACTION, EXECUTE_ACTION, DELETE_ACTION,
+                       CONTROL_ACTION),
+        RWEDC_NEGATION_NS_URI: (READ_ACTION, WRITE_ACTION, EXECUTE_ACTION, 
+                                DELETE_ACTION, CONTROL_ACTION, NEG_READ_ACTION, 
+                                NEG_WRITE_ACTION, NEG_EXECUTE_ACTION, 
+                                NEG_CONTROL_ACTION),    
+        GHPP_NS_URI: (HTTP_GET_ACTION, HTTP_HEAD_ACTION, HTTP_PUT_ACTION,
+                      HTTP_POST_ACTION),
+                      
+        # This namespace uses octal bitmask for file permissions
+        UNIX_NS_URI: ()   
+    }
+    
     def __init__(self, **kw):
         '''Create an authorization action type
         '''
         super(Action, self).__init__(**kw)
 
-        # URI of the Namespace of this action
-        self.__namespace = None
+        # URI of the Namespace of this action.  Default to read/write/negation 
+        # type - 2.7.4.2 SAML 2 Core Spec. 15 March 2005
+        self.__namespace = Action.RWEDC_NEGATION_NS_URI
 
         #Value value
         self.__action = None       
     
+        self.__actionTypes = Action.ACTION_TYPES
+
+    def _getActionTypes(self):
+        return self.__actionTypes
+
+    def _setActionTypes(self, value):
+        if not isinstance(value, dict):
+            raise TypeError('Expecting list or tuple type for "actionTypes" '
+                            'attribute; got %r' % type(value))
+            
+        for k, v in value.items():
+            if not isinstance(v, (tuple, type(None))):
+                raise TypeError('Expecting None or tuple type for '
+                                '"actionTypes" dictionary values; got %r for '
+                                '%r key' % (type(value), k))
+        self.__actionTypes = value
+
+    actionTypes = property(_getActionTypes, 
+                           _setActionTypes, 
+                           doc="Restrict vocabulary of action types")
+        
     def _getNamespace(self):
         '''
-        gets the namespace scope of the specifiedvalue.
+        gets the namespace scope of the specified value.
         
-        @return: the namespace scope of the specifiedvalue
+        @return: the namespace scope of the specified value
         '''
         return self.__namespace
 
     def _setNamespace(self, value):
         '''
-        Sets the namespace scope of the specifiedvalue.
+        Sets the namespace scope of the specified value.
         
-        @param value: the namespace scope of the specifiedvalue
+        @param value: the namespace scope of the specified value
         '''
         if not isinstance(value, basestring):
             raise TypeError('Expecting string type for "namespace" '
                             'attribute; got %r' % type(value))
+            
+        if value not in self.__actionTypes.keys():
+            raise AttributeError('"namespace" action type %r not recognised. '
+                                 'It must be one of these action types: %r' % 
+                                 self.__actionNsIdentifiers)
+            
         self.__namespace = value
 
     namespace = property(_getNamespace, _setNamespace, doc="Action Namespace")
@@ -1737,11 +1822,30 @@ class Action(SAMLObject):
         '''
         Sets the URI of the action to be performed.
         
-        @param value: the URI of thevalue to be performed
+        @param value: the URI of the value to be performed
         '''
-        if not isinstance(value, basestring):
-            raise TypeError('Expecting string type for "action" '
+        # int and oct allow for UNIX file permissions action type
+        if not isinstance(value, (basestring, int)):
+            raise TypeError('Expecting string or int type for "action" '
                             'attribute; got %r' % type(value))
+            
+        # Default to read/write/negation type - 2.7.4.2 SAML 2 Core Spec.
+        # 15 March 2005
+        allowedActions = self.__actionTypes.get(self.__namespace,
+                                                Action.RWEDC_NEGATION_NS_URI)
+        
+        # Only apply restriction for action type that has a restricted 
+        # vocabulary - UNIX type is missed out of this because its an octal
+        # mask
+        if len(allowedActions) > 0 and value not in allowedActions:
+            raise AttributeError('%r action not recognised; known actions for '
+                                 'the %r namespace identifier are: %r.  ' 
+                                 'If this is not as expected make sure to set '
+                                 'the "namespace" attribute to an alternative '
+                                 'value first or override completely by '
+                                 'explicitly setting the "allowTypes" '
+                                 'attribute' % 
+                                 (value, self.__namespace, allowedActions))
         self.__value = value
 
     value = property(_getValue, _setValue, doc="Action string")
