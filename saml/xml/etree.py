@@ -40,8 +40,9 @@ except ImportError:
 from saml.saml2.core import (SAMLObject, Attribute, AttributeStatement, 
                              AuthnStatement, AuthzDecisionStatement, Assertion,
                              Conditions, AttributeValue, AttributeQuery, 
-                             Subject, NameID, Issuer, Response, Status, 
-                             StatusCode, StatusMessage, StatusDetail, Advice, 
+                             AuthzDecisionQuery, Subject, NameID, Issuer, 
+                             Response, Status, StatusCode, StatusMessage, 
+                             StatusDetail, Advice, Action,
                              XSStringAttributeValue) 
                              
 from saml.common import SAMLVersion
@@ -922,8 +923,8 @@ class NameIdElementTree(NameID):
     def toXML(cls, nameID):
         """Create an XML representation of the input SAML Name Identifier
         object
-        @type nameID: saml.saml2.core.Subject
-        @param nameID: SAML subject
+        @type nameID: saml.saml2.core.NameID
+        @param nameID: SAML name ID
         @rtype: ElementTree.Element
         @return: Name ID as ElementTree XML element"""
         
@@ -1460,4 +1461,194 @@ class ResponseElementTree(Response):
                                           'element "%s"' % localName)
         
         return response
+
+
+class ActionElementTree(Action):
+    """Represent a SAML authorization action in XML using ElementTree"""
+    
+    @classmethod
+    def toXML(cls, action):
+        """Create an XML representation of the input SAML Name Identifier
+        object
+        @type action: saml.saml2.core.Action
+        @param action: SAML subject
+        @rtype: ElementTree.Element
+        @return: Name ID as ElementTree XML element"""
+        
+        if not isinstance(action, Action):
+            raise TypeError("Expecting %r class got %r" % (Action, 
+                                                           type(action)))
+            
+        if not action.namespace:
+            raise AttributeError("No action namespace set")
+        
+        attrib = {
+            cls.NAMESPACE_ATTRIB_NAME: action.namespace
+        }
+        tag = str(QName.fromGeneric(cls.DEFAULT_ELEMENT_NAME))
+        elem = ElementTree.Element(tag, **attrib)
+        
+        ElementTree._namespace_map[action.qname.namespaceURI
+                                   ] = action.qname.prefix
+        
+        if not action.value:
+            raise AttributeError("No action name set")
+         
+        elem.text = action.value
+
+        return elem
+
+    @classmethod
+    def fromXML(cls, elem):
+        """Parse ElementTree element into a SAML Action object
+        
+        @type elem: ElementTree.Element
+        @param elem: Name ID as ElementTree XML element
+        @rtype: saml.saml2.core.Action
+        @return: SAML Name ID
+        """
+        if not ElementTree.iselement(elem):
+            raise TypeError("Expecting %r input type for parsing; got %r" %
+                            (ElementTree.Element, elem))
+
+        if QName.getLocalPart(elem.tag) != cls.DEFAULT_ELEMENT_LOCAL_NAME:
+            raise XMLTypeParseError("No \"%s\" element found" %
+                                    cls.DEFAULT_ELEMENT_LOCAL_NAME)
+            
+        namespace = elem.attrib.get(cls.NAMESPACE_ATTRIB_NAME)
+        if namespace is None:
+            raise XMLTypeParseError('No "%s" attribute found in "%s" '
+                                    'element' %
+                                    (cls.NAMESPACE_ATTRIB_NAME,
+                                     cls.DEFAULT_ELEMENT_LOCAL_NAME))
+        action = Action()
+        action.namespace = namespace
+        action.value = elem.text.strip() 
+        
+        return action
+    
+    
+class AuthzDecisionQueryElementTree(AuthzDecisionQuery):
+    """Represent a SAML Attribute Query in XML using ElementTree"""
+        
+    @classmethod
+    def toXML(cls, authzDecisionQuery):
+        """Create an XML representation of the input SAML Authorization
+        Decision Query object
+
+        @type authzDecisionQuery: saml.saml2.core.AuthzDecisionQuery
+        @param authzDecisionQuery: SAML Authorization Decision Query
+        @rtype: ElementTree.Element
+        @return: Attribute Query as ElementTree XML element
+        """
+        if not isinstance(authzDecisionQuery, AuthzDecisionQuery):
+            raise TypeError("Expecting %r class got %r" % (AuthzDecisionQuery, 
+                                                    type(authzDecisionQuery)))
+            
+        if not authzDecisionQuery.resource:
+            raise AttributeError("No resource has been set for the "
+                                 "AuthzDecisionQuery")
+            
+        issueInstant = SAMLDateTime.toString(authzDecisionQuery.issueInstant)
+        attrib = {
+            cls.ID_ATTRIB_NAME: authzDecisionQuery.id,
+            cls.ISSUE_INSTANT_ATTRIB_NAME: issueInstant,
+            
+            # Nb. Version is a SAMLVersion instance and requires explicit cast
+            cls.VERSION_ATTRIB_NAME: str(authzDecisionQuery.version),
+            
+            cls.RESOURCE_ATTRIB_NAME: authzDecisionQuery.resource
+        }
+        
+        tag = str(QName.fromGeneric(cls.DEFAULT_ELEMENT_NAME))
+        elem = ElementTree.Element(tag, **attrib)
+        
+        ElementTree._namespace_map[cls.DEFAULT_ELEMENT_NAME.namespaceURI
+                                   ] = cls.DEFAULT_ELEMENT_NAME.prefix
+        
+        issuerElem = IssuerElementTree.toXML(authzDecisionQuery.issuer)
+        elem.append(issuerElem)
+
+        subjectElem = SubjectElementTree.toXML(authzDecisionQuery.subject)
+        elem.append(subjectElem)
+
+        for action in authzDecisionQuery.actions:
+            # Factory enables support for multiple attribute types
+            actionElem = ActionElementTree.toXML(action)
+            elem.append(actionElem)
+        
+        if (authzDecisionQuery.evidence and 
+            len(authzDecisionQuery.evidence.evidence) > 0):
+            raise NotImplementedError("Conversion of AuthzDecisionQuery "
+                                      "Evidence type to ElementTree Element is "
+                                      "not currently supported")
+            
+        return elem
+
+    @classmethod
+    def fromXML(cls, elem):
+        """Parse ElementTree element into a SAML AuthzDecisionQuery object
+        
+        @type elem: ElementTree.Element
+        @param elem: XML element containing the AuthzDecisionQuery
+        @rtype: saml.saml2.core.AuthzDecisionQuery
+        @return: AuthzDecisionQuery object
+        """
+        if not ElementTree.iselement(elem):
+            raise TypeError("Expecting %r input type for parsing; got %r" %
+                            (ElementTree.Element, elem))
+
+        if QName.getLocalPart(elem.tag) != cls.DEFAULT_ELEMENT_LOCAL_NAME:
+            raise XMLTypeParseError("No \"%s\" element found" %
+                                    cls.DEFAULT_ELEMENT_LOCAL_NAME)
+        
+        # Unpack attributes from top-level element
+        attributeValues = []
+        for attributeName in (cls.VERSION_ATTRIB_NAME,
+                              cls.ISSUE_INSTANT_ATTRIB_NAME,
+                              cls.ID_ATTRIB_NAME,
+                              cls.RESOURCE_ATTRIB_NAME):
+            attributeValue = elem.attrib.get(attributeName)
+            if attributeValue is None:
+                raise XMLTypeParseError('No "%s" attribute found in "%s" '
+                                 'element' %
+                                 (attributeName,
+                                  cls.DEFAULT_ELEMENT_LOCAL_NAME))
+                
+            attributeValues.append(attributeValue)
+        
+        authzDecisionQuery = AuthzDecisionQuery()
+        authzDecisionQuery.version = SAMLVersion(attributeValues[0])
+        if authzDecisionQuery.version != SAMLVersion.VERSION_20:
+            raise NotImplementedError("Parsing for %r is implemented for "
+                                      "SAML version %s only; version %s is " 
+                                      "not supported" % 
+                                      (cls,
+                                       SAMLVersion(SAMLVersion.VERSION_20),
+                                       SAMLVersion(authzDecisionQuery.version)))
+            
+        authzDecisionQuery.issueInstant = SAMLDateTime.fromString(
+                                                            attributeValues[1])
+        authzDecisionQuery.id = attributeValues[2]
+        
+        authzDecisionQuery.resource = attributeValues[3]
+        
+        for childElem in elem:
+            localName = QName.getLocalPart(childElem.tag)
+            if localName == Issuer.DEFAULT_ELEMENT_LOCAL_NAME:
+                # Parse Issuer
+                authzDecisionQuery.issuer = IssuerElementTree.fromXML(childElem)
+                
+            elif localName == Subject.DEFAULT_ELEMENT_LOCAL_NAME:
+                # Parse Subject
+                authzDecisionQuery.subject = SubjectElementTree.fromXML(childElem)
+            
+            elif localName == Action.DEFAULT_ELEMENT_LOCAL_NAME:
+                action = ActionElementTree.fromXML(childElem)
+                authzDecisionQuery.actions.append(action)
+            else:
+                raise XMLTypeParseError("Unrecognised AuthzDecisionQuery child "
+                                        "element \"%s\"" % localName)
+        
+        return authzDecisionQuery
 

@@ -28,11 +28,35 @@ __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __license__ = "BSD - see LICENSE file in top-level directory"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = "$Id: $"
-  
+from saml.common.xml import SAMLConstants, QName
+ 
+
 class SAMLObject(object):
     """Base class for all SAML types"""
-    __slots__ = ()
+    DEFAULT_ELEMENT_LOCAL_NAME = None
+    __slots__ = ('__qname',)
     
+    def __init__(self,
+                 namespaceURI=SAMLConstants.SAML20_NS, 
+                 elementLocalName=None, 
+                 namespacePrefix=SAMLConstants.SAML20_PREFIX):
+        '''@param namespaceURI: the namespace the element is in
+        @param elementLocalName: the local name of the XML element this Object 
+        represents
+        @param namespacePrefix: the prefix for the given namespace
+        '''
+        if elementLocalName is None:
+            elementLocalName = self.__class__.DEFAULT_ELEMENT_LOCAL_NAME
+            
+        self.__qname = QName(namespaceURI, 
+                             elementLocalName, 
+                             namespacePrefix)
+    
+    @property
+    def qname(self):
+        "Qualified Name for this type"
+        return self.__qname
+            
     @classmethod
     def fromXML(cls, xmlObject):
         '''Parse from an XML representation into a SAML object

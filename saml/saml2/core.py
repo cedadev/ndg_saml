@@ -81,8 +81,10 @@ class Attribute(SAMLObject):
         '__attributeValues'
     )
     
-    def __init__(self):
+    def __init__(self, **kw):
         """Initialise Attribute Class attributes"""
+        super(Attribute, self).__init__(**kw)
+        
         self.__name = None
         self.__nameFormat = None
         self.__friendlyName = None
@@ -171,7 +173,9 @@ class AttributeStatement(Statement):
     '''SAML 2.0 Core AttributeStatement'''
     __slots__ = ('__attributes', '__encryptedAttributes')
     
-    def __init__(self):
+    def __init__(self, **kw):
+        super(AttributeStatement, self).__init__(**kw)
+        
         self.__attributes = TypedList(Attribute)
         self.__encryptedAttributes = TypedList(Attribute)
 
@@ -344,23 +348,104 @@ class AuthzDecisionStatement(Statement):
 
     # Decision attribute name
     DECISION_ATTRIB_NAME = "Decision"
+    
+    def __init__(self, 
+                 normalizeResource=True, 
+                 safeNormalizationChars='/%',
+                 **kw):
+        '''Create new authorisation decision statement
+        '''
+        super(AuthzDecisionStatement, self).__init__(**kw)
+
+        # Resource attribute value. 
+        self.__resource = None
+        
+        # Tuning for normalization of resource URIs in property set method
+        self.normalizeResource = normalizeResource
+        self.safeNormalizationChars = safeNormalizationChars
+
+    def _getNormalizeResource(self):
+        return self.__normalizeResource
+
+    def _setNormalizeResource(self, value):
+        if not isinstance(value, bool):
+            raise TypeError('Expecting bool type for "normalizeResource" '
+                            'attribute; got %r instead' % type(value))
+            
+        self.__normalizeResource = value
+
+    normalizeResource = property(_getNormalizeResource, 
+                                 _setNormalizeResource, 
+                                 doc="Flag to normalize new resource value "
+                                     "assigned to the \"resource\" property.  "
+                                     "The setting only applies for URIs "
+                                     'beginning with "http://" or "https://"')
+
+    def _getSafeNormalizationChars(self):
+        return self.__safeNormalizationChars
+
+    def _setSafeNormalizationChars(self, value):
+        if not isinstance(value, basestring):
+            raise TypeError('Expecting string type for "normalizeResource" '
+                            'attribute; got %r instead' % type(value))
+            
+        self.__safeNormalizationChars = value
+
+    safeNormalizationChars = property(_getSafeNormalizationChars, 
+                                      _setSafeNormalizationChars, 
+                                      doc="String containing a list of "
+                                          "characters that should not be "
+                                          "converted when Normalizing the "
+                                          "resource URI.  These are passed to "
+                                          "urllib.quote when the resource "
+                                          "property is set.  The default "
+                                          "characters are '/%'")
 
     def _getResource(self):
-        '''
-        Get URI of the resource to which authorization is saught.
-        
-        @return: URI of the resource to which authorization is saught
-        '''
-        raise NotImplementedError()
+        '''Gets the Resource attrib value of this query.
 
+        @return: the Resource attrib value of this query'''
+        return self.__resource
+    
     def _setResource(self, value):
-        '''
-        Sets URI of the resource to which authorization is saught.
+        '''Sets the Resource attrib value of this query normalizing the path
+        component, removing spurious port numbers (80 for HTTP and 443 for 
+        HTTPS) and converting the host component to lower case.
         
-        @param value: URI of the resource to which authorization is 
-        saught
-        '''
-        raise NotImplementedError()
+        @param value: the new Resource attrib value of this query'''
+        if not isinstance(value, basestring):
+            raise TypeError('Expecting string type for "resource" attribute; '
+                            'got %r instead' % type(value))
+        
+        if (self.normalizeResource and 
+            value.startswith('http://') or value.startswith('https://')):
+            # Normalise the path, set the host name to lower case and remove 
+            # port redundant numbers 80 and 443
+            splitResult = urlsplit(value)
+            uriComponents = list(splitResult)
+            
+            # hostname attribute is lowercase
+            uriComponents[1] = splitResult.hostname
+            
+            if splitResult.port is not None:
+                isHttpWithStdPort = (splitResult.port == 80 and 
+                                     splitResult.scheme == 'http')
+                
+                isHttpsWithStdPort = (splitResult.port == 443 and
+                                      splitResult.scheme == 'https')
+                
+                if not isHttpWithStdPort and not isHttpsWithStdPort:
+                    uriComponents[1] += ":%d" % splitResult.port
+            
+            uriComponents[2] = urllib.quote(splitResult.path, 
+                                            self.safeNormalizationChars)
+            
+            self.__resource = urlunsplit(uriComponents)
+        else:
+            self.__resource = value
+    
+    resource = property(fget=_getResource, fset=_setResource,
+                        doc="Resource for which authorisation was requested")
 
     def _getDecision(self):
         '''
@@ -377,35 +462,49 @@ class AuthzDecisionStatement(Statement):
         @param value: the decision of the authorization request
         '''
         raise NotImplementedError()
-
-    def _getActions(self):
-        '''
-        Gets the actions authorized to be performed.
+    
+    @property
+    def actions(self):
+        '''The actions for which authorisation is requested
         
-        @return: the actions authorized to be performed
-        '''
-        raise NotImplementedError()
-
-
+        @return: the Actions of this statement'''
+        return self.__actions
+   
     def _getEvidence(self):
-        '''
-        Get the SAML assertion the authority relied on when making the 
-        authorization decision.
-        
-        @return: the SAML assertion the authority relied on when making the 
-        authorization decision
-        '''
-        raise NotImplementedError()
+        '''Gets the Evidence of this statement.
+
+        @return: the Evidence of this statement'''
+        return self.__evidence
 
     def _setEvidence(self, value):
-        '''
-        Sets the SAML assertion the authority relied on when making the 
-        authorization decision.
+        '''Sets the Evidence of this query.
+        @param newEvidence: the new Evidence of this statement'''  
+        if not isinstance(value, Evidence):
+            raise TypeError('Expecting Evidence type for "evidence" '
+                            'attribute; got %r' % type(value))
+
+        self.__evidence = value  
+
+    evidence = property(fget=_getEvidence, fset=_setEvidence, 
+                        doc="A set of assertions which the Authority may use "
+                            "to base its authorisation decision on")
+    
+    def getOrderedChildren(self):
+        children = []
+
+        superChildren = super(AuthzDecisionStatement, self).getOrderedChildren()
+        if superChildren:
+            children.extend(superChildren)
+
+        children.extend(self.__actions)
         
-        @param value: the SAML assertion the authority relied on when 
-        making the authorization decision
-        '''
-        raise NotImplementedError()
+        if self.__evidence is not None:
+            children.extend(self.__evidence)
+
+        if len(children) == 0:
+            return None
+
+        return tuple(children)
         
 
 class Subject(SAMLObject):
@@ -434,18 +533,8 @@ class Subject(SAMLObject):
         '__subjectConfirmations'
     )
     
-    def __init__(self, 
-                 namespaceURI=SAMLConstants.SAML20_NS, 
-                 elementLocalName=DEFAULT_ELEMENT_LOCAL_NAME, 
-                 namespacePrefix=SAMLConstants.SAML20_PREFIX):
-        '''@param namespaceURI: the namespace the element is in
-        @param elementLocalName: the local name of the XML element this Object 
-        represents
-        @param namespacePrefix: the prefix for the given namespace
-        '''
-        self.__qname = QName(namespaceURI, 
-                             elementLocalName, 
-                             namespacePrefix)
+    def __init__(self, **kw):
+        super(Subject, self).__init__(**kw)
         
         # BaseID child element.
         self.__baseID = None
@@ -458,11 +547,6 @@ class Subject(SAMLObject):
     
         # Subject Confirmations of the Subject.
         self.__subjectConfirmations = []
-    
-    def _get_qname(self):
-        return self.__qname
-    
-    qname = property(fget=_get_qname, doc="Qualified Name for Subject")
     
     def _getBaseID(self): 
         return self.__baseID
@@ -1553,7 +1637,7 @@ class Action(SAMLObject):
                       SAMLConstants.SAML20_PREFIX)
 
     # Name of the Namespace attribute. 
-    NAMEPSACE_ATTRIB_NAME = "Namespace"
+    NAMESPACE_ATTRIB_NAME = "Namespace"
 
     # Read/Write/Execute/Delete/Control action namespace. 
     RWEDC_NS_URI = "urn:oasis:names:tc:SAML:1.0:action:rwedc"
@@ -1609,65 +1693,58 @@ class Action(SAMLObject):
     # HTTP POST action. 
     HTTP_POST_ACTION = "POST"
     
-    def __init__(self, namespaceURI, elementLocalName, namespacePrefix):
+    def __init__(self, **kw):
+        '''Create an authorization action type
         '''
-        @param namespaceURI: the namespace the element is in
-        @param elementLocalName: the local name of the XML element this object 
-        represents
-        @param namespacePrefix: the prefix for the given namespace'''
-        super(Action, self).__init__(namespaceURI, 
-                                     elementLocalName, 
-                                     namespacePrefix)
-        
-        # URI of the Namespace of this Action
+        super(Action, self).__init__(**kw)
+
+        # URI of the Namespace of this action
         self.__namespace = None
 
-        # Action value
-        self.__action = None
+        #Value value
+        self.__action = None       
     
     def _getNamespace(self):
         '''
-        gets the namespace scope of the specified action.
+        gets the namespace scope of the specifiedvalue.
         
-        @return: the namespace scope of the specified action
+        @return: the namespace scope of the specifiedvalue
         '''
-        self.__namespace
+        return self.__namespace
 
     def _setNamespace(self, value):
         '''
-        Sets the namespace scope of the specified action.
+        Sets the namespace scope of the specifiedvalue.
         
-        @param value: the namespace scope of the specified action
+        @param value: the namespace scope of the specifiedvalue
         '''
         if not isinstance(value, basestring):
             raise TypeError('Expecting string type for "namespace" '
                             'attribute; got %r' % type(value))
         self.__namespace = value
 
-    namespace = property(_getNamespace, _setNamespace, 
-                         doc="Action Namespace")
+    namespace = property(_getNamespace, _setNamespace, doc="Action Namespace")
 
-    def _getAction(self):
+    def _getValue(self):
         '''
         gets the URI of the action to be performed.
         
         @return: the URI of the action to be performed
         '''
-        return self.__action
+        return self.__value
 
-    def _setAction(self, value):
+    def _setValue(self, value):
         '''
         Sets the URI of the action to be performed.
         
-        @param value: the URI of the action to be performed
+        @param value: the URI of thevalue to be performed
         '''
         if not isinstance(value, basestring):
             raise TypeError('Expecting string type for "action" '
                             'attribute; got %r' % type(value))
-        self.__action = value
+        self.__value = value
 
-    action = property(_getAction, _setAction, 
-                      doc="Action string")
+    value = property(_getValue, _setValue, doc="Action string")
         
 
 class RequestAbstractType(SAMLObject): 
@@ -1957,17 +2034,20 @@ class Evidentiary(SAMLObject):
 
 
 class AssertionURIRef(Evidentiary):
+    '''SAML 2.0 Core AssertionURIRef'''
     __slots__ = ('__assertionURI',)
     
-    def __init__(self, namespaceURI, elementLocalName, namespacePrefix):
-        '''
-        @param namespaceURI: the namespace the element is in
-        @param elementLocalName: the local name of the XML element this Object 
-        represents
-        @param namespacePrefix: the prefix for the given namespace'''
-        super(AssertionURIRef, self).__init__(namespaceURI, 
-                                              elementLocalName, 
-                                              namespacePrefix)
+    # Element local name
+    DEFAULT_ELEMENT_LOCAL_NAME = "AssertionURIRef"
+
+    # Default element name
+    DEFAULT_ELEMENT_NAME = QName(SAMLConstants.SAML20_NS, 
+                                 DEFAULT_ELEMENT_LOCAL_NAME,
+                                 SAMLConstants.SAML20_PREFIX)
+    
+    def __init__(self):
+        '''Create assertion URI reference'''
+        super(AssertionURIRef, self).__init__()
         
         # URI of the Assertion
         self.__assertionURI = None   
@@ -2099,65 +2179,66 @@ class Evidence(SAMLObject):
                       TYPE_LOCAL_NAME, 
                       SAMLConstants.SAML20_PREFIX)
 
-    __slots__ = ('__evidence',)
+    __slots__ = ('__values',)
     
-    def __init__(self, namespaceURI, elementLocalName, namespacePrefix):
+    def __init__(self, **kw):
+        '''Create an authorization evidence type
         '''
-        @param namespaceURI: the namespace the element is in
-        @param elementLocalName: the local name of the XML element this Object 
-        represents
-        @param namespacePrefix: the prefix for the given namespace'''
-        super(Evidence, self).__init__(namespaceURI, 
-                                       elementLocalName, 
-                                       namespacePrefix)
+        super(Evidence, self).__init__(**kw)
+
         # Assertion of the Evidence. 
-        self.__evidence = TypedList(Evidentiary)
+        self.__values = TypedList(Evidentiary) 
         
-    def _getAssertionIDReferences(self):
+    @property
+    def assertionIDReferences(self):
         '''Gets the list of AssertionID references used as evidence.
     
         @return: the list of AssertionID references used as evidence'''
-        return [i for i in self.__evidence 
+        return [i for i in self.__values 
                 if (getattr(i, "DEFAULT_ELEMENT_NAME") == 
                     AssertionIDRef.DEFAULT_ELEMENT_NAME)]
     
-    def _getAssertionURIReferences(self):
+    @property
+    def assertionURIReferences(self):
         '''Gets the list of AssertionURI references used as evidence.
        
         @return: the list of AssertionURI references used as evidence'''
-        return [i for i in self.__evidence 
+        return [i for i in self.__values 
                 if (getattr(i, "DEFAULT_ELEMENT_NAME") == 
                     AssertionURIRef.DEFAULT_ELEMENT_NAME)]
     
-    def _getAssertions(self):
+    @property
+    def assertions(self):
         '''Gets the list of Assertions used as evidence.
        
         @return: the list of Assertions used as evidence'''
-        return [i for i in self.__evidence 
+        return [i for i in self.__values 
                 if (getattr(i, "DEFAULT_ELEMENT_NAME") == 
                     Assertion.DEFAULT_ELEMENT_NAME)]
     
-    def _getEncryptedAssertions(self):
+    @property
+    def encryptedAssertions(self):
         '''Gets the list of EncryptedAssertions used as evidence.
        
         @return: the list of EncryptedAssertions used as evidence'''
-        return [i for i in self.__evidence 
+        return [i for i in self.__values 
                 if (getattr(i, "DEFAULT_ELEMENT_NAME") == 
-                    EncryptedAssertion.DEFAULT_ELEMENT_NAME)]
+                    EncryptedAssertion.DEFAULT_ELEMENT_NAME)]   
 
-    def _getEvidence(self):
+    @property
+    def values(self):
         '''Gets the list of all elements used as evidence.
        
         @return: the list of Evidentiary objects used as evidence'''
-        return self.__evidence
+        return self.__values
     
     def getOrderedChildren(self):
         children = []
 
-        if len(self.evidence) == 0:
+        if len(self.__values) == 0:
             return None
 
-        children.extend(self.evidence)
+        children.extend(self.__values)
 
         return tuple(children)
     
@@ -2187,13 +2268,18 @@ class AuthzDecisionQuery(SubjectQuery):
     __slots__ = (
        '__resource',
        '__evidence',
-       '__actions'
+       '__actions',
+       '__normalizeResource',
+       '__safeNormalizationChars'
     )
     
-    def __init__(self):
+    def __init__(self, 
+                 normalizeResource=True, 
+                 safeNormalizationChars='/%',
+                 **kw):
         '''Create new authorisation decision query
         '''
-        super(AuthzDecisionQuery, self).__init__()
+        super(AuthzDecisionQuery, self).__init__(**kw)
 
         # Resource attribute value. 
         self.__resource = None
@@ -2202,8 +2288,49 @@ class AuthzDecisionQuery(SubjectQuery):
         self.__evidence = None
     
         # Action child elements.
-        self.__actions = TypedList(Action)
+        self.__actions = TypedList(Action)   
         
+        # Tuning for normalization of resource URIs in property set method
+        self.normalizeResource = normalizeResource
+        self.safeNormalizationChars = safeNormalizationChars
+
+    def _getNormalizeResource(self):
+        return self.__normalizeResource
+
+    def _setNormalizeResource(self, value):
+        if not isinstance(value, bool):
+            raise TypeError('Expecting bool type for "normalizeResource" '
+                            'attribute; got %r instead' % type(value))
+            
+        self.__normalizeResource = value
+
+    normalizeResource = property(_getNormalizeResource, 
+                                 _setNormalizeResource, 
+                                 doc="Flag to normalize new resource value "
+                                     "assigned to the \"resource\" property.  "
+                                     "The setting only applies for URIs "
+                                     'beginning with "http://" or "https://"')
+
+    def _getSafeNormalizationChars(self):
+        return self.__safeNormalizationChars
+
+    def _setSafeNormalizationChars(self, value):
+        if not isinstance(value, basestring):
+            raise TypeError('Expecting string type for "normalizeResource" '
+                            'attribute; got %r instead' % type(value))
+            
+        self.__safeNormalizationChars = value
+
+    safeNormalizationChars = property(_getSafeNormalizationChars, 
+                                      _setSafeNormalizationChars, 
+                                      doc="String containing a list of "
+                                          "characters that should not be "
+                                          "converted when Normalizing the "
+                                          "resource URI.  These are passed to "
+                                          "urllib.quote when the resource "
+                                          "property is set.  The default "
+                                          "characters are '/%'")
+
     def _getResource(self):
         '''Gets the Resource attrib value of this query.
 
@@ -2220,38 +2347,42 @@ class AuthzDecisionQuery(SubjectQuery):
             raise TypeError('Expecting string type for "resource" attribute; '
                             'got %r instead' % type(value))
         
-        # Normalise the path, set the host name to lower case and remove 
-        # port redundant numbers 80 and 443
-        splitResult = urlsplit(value)
-        uriComponents = list(splitResult)
-        
-        # hostname attribute is lowercase
-        uriComponents[1] = splitResult.hostname
-        
-        isHttpWithStdPort = (splitResult.port == 80 and 
-                             splitResult.scheme == 'http')
-        
-        isHttpsWithStdPort = (splitResult.port == 443 and
-                              splitResult.scheme == 'https')
-        
-        if not isHttpWithStdPort and not isHttpsWithStdPort:
-            uriComponents[1] += ":%d" % splitResult.port
-        
-        uriComponents[2] = urllib.quote(splitResult.path)
-        
-        self.__resource = urlunsplit(uriComponents)
+        if (self.normalizeResource and 
+            value.startswith('http://') or value.startswith('https://')):
+            # Normalise the path, set the host name to lower case and remove 
+            # port redundant numbers 80 and 443
+            splitResult = urlsplit(value)
+            uriComponents = list(splitResult)
+            
+            # hostname attribute is lowercase
+            uriComponents[1] = splitResult.hostname
+            
+            if splitResult.port is not None:
+                isHttpWithStdPort = (splitResult.port == 80 and 
+                                     splitResult.scheme == 'http')
+                
+                isHttpsWithStdPort = (splitResult.port == 443 and
+                                      splitResult.scheme == 'https')
+                
+                if not isHttpWithStdPort and not isHttpsWithStdPort:
+                    uriComponents[1] += ":%d" % splitResult.port
+            
+            uriComponents[2] = urllib.quote(splitResult.path, 
+                                            self.safeNormalizationChars)
+            
+            self.__resource = urlunsplit(uriComponents)
+        else:
+            self.__resource = value
     
     resource = property(fget=_getResource, fset=_setResource,
                         doc="Resource for which authorisation is requested")
     
-    def _getActions(self):
-        '''Gets the Actions of this query.
+    @property
+    def actions(self):
+        '''The actions for which authorisation is requested
         
         @return: the Actions of this query'''
         return self.__actions
-    
-    actions = property(fget=_getActions, 
-                       doc="The actions for which authorisation is requested")
    
     def _getEvidence(self):
         '''Gets the Evidence of this query.
@@ -2279,10 +2410,10 @@ class AuthzDecisionQuery(SubjectQuery):
         if superChildren:
             children.extend(superChildren)
 
-        children.extend(self.actions)
+        children.extend(self.__actions)
         
-        if evidence is not None:
-            children.extend(evidence)
+        if self.__evidence is not None:
+            children.extend(self.__evidence)
 
         if len(children) == 0:
             return None
