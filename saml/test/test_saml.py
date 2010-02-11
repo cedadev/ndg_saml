@@ -23,7 +23,7 @@ from xml.etree import ElementTree
 from saml.saml2.core import (SAMLVersion, Attribute, AttributeStatement, 
                              AuthzDecisionStatement, Assertion, AttributeQuery, 
                              Response, Issuer, Subject, NameID, StatusCode, 
-                             StatusMessage, Status, Conditions, 
+                             StatusMessage, Status, Conditions, DecisionType,
                              XSStringAttributeValue, Action,
                              AuthzDecisionQuery)
 
@@ -486,9 +486,10 @@ class SAMLTestCase(unittest.TestCase):
         self.assert_(authzDecisionQuery2.evidence is None)
 
 
-    def test05CreateAuthzDecisionQueryResponse(self):
+    def test09CreateAuthzDecisionQueryResponse(self):
         response = Response()
-        response.issueInstant = datetime.utcnow()
+        now = datetime.utcnow()
+        response.issueInstant = now
         
         # Make up a request ID that this response is responding to
         response.inResponseTo = str(uuid4())
@@ -497,8 +498,7 @@ class SAMLTestCase(unittest.TestCase):
             
         response.issuer = Issuer()
         response.issuer.format = Issuer.X509_SUBJECT
-        response.issuer.value = \
-                        SAMLTestCase.ISSUER_DN
+        response.issuer.value = SAMLTestCase.ISSUER_DN
         
         response.status = Status()
         response.status.statusCode = StatusCode()
@@ -507,21 +507,31 @@ class SAMLTestCase(unittest.TestCase):
         response.status.statusMessage.value = "Response created successfully"
            
         assertion = Assertion()
+        assertion.version = SAMLVersion(SAMLVersion.VERSION_20)
+        assertion.id = str(uuid4())
+        assertion.issueInstant = now
+        
         authzDecisionStatement = AuthzDecisionStatement()
+        authzDecisionStatement.decision = DecisionType.PERMIT
         authzDecisionStatement.resource = SAMLTestCase.RESOURCE_URI
         authzDecisionStatement.actions.append(Action())
         authzDecisionStatement.actions[-1].namespace = Action.GHPP_NS_URI
         authzDecisionStatement.actions[-1].value = Action.HTTP_GET_ACTION
         assertion.authzDecisionStatements.append(authzDecisionStatement)
         
-#        assertion.subject = Subject()  
-#        assertion.subject.nameID = NameID()
-#        assertion.subject.nameID.format = SAMLTestCase.NAMEID_FORMAT
-#        assertion.subject.nameID.value = SAMLTestCase.NAMEID_VALUE    
-#            
-#        assertion.issuer = Issuer()
-#        assertion.issuer.format = Issuer.X509_SUBJECT
-#        assertion.issuer.value = SAMLTestCase.ISSUER_DN
+        # Add a conditions statement for a validity of 8 hours
+        assertion.conditions = Conditions()
+        assertion.conditions.notBefore = now
+        assertion.conditions.notOnOrAfter = now + timedelta(seconds=60*60*8)
+               
+        assertion.subject = Subject()  
+        assertion.subject.nameID = NameID()
+        assertion.subject.nameID.format = SAMLTestCase.NAMEID_FORMAT
+        assertion.subject.nameID.value = SAMLTestCase.NAMEID_VALUE    
+            
+        assertion.issuer = Issuer()
+        assertion.issuer.format = Issuer.X509_SUBJECT
+        assertion.issuer.value = SAMLTestCase.ISSUER_DN
 
         response.assertions.append(assertion)
         

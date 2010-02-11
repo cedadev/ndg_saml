@@ -327,15 +327,15 @@ class DecisionType(object):
     """Define decision types for the authorisation decisions"""
     
     # "Permit" decision type
-    PERMIT = "Permit"
+    PERMIT_STR = "Permit"
     
     # "Deny" decision type
-    DENY = "Deny"
+    DENY_STR = "Deny"
     
     # "Indeterminate" decision type
-    INDETERMINATE = "Indeterminate"
+    INDETERMINATE_STR = "Indeterminate"
         
-    TYPES = (PERMIT, DENY, INDETERMINATE)
+    TYPES = (PERMIT_STR, DENY_STR, INDETERMINATE_STR)
     
     __slots__ = ('__value',)
     
@@ -346,12 +346,11 @@ class DecisionType(object):
     def _setValue(self, value):
         if not isinstance(value, basestring):
             raise TypeError('Expecting string type for "value" attribute; got '
-                            'instead' % type(value))
+                            '%r instead' % type(value))
             
         if value not in DecisionType.TYPES:
             raise AttributeError('Permissable decision types are %r; got %r '
-                                 'instead' % (DecisionType.TYPES,
-                                              value))
+                                 'instead' % (DecisionType.TYPES, value))
         self.__value = value
         
     def _getValue(self):
@@ -361,6 +360,42 @@ class DecisionType(object):
     
     def __str__(self):
         return self.__value
+
+    def __eq__(self, decision):
+        return self.__value == decision.value
+
+
+class PermitDecisionType(DecisionType):
+    """Permit authorisation Decision"""
+    def __init__(self):
+        super(PermitDecisionType, self).__init__(DecisionType.PERMIT_STR)
+        
+    def _setValue(self):  
+        raise AttributeError("can't set attribute")
+
+
+class DenyDecisionType(DecisionType):
+    """Deny authorisation Decision"""
+    def __init__(self):
+        super(DenyDecisionType, self).__init__(DecisionType.DENY_STR)
+        
+    def _setValue(self, value):  
+        raise AttributeError("can't set attribute")
+
+
+class IndeterminateDecisionType(DecisionType):
+    """Indeterminate authorisation Decision"""
+    def __init__(self):
+        super(IndeterminateDecisionType, self).__init__(
+                                            DecisionType.INDETERMINATE_STR)
+        
+    def _setValue(self, value):  
+        raise AttributeError("can't set attribute")
+
+# Add instances of each for convenience
+DecisionType.PERMIT = PermitDecisionType()
+DecisionType.DENY = DenyDecisionType()
+DecisionType.INDETERMINATE = IndeterminateDecisionType()
 
 
 class AuthzDecisionStatement(Statement):
@@ -400,7 +435,7 @@ class AuthzDecisionStatement(Statement):
         # Resource attribute value. 
         self.__resource = None  
         
-        self.__decision = DecisionType(DecisionType.INDETERMINATE)    
+        self.__decision = DecisionType.INDETERMINATE   
         self.__actions = TypedList(Action)
         self.__evidence = None
         
@@ -505,10 +540,13 @@ class AuthzDecisionStatement(Statement):
         
         @param value: the decision of the authorization request
         '''
-        if not isinstance(value, basestring):
+        if not isinstance(value, DecisionType):
             raise TypeError('Expecting %r type for "decision" attribute; '
-                            'got instead' % (DecisionType, type(value)))
+                            'got %r instead' % (DecisionType, type(value)))
         self.__decision = value
+
+    decision = property(_getDecision, _setDecision, 
+                        doc="Authorization decision as a DecisionType instance")
     
     @property
     def actions(self):

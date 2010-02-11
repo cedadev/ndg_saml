@@ -370,9 +370,8 @@ class AssertionElementTree(Assertion):
                                       "creation is not implemented")
         
         for authzDecisionStatement in assertion.authzDecisionStatements:
-            authzDecisionStatementElem = AuthzDecisionStatementElementTree.toXML(
-                                        authzDecisionStatement,
-                                        **authzDecisionValueElementTreeFactoryKw)
+            authzDecisionStatementElem = \
+                AuthzDecisionStatementElementTree.toXML(authzDecisionStatement)
             elem.append(authzDecisionStatementElem)
             
         for attributeStatement in assertion.attributeStatements:
