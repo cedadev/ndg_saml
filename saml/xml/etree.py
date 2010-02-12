@@ -42,8 +42,8 @@ from saml.saml2.core import (SAMLObject, Attribute, AttributeStatement,
                              Conditions, AttributeValue, AttributeQuery, 
                              AuthzDecisionQuery, Subject, NameID, Issuer, 
                              Response, Status, StatusCode, StatusMessage, 
-                             StatusDetail, Advice, Action, Evidence,
-                             XSStringAttributeValue) 
+                             StatusDetail, Advice, Action, Evidence, 
+                             DecisionType, XSStringAttributeValue) 
                              
 from saml.common import SAMLVersion
 from saml.common.xml import SAMLConstants
@@ -580,7 +580,7 @@ class AuthzDecisionStatementElementTree(AuthzDecisionStatement):
         return elem
     
     @classmethod
-    def fromXML(cls, elem, **authzDecisionValueElementTreeFactoryKw):
+    def fromXML(cls, elem):
         """Parse an ElementTree SAML AuthzDecisionStatement element into an
         AuthzDecisionStatement object
         
@@ -601,8 +601,22 @@ class AuthzDecisionStatementElementTree(AuthzDecisionStatement):
             raise XMLTypeParseError("No \"%s\" element found" %
                                     cls.DEFAULT_ELEMENT_LOCAL_NAME)
         
+        # Unpack attributes from top-level element
+        attributeValues = []
+        for attributeName in (cls.DECISION_ATTRIB_NAME,
+                              cls.RESOURCE_ATTRIB_NAME):
+            attributeValue = elem.attrib.get(attributeName)
+            if attributeValue is None:
+                raise XMLTypeParseError('No "%s" attribute found in "%s" '
+                                 'element' %
+                                 (attributeName,
+                                  cls.DEFAULT_ELEMENT_LOCAL_NAME))
+                
+            attributeValues.append(attributeValue)
         
-        authzDecisionStatement = cls()
+        authzDecisionStatement = AuthzDecisionStatement()
+        authzDecisionStatement.decision = DecisionType(attributeValues[0])
+        authzDecisionStatement.resource = attributeValues[1]
 
         for childElem in elem:
             localName = QName.getLocalPart(childElem.tag)
@@ -1717,8 +1731,7 @@ class AuthzDecisionQueryElementTree(AuthzDecisionQuery):
             
         authzDecisionQuery.issueInstant = SAMLDateTime.fromString(
                                                             attributeValues[1])
-        authzDecisionQuery.id = attributeValues[2]
-        
+        authzDecisionQuery.id = attributeValues[2]        
         authzDecisionQuery.resource = attributeValues[3]
         
         for childElem in elem:

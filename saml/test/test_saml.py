@@ -486,7 +486,8 @@ class SAMLTestCase(unittest.TestCase):
         self.assert_(authzDecisionQuery2.evidence is None)
 
 
-    def test09CreateAuthzDecisionQueryResponse(self):
+    def _createAuthzDecisionQueryResponse(self):
+        """Helper method for Authz Decision Response"""
         response = Response()
         now = datetime.utcnow()
         response.issueInstant = now
@@ -535,18 +536,69 @@ class SAMLTestCase(unittest.TestCase):
 
         response.assertions.append(assertion)
         
+        return response
+        
+    def test09CreateAuthzDecisionQueryResponse(self):
+        response = self._createAuthzDecisionQueryResponse()
+        self.assert_(response.assertions[0])
+        self.assert_(response.assertions[0].authzDecisionStatements[0])
+        self.assert_(response.assertions[0].authzDecisionStatements[0
+            ].decision == DecisionType.PERMIT)
+        self.assert_(response.assertions[0].authzDecisionStatements[0
+            ].resource == SAMLTestCase.RESOURCE_URI)
+        self.assert_(response.assertions[0].authzDecisionStatements[0
+            ].decision == DecisionType.PERMIT)
+        self.assert_(response.assertions[0].authzDecisionStatements[0
+            ].actions[-1].namespace == Action.GHPP_NS_URI)
+        self.assert_(response.assertions[0].authzDecisionStatements[0
+            ].actions[-1].value == Action.HTTP_GET_ACTION)
+     
+    def _serializeAuthzDecisionQueryResponse(self):
+        response = self._createAuthzDecisionQueryResponse()
+        
         # Create ElementTree Assertion Element
         responseElem = ResponseElementTree.toXML(response)
-        
         self.assert_(iselement(responseElem))
         
         # Serialise to output        
-        xmlOutput = prettyPrint(responseElem)       
+        xmlOutput = prettyPrint(responseElem)
+        return xmlOutput
+    
+    def test10SerializeAuthzDecisionQueryResponse(self):
+        xmlOutput = self._serializeAuthzDecisionQueryResponse()
         self.assert_(len(xmlOutput))
         print("\n"+"_"*80)
         print(xmlOutput)
         print("_"*80)
+        
+        self.assert_('AuthzDecisionStatement' in xmlOutput)
+        self.assert_('GET' in xmlOutput)
+        self.assert_('Permit' in xmlOutput)
 
+    def test11DeserializeAuthzDecisionResponse(self):
+        xmlOutput = self._serializeAuthzDecisionQueryResponse()
+        
+        authzDecisionResponseStream = StringIO()
+        authzDecisionResponseStream.write(xmlOutput)
+        authzDecisionResponseStream.seek(0)
+
+        tree = ElementTree.parse(authzDecisionResponseStream)
+        elem = tree.getroot()
+        response = ResponseElementTree.fromXML(elem)
+        
+        self.assert_(response.assertions[0])
+        self.assert_(response.assertions[0].authzDecisionStatements[0])
+        self.assert_(response.assertions[0].authzDecisionStatements[0
+            ].decision == DecisionType.PERMIT)
+        self.assert_(response.assertions[0].authzDecisionStatements[0
+            ].resource == SAMLTestCase.RESOURCE_URI)
+        self.assert_(response.assertions[0].authzDecisionStatements[0
+            ].decision == DecisionType.PERMIT)
+        self.assert_(response.assertions[0].authzDecisionStatements[0
+            ].actions[-1].namespace == Action.GHPP_NS_URI)
+        self.assert_(response.assertions[0].authzDecisionStatements[0
+            ].actions[-1].value == Action.HTTP_GET_ACTION)
+        
        
 if __name__ == "__main__":
     unittest.main()        

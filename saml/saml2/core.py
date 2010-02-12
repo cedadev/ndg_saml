@@ -344,13 +344,17 @@ class DecisionType(object):
         self.value = decisionType
 
     def _setValue(self, value):
-        if not isinstance(value, basestring):
-            raise TypeError('Expecting string type for "value" attribute; got '
-                            '%r instead' % type(value))
+        if isinstance(value, DecisionType):
+            # Cast to string
+            value = str(value)
             
-        if value not in DecisionType.TYPES:
-            raise AttributeError('Permissable decision types are %r; got %r '
-                                 'instead' % (DecisionType.TYPES, value))
+        elif not isinstance(value, basestring):
+            raise TypeError('Expecting string or DecisionType instance for '
+                            '"value" attribute; got %r instead' % type(value))
+            
+        if value not in self.__class__.TYPES:
+            raise AttributeError('Permissable decision types are %r; got '
+                                 '%r instead' % (DecisionType.TYPES, value))
         self.__value = value
         
     def _getValue(self):
