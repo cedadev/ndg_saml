@@ -960,7 +960,7 @@ class Conditions(SAMLObject):
         
         @return: the date/time on, or after, which the assertion is invalid'
         '''
-        return self.__notBefore
+        return self.__notOnOrAfter
     
     def _setNotOnOrAfter(self, value):
         '''Sets the date/time on, or after, which the assertion is invalid.
@@ -979,15 +979,13 @@ class Conditions(SAMLObject):
     notOnOrAfter = property(_getNotOnOrAfter, _setNotOnOrAfter, 
                             doc="Not on or after time restriction")
 
-    def _getConditions(self):
-        '''Gets all the conditions on the assertion.
+    @property
+    def conditions(self):
+        '''All the conditions on the assertion.
         
         @return: all the conditions on the assertion
         '''
         return self.__conditions
-    
-    conditions = property(fget=_getConditions,
-                          doc="List of conditions")
     
     def _getAudienceRestrictions(self):
         '''Gets the audience restriction conditions for the assertion.
@@ -1834,8 +1832,7 @@ class Action(SAMLObject):
         return self.__namespace
 
     def _setNamespace(self, value):
-        '''
-        Sets the namespace scope of the specified value.
+        '''Sets the namespace scope of the specified value.
         
         @param value: the namespace scope of the specified value
         '''
@@ -1846,23 +1843,21 @@ class Action(SAMLObject):
         if value not in self.__actionTypes.keys():
             raise AttributeError('"namespace" action type %r not recognised. '
                                  'It must be one of these action types: %r' % 
-                                 self.__actionNsIdentifiers)
+                                 self.__actionTypes.keys())
             
         self.__namespace = value
 
     namespace = property(_getNamespace, _setNamespace, doc="Action Namespace")
 
     def _getValue(self):
-        '''
-        gets the URI of the action to be performed.
+        '''gets the URI of the action to be performed.
         
         @return: the URI of the action to be performed
         '''
         return self.__value
 
     def _setValue(self, value):
-        '''
-        Sets the URI of the action to be performed.
+        '''Sets the URI of the action to be performed.
         
         @param value: the URI of the value to be performed
         '''
@@ -2115,6 +2110,7 @@ class SubjectQuery(RequestAbstractType):
     __slots__ = ('__subject', )
     
     def __init__(self):
+        super(SubjectQuery, self).__init__()
         self.__subject = None
         
     def _getSubject(self):
@@ -2158,6 +2154,7 @@ class AttributeQuery(SubjectQuery):
     __slots__ = ('__attributes',)
     
     def __init__(self):
+        super(AttributeQuery, self).__init__()
         self.__attributes = TypedList(Attribute)
  
     def _getAttributes(self):
@@ -2419,13 +2416,10 @@ class AuthzDecisionQuery(SubjectQuery):
        '__safeNormalizationChars'
     )
     
-    def __init__(self, 
-                 normalizeResource=True, 
-                 safeNormalizationChars='/%',
-                 **kw):
+    def __init__(self, normalizeResource=True, safeNormalizationChars='/%'):
         '''Create new authorisation decision query
         '''
-        super(AuthzDecisionQuery, self).__init__(**kw)
+        super(AuthzDecisionQuery, self).__init__()
 
         # Resource attribute value. 
         self.__resource = None

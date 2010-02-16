@@ -558,7 +558,7 @@ class AuthzDecisionStatementElementTree(AuthzDecisionStatement):
                                  "set")
               
         attrib = {
-            cls.DECISION_ATTRIB_NAME: authzDecisionStatement.decision,
+            cls.DECISION_ATTRIB_NAME: str(authzDecisionStatement.decision),
             cls.RESOURCE_ATTRIB_NAME: authzDecisionStatement.resource
         }
             
