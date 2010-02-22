@@ -1617,14 +1617,17 @@ class ActionElementTree(Action):
             raise XMLTypeParseError("No \"%s\" element found" %
                                     cls.DEFAULT_ELEMENT_LOCAL_NAME)
             
+        action = Action()
         namespace = elem.attrib.get(cls.NAMESPACE_ATTRIB_NAME)
         if namespace is None:
-            raise XMLTypeParseError('No "%s" attribute found in "%s" '
-                                    'element' %
-                                    (cls.NAMESPACE_ATTRIB_NAME,
-                                     cls.DEFAULT_ELEMENT_LOCAL_NAME))
-        action = Action()
-        action.namespace = namespace
+            log.warning('No "%s" attribute found in "%s" element assuming '
+                        '%r action namespace' %
+                        (cls.NAMESPACE_ATTRIB_NAME,
+                         cls.DEFAULT_ELEMENT_LOCAL_NAME,
+                         action.namespace))
+        else:
+            action.namespace = namespace
+            
         action.value = elem.text.strip() 
         
         return action

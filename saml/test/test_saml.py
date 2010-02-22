@@ -16,6 +16,7 @@ from uuid import uuid4
 from cStringIO import StringIO
 
 import unittest
+import pickle
 
 from xml.etree.ElementTree import iselement
 from xml.etree import ElementTree
@@ -42,6 +43,7 @@ class SAMLUtil(object):
     ISSUER_DN = "/O=NDG/OU=BADC/CN=attributeauthority.badc.rl.ac.uk"
     UNCORRECTED_RESOURCE_URI = "http://LOCALHOST:80/My Secured URI"
     RESOURCE_URI = "http://localhost/My%20Secured%20URI"
+    XSSTRING_NS = "http://www.w3.org/2001/XMLSchema#string"
     
     def __init__(self):
         """Set-up ESG core attributes, Group/Role and miscellaneous 
@@ -116,7 +118,7 @@ class SAMLUtil(object):
             # special case handling for 'FirstName' attribute
             fnAttribute = Attribute()
             fnAttribute.name = "urn:esg:first:name"
-            fnAttribute.nameFormat = "http://www.w3.org/2001/XMLSchema#string"
+            fnAttribute.nameFormat = SAMLUtil.XSSTRING_NS
             fnAttribute.friendlyName = "FirstName"
 
             firstName = XSStringAttributeValue()
@@ -130,7 +132,7 @@ class SAMLUtil(object):
             # special case handling for 'LastName' attribute
             lnAttribute = Attribute()
             lnAttribute.name = "urn:esg:last:name"
-            lnAttribute.nameFormat = "http://www.w3.org/2001/XMLSchema#string"
+            lnAttribute.nameFormat = SAMLUtil.XSSTRING_NS
             lnAttribute.friendlyName = "LastName"
 
             lastName = XSStringAttributeValue()
@@ -157,7 +159,7 @@ class SAMLUtil(object):
         for name, value in self.__miscAttrList:
             attribute = Attribute()
             attribute.name = name
-            attribute.nameFormat = "http://www.w3.org/2001/XMLSchema#string"
+            attribute.nameFormat = SAMLUtil.XSSTRING_NS
 
             stringAttributeValue = XSStringAttributeValue()
             stringAttributeValue.value = value
@@ -285,7 +287,7 @@ class SAMLTestCase(unittest.TestCase):
         attributeQuery = samlUtil.buildAttributeQuery(SAMLTestCase.ISSUER_DN,
                                                       SAMLTestCase.NAMEID_VALUE)
         
-        elem = AttributeQueryElementTree.toXML(attributeQuery)        
+        elem = AttributeQueryElementTree.toXML(attributeQuery)
         xmlOutput = prettyPrint(elem)
            
         print("\n"+"_"*80)
@@ -326,7 +328,7 @@ class SAMLTestCase(unittest.TestCase):
         print(xmlOutput2)
         print("_"*80)
 
-    def test05CreateAttributeQueryResponse(self):
+    def _createAttributeQueryResponse(self):
         response = Response()
         response.issueInstant = datetime.utcnow()
         
@@ -364,6 +366,11 @@ class SAMLTestCase(unittest.TestCase):
         assertion.issuer.value = SAMLTestCase.ISSUER_DN
 
         response.assertions.append(assertion)
+        
+        return response
+        
+    def test05CreateAttributeQueryResponse(self):
+        response = self._createAttributeQueryResponse()
         
         # Create ElementTree Assertion Element
         responseElem = ResponseElementTree.toXML(response)
@@ -599,6 +606,75 @@ class SAMLTestCase(unittest.TestCase):
         self.assert_(response.assertions[0].authzDecisionStatements[0
             ].actions[-1].value == Action.HTTP_GET_ACTION)
         
-       
+ 
+    def test12PickleAssertion(self):
+        # Test pickling with __slots__
+        assertion = self._createAttributeAssertionHelper()
+        assertion.issuer = Issuer()
+        assertion.issuer.format = Issuer.X509_SUBJECT
+        assertion.issuer.value = SAMLTestCase.ISSUER_DN
+        
+        jar = pickle.dumps(assertion)
+        assertion2 = pickle.loads(jar)
+        self.assert_(isinstance(assertion2, Assertion))
+        self.assert_(assertion2.issuer.value == assertion.issuer.value)
+        self.assert_(assertion2.issuer.format == assertion.issuer.format)
+        self.assert_(len(assertion2.attributeStatements)==1)
+        self.assert_(len(assertion2.attributeStatements[0].attributes) > 0)
+        self.assert_(assertion2.attributeStatements[0].attributes[0
+                     ].attributeValues[0
+                     ].value == assertion.attributeStatements[0].attributes[0
+                                ].attributeValues[0].value)
+        
+    def test13PickleAttributeQuery(self):
+        # Test pickling with __slots__
+        samlUtil = SAMLUtil()
+        samlUtil.firstName = ''
+        samlUtil.lastName = ''
+        samlUtil.emailAddress = ''
+        query = samlUtil.buildAttributeQuery(SAMLTestCase.ISSUER_DN,
+                                             SAMLTestCase.NAMEID_VALUE)
+        
+        jar = pickle.dumps(query)
+        query2 = pickle.loads(jar)
+
+        self.assert_(isinstance(query2, AttributeQuery))
+        self.assert_(query2.subject.nameID.value == query.subject.nameID.value)
+        self.assert_((query2.subject.nameID.format == 
+                      query.subject.nameID.format))
+        self.assert_(query2.issuer.value == query.issuer.value)
+        self.assert_(query2.issuer.format == query.issuer.format)
+        self.assert_(query2.issueInstant == query.issueInstant)
+        self.assert_(query2.id == query.id)
+        self.assert_(len(query2.attributes) == 3)
+        self.assert_(query2.attributes[0].name == "urn:esg:first:name")
+        self.assert_(query2.attributes[1].nameFormat == SAMLUtil.XSSTRING_NS)
+
+    def test14PickleAttributeQueryResponse(self):
+        response = self._createAttributeQueryResponse()
+        
+        jar = pickle.dumps(response)
+        response2 = pickle.loads(jar)
+        
+        self.assert_(isinstance(response2, Response))
+        self.assert_((response2.status.statusCode.value == 
+                      response.status.statusCode.value))
+        self.assert_((response2.status.statusMessage.value == 
+                      response.status.statusMessage.value))
+        self.assert_(len(response2.assertions) == 1)
+        self.assert_(response2.assertions[0].id == response.assertions[0].id)
+        self.assert_((response2.assertions[0].conditions.notBefore == 
+                      response.assertions[0].conditions.notBefore))
+        self.assert_((response2.assertions[0].conditions.notOnOrAfter == 
+                      response.assertions[0].conditions.notOnOrAfter))
+        self.assert_(len(response2.assertions[0].attributeStatements) == 1)
+        self.assert_(len(response2.assertions[0].attributeStatements[0
+                                                            ].attributes) == 9)
+        self.assert_(response2.assertions[0].attributeStatements[0].attributes[1
+                     ].attributeValues[0
+                     ].value == response.assertions[0].attributeStatements[0
+                                    ].attributes[1].attributeValues[0].value)
+             
+             
 if __name__ == "__main__":
     unittest.main()        

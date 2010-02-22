@@ -51,7 +51,7 @@ class SAMLObject(object):
         self.__qname = QName(namespaceURI, 
                              elementLocalName, 
                              namespacePrefix)
-    
+            
     @property
     def qname(self):
         "Qualified Name for this type"
@@ -77,14 +77,37 @@ class SAMLObject(object):
         '''
         raise NotImplementedError()
 
+    def __getstate__(self):
+        '''Enable pickling'''
+        _dict = {}
+        for attrName in SAMLObject.__slots__:
+            # Ugly hack to allow for derived classes setting private member
+            # variables
+            if attrName.startswith('__'):
+                attrName = "_SAMLObject" + attrName
+                
+            try:
+                _dict[attrName] = getattr(self, attrName)
+            except:
+                pass
+            
+        return _dict
+  
+    def __setstate__(self, attrDict):
+        '''Enable pickling'''
+        for attrName, val in attrDict.items():
+            setattr(self, attrName, val)
+            
 
-class SAMLVersion(SAMLObject):
+class SAMLVersion(object):
     """Version helper class"""
     
     VERSION_10 = (1, 0)
     VERSION_11 = (1, 1)
     VERSION_20 = (2, 0)
     KNOWN_VERSIONS = (VERSION_10, VERSION_11, VERSION_20)
+    
+    __slots__ = ('__version', )
     
     def __init__(self, version):
         if isinstance(version, basestring):
@@ -94,6 +117,24 @@ class SAMLVersion(SAMLObject):
         else:
             raise TypeError("Expecting string, tuple or list type for SAML "
                             "version initialiser; got %r" % version)
+            
+    def __getstate__(self):
+        '''Enable pickling'''
+        _dict = {}
+        for attrName in SAMLVersion.__slots__:
+            # Ugly hack to allow for derived classes setting private member
+            # variables
+            if attrName.startswith('__'):
+                attrName = "_SAMLVersion" + attrName
+                
+            _dict[attrName] = getattr(self, attrName)
+            
+        return _dict
+  
+    def __setstate__(self, attrDict):
+        '''Enable pickling'''
+        for attrName, val in attrDict.items():
+            setattr(self, attrName, val)
     
     def __str__(self):
         return ".".join([str(i) for i in self.__version])

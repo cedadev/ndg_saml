@@ -90,6 +90,19 @@ class Attribute(SAMLObject):
         self.__friendlyName = None
         self.__attributeValues = []
 
+    def __getstate__(self):
+        '''Enable pickling'''
+        _dict = {}
+        for attrName in Attribute.__slots__:
+            # Ugly hack to allow for derived classes setting private member
+            # variables
+            if attrName.startswith('__'):
+                attrName = "_Attribute" + attrName
+                
+            _dict[attrName] = getattr(self, attrName)
+            
+        return _dict
+    
     def _get_name(self):
         return self.__name
     
@@ -171,14 +184,7 @@ class Statement(SAMLObject):
             
 class AttributeStatement(Statement):
     '''SAML 2.0 Core AttributeStatement'''
-    __slots__ = ('__attributes', '__encryptedAttributes')
     
-    def __init__(self, **kw):
-        super(AttributeStatement, self).__init__(**kw)
-        
-        self.__attributes = TypedList(Attribute)
-        self.__encryptedAttributes = TypedList(Attribute)
-
     # Element local name
     DEFAULT_ELEMENT_LOCAL_NAME = "AttributeStatement"
     
@@ -194,6 +200,27 @@ class AttributeStatement(Statement):
     TYPE_NAME = QName(SAMLConstants.SAML20_NS, 
                       TYPE_LOCAL_NAME, 
                       SAMLConstants.SAML20_PREFIX)
+    
+    __slots__ = ('__attributes', '__encryptedAttributes')
+    
+    def __init__(self, **kw):
+        super(AttributeStatement, self).__init__(**kw)
+        
+        self.__attributes = TypedList(Attribute)
+        self.__encryptedAttributes = TypedList(Attribute)
+
+    def __getstate__(self):
+        '''Enable pickling'''
+        _dict = super(AttributeStatement, self).__getstate__()
+        for attrName in AttributeStatement.__slots__:
+            # Ugly hack to allow for derived classes setting private member
+            # variables
+            if attrName.startswith('__'):
+                attrName = "_AttributeStatement" + attrName
+                
+            _dict[attrName] = getattr(self, attrName)
+            
+        return _dict
 
     def _get_attributes(self):
         '''@return: the attributes expressed in this statement
@@ -239,7 +266,9 @@ class AuthnStatement(Statement):
 
     # SessionNoOnOrAfter attribute name
     SESSION_NOT_ON_OR_AFTER_ATTRIB_NAME = "SessionNotOnOrAfter"
-
+    
+    __slots__ = ()
+    
     def _getAuthnInstant(self):
         '''Gets the time when the authentication took place.
         
@@ -343,6 +372,19 @@ class DecisionType(object):
         self.__value = None
         self.value = decisionType
 
+    def __getstate__(self):
+        '''Enable pickling'''
+        _dict = {}
+        for attrName in DecisionType.__slots__:
+            # Ugly hack to allow for derived classes setting private member
+            # variables
+            if attrName.startswith('__'):
+                attrName = "_DecisionType" + attrName
+                
+            _dict[attrName] = getattr(self, attrName)
+            
+        return _dict
+
     def _setValue(self, value):
         if isinstance(value, DecisionType):
             # Cast to string
@@ -428,6 +470,14 @@ class AuthzDecisionStatement(Statement):
     # Decision attribute name
     DECISION_ATTRIB_NAME = "Decision"
     
+    __slots__ = (
+        '__resource', 
+        '__decision', 
+        '__actions', 
+        '__evidence',
+        '__normalizeResource',
+        '__safeNormalizationChars')
+    
     def __init__(self, 
                  normalizeResource=True, 
                  safeNormalizationChars='/%',
@@ -447,6 +497,19 @@ class AuthzDecisionStatement(Statement):
         self.normalizeResource = normalizeResource
         self.safeNormalizationChars = safeNormalizationChars
 
+    def __getstate__(self):
+        '''Enable pickling'''
+        _dict = super(AuthzDecisionStatement, self).__getstate__()
+        for attrName in AuthzDecisionStatement.__slots__:
+            # Ugly hack to allow for derived classes setting private member
+            # variables
+            if attrName.startswith('__'):
+                attrName = "_AuthzDecisionStatement" + attrName
+                
+            _dict[attrName] = getattr(self, attrName)
+            
+        return _dict
+    
     def _getNormalizeResource(self):
         return self.__normalizeResource
 
@@ -615,7 +678,6 @@ class Subject(SAMLObject):
                       TYPE_LOCAL_NAME,
                       SAMLConstants.SAML20_PREFIX)
     __slots__ = (
-        '__qname',
         '__baseID',
         '__nameID',
         '__encryptedID',
@@ -636,6 +698,19 @@ class Subject(SAMLObject):
     
         # Subject Confirmations of the Subject.
         self.__subjectConfirmations = []
+
+    def __getstate__(self):
+        '''Enable pickling'''
+        _dict = super(Subject, self).__getstate__()
+        for attrName in Subject.__slots__:
+            # Ugly hack to allow for derived classes setting private member
+            # variables
+            if attrName.startswith('__'):
+                attrName = "_Subject" + attrName
+                
+            _dict[attrName] = getattr(self, attrName)
+            
+        return _dict
     
     def _getBaseID(self): 
         return self.__baseID
@@ -737,7 +812,6 @@ class AbstractNameIDType(SAMLObject):
     ENCRYPTED = "urn:oasis:names:tc:SAML:2.0:nameid-format:encrypted"
     
     __slots__ = (
-        '__qname',
         '__name',
         '__nameQualifier',
         '__spNameQualifier',
@@ -746,13 +820,13 @@ class AbstractNameIDType(SAMLObject):
         '__value'
     )
     
-    def __init__(self, namespaceURI, elementLocalName, namespacePrefix): 
+    def __init__(self, **kw): 
         '''@param namespaceURI: the namespace the element is in
         @param elementLocalName: the local name of the XML element this Object 
         represents
         @param namespacePrefix: the prefix for the given namespace
         '''
-        self.__qname = QName(namespaceURI, elementLocalName, namespacePrefix)
+        super(AbstractNameIDType, self).__init__(**kw)
     
         # Name of the Name ID.
         self.__name = None
@@ -770,18 +844,19 @@ class AbstractNameIDType(SAMLObject):
         self.__spProvidedID = None
 
         self.__value = None
-        
-    def _getQName(self):
-        return self.__qname
-        
-    def _setQName(self, value):
-        if not isinstance(value, QName):
-            raise TypeError("\"qname\" must be a %r derived type, "
-                            "got %r" % (QName, type(value)))
-            
-        self.__qname = value
 
-    qname = property(fget=_getQName, fset=_setQName, doc="qualified name")
+    def __getstate__(self):
+        '''Enable pickling'''
+        _dict = super(AbstractNameIDType, self).__getstate__()
+        for attrName in AbstractNameIDType.__slots__:
+            # Ugly hack to allow for derived classes setting private member
+            # variables
+            if attrName.startswith('__'):
+                attrName = "_AbstractNameIDType" + attrName
+                
+            _dict[attrName] = getattr(self, attrName)
+            
+        return _dict
              
     def _getValue(self):
         return self.__value
@@ -859,13 +934,7 @@ class Issuer(AbstractNameIDType):
                       TYPE_LOCAL_NAME,
                       SAMLConstants.SAML20_PREFIX) 
     
-    def __init__(self, 
-                 namespaceURI=SAMLConstants.SAML20_NS, 
-                 localPart=DEFAULT_ELEMENT_LOCAL_NAME, 
-                 namespacePrefix=SAMLConstants.SAML20_PREFIX):
-        super(Issuer, self).__init__(namespaceURI,
-                                     localPart,
-                                     namespacePrefix)
+    __slots__ = ()
 
      
 class NameID(AbstractNameIDType):
@@ -888,14 +957,6 @@ class NameID(AbstractNameIDType):
     
     __slots__ = ()
     
-    def __init__(self, 
-                 namespaceURI=SAMLConstants.SAML20_NS, 
-                 localPart=DEFAULT_ELEMENT_LOCAL_NAME, 
-                 namespacePrefix=SAMLConstants.SAML20_PREFIX):
-        super(NameID, self).__init__(namespaceURI,
-                                     localPart,
-                                     namespacePrefix)
-
 
 class Conditions(SAMLObject): 
     '''SAML 2.0 Core Conditions.'''
@@ -928,7 +989,8 @@ class Conditions(SAMLObject):
         '__notOnOrAfter'
     )
     
-    def __init__(self):
+    def __init__(self, **kw):
+        super(Conditions, self).__init__(**kw)
         
         # A Condition.
         self.__conditions = []
@@ -939,6 +1001,19 @@ class Conditions(SAMLObject):
         # Not On Or After conditions.
         self.__notOnOrAfter = None
 
+    def __getstate__(self):
+        '''Enable pickling'''
+        _dict = super(Conditions, self).__getstate__()
+        for attrName in Conditions.__slots__:
+            # Ugly hack to allow for derived classes setting private member
+            # variables
+            if attrName.startswith('__'):
+                attrName = "_Conditions" + attrName
+                
+            _dict[attrName] = getattr(self, attrName)
+            
+        return _dict
+    
     def _getNotBefore(self):
         '''Get the date/time before which the assertion is invalid.
         
@@ -1069,12 +1144,6 @@ class Advice(SAMLObject):
 class Assertion(SAMLObject):
     """SAML 2.0 Attribute Assertion for use with NERC DataGrid    
     """    
-    ns = "urn:oasis:names:tc:SAML:1.0:assertion"
-    nsPfx = "saml"
-    issuer = 'http:#badc.nerc.ac.uk'
-    attributeName = "urn:mace:dir:attribute-def:eduPersonAffiliation"
-    attributeNS = "urn:mace:shibboleth:1.0:attributeNamespace:uri"
-
     # Element local name.
     DEFAULT_ELEMENT_LOCAL_NAME = "Assertion"
 
@@ -1131,7 +1200,20 @@ class Assertion(SAMLObject):
         self.__authnStatements = []
         self.__authzDecisionStatements = TypedList(AuthzDecisionStatement)
         self.__attributeStatements = TypedList(AttributeStatement)
-        
+
+    def __getstate__(self):
+        '''Enable pickling'''
+        _dict = super(Assertion, self).__getstate__()
+        for attrName in Assertion.__slots__:
+            # Ugly hack to allow for derived classes setting private member
+            # variables
+            if attrName.startswith('__'):
+                attrName = "_Assertion" + attrName
+                
+            _dict[attrName] = getattr(self, attrName)
+            
+        return _dict   
+                 
     def _get_version(self):
         '''@return: the SAML Version of this assertion.
         '''
@@ -1301,9 +1383,23 @@ class XSStringAttributeValue(AttributeValue):
   
     __slots__ = ('__value',)
     
-    def __init__(self):
+    def __init__(self, **kw):
+        super(XSStringAttributeValue, self).__init__(**kw)
         self.__value = None
-        
+
+    def __getstate__(self):
+        '''Enable pickling'''
+        _dict = super(XSStringAttributeValue, self).__getstate__()
+        for attrName in XSStringAttributeValue.__slots__:
+            # Ugly hack to allow for derived classes setting private member
+            # variables
+            if attrName.startswith('__'):
+                attrName = "_XSStringAttributeValue" + attrName
+                
+            _dict[attrName] = getattr(self, attrName)
+            
+        return _dict
+            
     def _getValue(self):
         return self.__value
         
@@ -1336,14 +1432,26 @@ class StatusDetail(SAMLObject):
                       TYPE_LOCAL_NAME,
                       SAMLConstants.SAML20P_PREFIX)
     
-    __slots__ = ('__unknownChildren', '__qname')
+    __slots__ = ('__unknownChildren', )
     
-    def __init__(self):
+    def __init__(self, **kw):
+        super(StatusDetail, self).__init__(**kw)
+        
         # child "any" elements.
         self.__unknownChildren = TypedList(SAMLObject)         
-        self.__qname = QName(StatusDetail.DEFAULT_ELEMENT_NAME.namespaceURI,
-                             StatusDetail.DEFAULT_ELEMENT_NAME,
-                             StatusDetail.DEFAULT_ELEMENT_NAME.prefix)
+
+    def __getstate__(self):
+        '''Enable pickling'''
+        _dict = super(StatusDetail, self).__getstate__()
+        for attrName in StatusDetail.__slots__:
+            # Ugly hack to allow for derived classes setting private member
+            # variables
+            if attrName.startswith('__'):
+                attrName = "_StatusDetail" + attrName
+                
+            _dict[attrName] = getattr(self, attrName)
+            
+        return _dict
     
     def getUnknownXMLTypes(self, qname=None): 
         if qname is not None:
@@ -1366,18 +1474,6 @@ class StatusDetail(SAMLObject):
     unknownChildren = property(fget=getUnknownXMLTypes,
                                doc="Child objects of Status Detail - may be "
                                    "any type")
-                
-    def _getQName(self):
-        return self.__qname
-        
-    def _setQName(self, value):
-        if not isinstance(value, QName):
-            raise TypeError("\"qname\" must be a %r derived type, "
-                            "got %r" % (QName, type(value)))
-            
-        self.__qname = value
-
-    qname = property(fget=_getQName, fset=_setQName, doc="qualified name")
     
 
 class StatusMessage(SAMLObject):
@@ -1388,15 +1484,27 @@ class StatusMessage(SAMLObject):
                                  DEFAULT_ELEMENT_LOCAL_NAME,
                                  SAMLConstants.SAML20P_PREFIX)
     
-    __slots__ = ('__value', '__qname')
+    __slots__ = ('__value', )
     
-    def __init__(self):
+    def __init__(self, **kw):
+        super(StatusMessage, self).__init__(**kw)
+        
         # Value attribute URI.
         self.__value = None        
-        self.__qname = QName(StatusMessage.DEFAULT_ELEMENT_NAME.namespaceURI,
-                             StatusMessage.DEFAULT_ELEMENT_NAME.localPart,
-                             StatusMessage.DEFAULT_ELEMENT_NAME.prefix)
-              
+
+    def __getstate__(self):
+        '''Enable pickling'''
+        _dict = super(StatusMessage, self).__getstate__()
+        for attrName in StatusMessage.__slots__:
+            # Ugly hack to allow for derived classes setting private member
+            # variables
+            if attrName.startswith('__'):
+                attrName = "_StatusMessage" + attrName
+                
+            _dict[attrName] = getattr(self, attrName)
+            
+        return _dict
+    
     def _getValue(self):
         return self.__value
         
@@ -1407,20 +1515,7 @@ class StatusMessage(SAMLObject):
             
         self.__value = value
 
-    value = property(fget=_getValue, fset=_setValue, 
-                     doc="Status message value")
-                
-    def _getQName(self):
-        return self.__qname
-        
-    def _setQName(self, value):
-        if not isinstance(value, QName):
-            raise TypeError("\"qname\" must be a %r derived type, "
-                            "got %r" % (QName, type(value)))
-            
-        self.__qname = value
-
-    qname = property(fget=_getQName, fset=_setQName, doc="qualified name")
+    value = property(fget=_getValue, fset=_setValue, doc="Status message value")
 
 
 class StatusCode(SAMLObject):
@@ -1525,19 +1620,30 @@ class StatusCode(SAMLObject):
     UNSUPPORTED_BINDING_URI = \
                 "urn:oasis:names:tc:SAML:2.0:status:UnsupportedBinding"
 
-    __slots__ = ('__value', '__childStatusCode', '__qname')
+    __slots__ = ('__value', '__childStatusCode',)
     
-    def __init__(self):
+    def __init__(self, **kw):
+        super(StatusCode, self).__init__(**kw)
+        
         # Value attribute URI.
         self.__value = None
     
         # Nested secondary StatusCode child element.
         self.__childStatusCode = None
-        
-        self.__qname = QName(StatusCode.DEFAULT_ELEMENT_NAME.namespaceURI,
-                             StatusCode.DEFAULT_ELEMENT_NAME.localPart,
-                             StatusCode.DEFAULT_ELEMENT_NAME.prefix)
 
+    def __getstate__(self):
+        '''Enable pickling'''
+        _dict = super(StatusCode, self).__getstate__()
+        for attrName in StatusCode.__slots__:
+            # Ugly hack to allow for derived classes setting private member
+            # variables
+            if attrName.startswith('__'):
+                attrName = "_StatusCode" + attrName
+                
+            _dict[attrName] = getattr(self, attrName)
+            
+        return _dict
+    
     def _getStatusCode(self): 
         return self.__childStatusCode
     
@@ -1563,18 +1669,6 @@ class StatusCode(SAMLObject):
         self.__value = value
 
     value = property(fget=_getValue, fset=_setValue, doc="Status code value")
-                
-    def _getQName(self):
-        return self.__qname
-        
-    def _setQName(self, value):
-        if not isinstance(value, QName):
-            raise TypeError("\"qname\" must be a %r derived type, "
-                            "got %r" % (QName, type(value)))
-            
-        self.__qname = value
-
-    qname = property(fget=_getQName, fset=_setQName, doc="qualified name")
         
 
 class Status(SAMLObject): 
@@ -1596,9 +1690,11 @@ class Status(SAMLObject):
                       TYPE_LOCAL_NAME,
                       SAMLConstants.SAML20P_PREFIX)
 
-    __slots__ = ('__statusCode', '__statusMessage', '__statusDetail', '__qname')
+    __slots__ = ('__statusCode', '__statusMessage', '__statusDetail', )
     
-    def __init__(self):
+    def __init__(self, **kw):
+        super(Status, self).__init__(**kw)
+        
         # StatusCode element.
         self.__statusCode = None
     
@@ -1608,22 +1704,19 @@ class Status(SAMLObject):
         # StatusDetail element. 
         self.__statusDetail = None
         
-        self.__qname = QName(Status.DEFAULT_ELEMENT_NAME.namespaceURI,
-                             Status.DEFAULT_ELEMENT_NAME.localPart,
-                             Status.DEFAULT_ELEMENT_NAME.prefix)
+    def __getstate__(self):
+        '''Enable pickling'''
+        _dict = super(Status, self).__getstate__()
+        for attrName in Status.__slots__:
+            # Ugly hack to allow for derived classes setting private member
+            # variables
+            if attrName.startswith('__'):
+                attrName = "_Status" + attrName
                 
-    def _getQName(self):
-        return self.__qname
-        
-    def _setQName(self, value):
-        if not isinstance(value, QName):
-            raise TypeError("\"qname\" must be a %r derived type, "
-                            "got %r" % (QName, type(value)))
+            _dict[attrName] = getattr(self, attrName)
             
-        self.__qname = value
-
-    qname = property(fget=_getQName, fset=_setQName, doc="qualified name")
-        
+        return _dict
+    
     def _getStatusCode(self):
         '''
         Gets the Code of this Status.
@@ -1803,7 +1896,20 @@ class Action(SAMLObject):
         self.__action = None       
     
         self.__actionTypes = Action.ACTION_TYPES
-
+        
+    def __getstate__(self):
+        '''Enable pickling'''
+        _dict = super(Action, self).__getstate__()
+        for attrName in Action.__slots__:
+            # Ugly hack to allow for derived classes setting private member
+            # variables
+            if attrName.startswith('__'):
+                attrName = "_Action" + attrName
+                
+            _dict[attrName] = getattr(self, attrName)
+            
+        return _dict
+    
     def _getActionTypes(self):
         return self.__actionTypes
 
@@ -1945,7 +2051,13 @@ class RequestAbstractType(SAMLObject):
         '__extensions'
     )
     
-    def __init__(self):
+    def __init__(self, **kw):
+        '''Request abstract type
+        @type kw: dict
+        @param kw: see SAMLObject.__init__
+        '''
+        super(RequestAbstractType, self).__init__(**kw)
+        
         # SAML Version of the request. 
         self.__version = None
     
@@ -1966,7 +2078,20 @@ class RequestAbstractType(SAMLObject):
     
         # Extensions child element. 
         self.__extensions = None
-        
+
+    def __getstate__(self):
+        '''Enable pickling'''
+        _dict = super(RequestAbstractType, self).__getstate__()
+        for attrName in RequestAbstractType.__slots__:
+            # Ugly hack to allow for derived classes setting private member
+            # variables
+            if attrName.startswith('__'):
+                attrName = "_RequestAbstractType" + attrName
+                
+            _dict[attrName] = getattr(self, attrName)
+            
+        return _dict
+    
     def _get_version(self):
         '''@return: the SAML Version of this assertion.
         '''
@@ -2112,7 +2237,20 @@ class SubjectQuery(RequestAbstractType):
     def __init__(self):
         super(SubjectQuery, self).__init__()
         self.__subject = None
-        
+
+    def __getstate__(self):
+        '''Enable pickling'''
+        _dict = super(SubjectQuery, self).__getstate__()
+        for attrName in SubjectQuery.__slots__:
+            # Ugly hack to allow for derived classes setting private member
+            # variables
+            if attrName.startswith('__'):
+                attrName = "_SubjectQuery" + attrName
+                
+            _dict[attrName] = getattr(self, attrName)
+            
+        return _dict
+            
     def _getSubject(self):
         '''Gets the Subject of this request.
         
@@ -2156,6 +2294,19 @@ class AttributeQuery(SubjectQuery):
     def __init__(self):
         super(AttributeQuery, self).__init__()
         self.__attributes = TypedList(Attribute)
+
+    def __getstate__(self):
+        '''Enable pickling'''
+        _dict = super(AttributeQuery, self).__getstate__()
+        for attrName in AttributeQuery.__slots__:
+            # Ugly hack to allow for derived classes setting private member
+            # variables
+            if attrName.startswith('__'):
+                attrName = "_AttributeQuery" + attrName
+                
+            _dict[attrName] = getattr(self, attrName)
+            
+        return _dict
  
     def _getAttributes(self):
         '''Gets the Attributes of this query.
@@ -2434,6 +2585,19 @@ class AuthzDecisionQuery(SubjectQuery):
         self.normalizeResource = normalizeResource
         self.safeNormalizationChars = safeNormalizationChars
 
+    def __getstate__(self):
+        '''Enable pickling'''
+        _dict = super(AuthzDecisionQuery, self).__getstate__()
+        for attrName in AuthzDecisionQuery.__slots__:
+            # Ugly hack to allow for derived classes setting private member
+            # variables
+            if attrName.startswith('__'):
+                attrName = "_AuthzDecisionQueryy" + attrName
+                
+            _dict[attrName] = getattr(self, attrName)
+            
+        return _dict
+    
     def _getNormalizeResource(self):
         return self.__normalizeResource
 
@@ -2612,8 +2776,7 @@ class StatusResponseType(SAMLObject):
     # Inapplicable consent URI
     INAPPLICABLE_CONSENT = "urn:oasis:names:tc:SAML:2.0:consent:inapplicable"
 
-    __slots__ = (
-        '__qname',        
+    __slots__ = (    
         '__version',
         '__id',
         '__inResponseTo',
@@ -2625,8 +2788,8 @@ class StatusResponseType(SAMLObject):
         '__extensions'                
     )
     
-    def __init__(self):
-        self.__qname = None
+    def __init__(self, **kw):
+        super(StatusResponseType, self).__init__(**kw)
         
         self.__version = SAMLVersion(SAMLVersion.VERSION_20)
         self.__id = None
@@ -2637,19 +2800,20 @@ class StatusResponseType(SAMLObject):
         self.__issuer = None
         self.__status = None
         self.__extensions = None
-        
-    def _getQName(self):
-        return self.__qname
-        
-    def _setQName(self, value):
-        if not isinstance(value, QName):
-            raise TypeError("\"qname\" must be a %r derived type, "
-                            "got %r" % (QName, type(value)))
+
+    def __getstate__(self):
+        '''Enable pickling'''
+        _dict = super(StatusResponseType, self).__getstate__()
+        for attrName in StatusResponseType.__slots__:
+            # Ugly hack to allow for derived classes setting private member
+            # variables
+            if attrName.startswith('__'):
+                attrName = "_StatusResponseType" + attrName
+                
+            _dict[attrName] = getattr(self, attrName)
             
-        self.__qname = value
-
-    qname = property(fget=_getQName, fset=_setQName, doc="qualified name")
-
+        return _dict
+    
     def _get_version(self):
         '''@return: the SAML Version of this response.
         '''
@@ -2854,15 +3018,27 @@ class Response(StatusResponseType):
     
     __slots__ = ('__indexedChildren',)
     
-    def __init__(self):
+    def __init__(self, **kw):
         '''''' 
-        super(Response, self).__init__()
+        super(Response, self).__init__(**kw)
         
         # Assertion child elements
         self.__indexedChildren = []
-    
-    def _getAssertions(self): 
+
+    def __getstate__(self):
+        '''Enable pickling'''
+        _dict = super(Response, self).__getstate__()
+        for attrName in Response.__slots__:
+            # Ugly hack to allow for derived classes setting private member
+            # variables
+            if attrName.startswith('__'):
+                attrName = "_Response" + attrName
+                
+            _dict[attrName] = getattr(self, attrName)
+            
+        return _dict
+        
+    @property
+    def assertions(self): 
+        "Assertions contained in this response"
         return self.__indexedChildren
-    
-    assertions = property(fget=_getAssertions,
-                          doc="Assertions contained in this response")
