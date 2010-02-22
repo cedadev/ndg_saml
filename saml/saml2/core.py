@@ -384,7 +384,12 @@ class DecisionType(object):
             _dict[attrName] = getattr(self, attrName)
             
         return _dict
-
+  
+    def __setstate__(self, attrDict):
+        '''Enable pickling'''
+        for attrName, val in attrDict.items():
+            setattr(self, attrName, val)
+            
     def _setValue(self, value):
         if isinstance(value, DecisionType):
             # Cast to string
@@ -413,6 +418,8 @@ class DecisionType(object):
 
 class PermitDecisionType(DecisionType):
     """Permit authorisation Decision"""
+    __slots__ = ()
+
     def __init__(self):
         super(PermitDecisionType, self).__init__(DecisionType.PERMIT_STR)
         
@@ -422,6 +429,8 @@ class PermitDecisionType(DecisionType):
 
 class DenyDecisionType(DecisionType):
     """Deny authorisation Decision"""
+    __slots__ = ()
+    
     def __init__(self):
         super(DenyDecisionType, self).__init__(DecisionType.DENY_STR)
         
@@ -431,6 +440,8 @@ class DenyDecisionType(DecisionType):
 
 class IndeterminateDecisionType(DecisionType):
     """Indeterminate authorisation Decision"""
+    __slots__ = ()
+    
     def __init__(self):
         super(IndeterminateDecisionType, self).__init__(
                                             DecisionType.INDETERMINATE_STR)
@@ -1104,6 +1115,8 @@ class Advice(SAMLObject):
                       TYPE_LOCAL_NAME,
                       SAMLConstants.SAML20_PREFIX)
 
+    __slots__ = ()
+    
     def _getChildren(self, typeOrName=None):
         '''
         Gets the list of all child elements attached to this advice.
@@ -1883,6 +1896,8 @@ class Action(SAMLObject):
         UNIX_NS_URI: ()   
     }
     
+    __slots__ = ('__namespace', '__value', '__actionTypes')
+    
     def __init__(self, **kw):
         '''Create an authorization action type
         '''
@@ -1892,8 +1907,8 @@ class Action(SAMLObject):
         # type - 2.7.4.2 SAML 2 Core Spec. 15 March 2005
         self.__namespace = Action.RWEDC_NEGATION_NS_URI
 
-        #Value value
-        self.__action = None       
+        # Action value
+        self.__value = None       
     
         self.__actionTypes = Action.ACTION_TYPES
         
@@ -2346,6 +2361,19 @@ class AssertionURIRef(Evidentiary):
         # URI of the Assertion
         self.__assertionURI = None   
 
+    def __getstate__(self):
+        '''Enable pickling'''
+        _dict = super(AssertionURIRef, self).__getstate__()
+        for attrName in AssertionURIRef.__slots__:
+            # Ugly hack to allow for derived classes setting private member
+            # variables
+            if attrName.startswith('__'):
+                attrName = "_AssertionURIRef" + attrName
+                
+            _dict[attrName] = getattr(self, attrName)
+            
+        return _dict
+    
     def _getAssertionURI(self):
         return self.__assertionURI
 
@@ -2386,7 +2414,20 @@ class AssertionIDRef(Evidentiary):
                                              elementLocalName, 
                                              namespacePrefix)
         self.__assertionID = None
-    
+
+    def __getstate__(self):
+        '''Enable pickling'''
+        _dict = super(AssertionIDRef, self).__getstate__()
+        for attrName in AssertionIDRef.__slots__:
+            # Ugly hack to allow for derived classes setting private member
+            # variables
+            if attrName.startswith('__'):
+                attrName = "_AssertionIDRef" + attrName
+                
+            _dict[attrName] = getattr(self, attrName)
+            
+        return _dict
+        
     def _getAssertionID(self):
         '''Gets the ID of the assertion this references.
         
@@ -2482,7 +2523,20 @@ class Evidence(SAMLObject):
 
         # Assertion of the Evidence. 
         self.__values = TypedList(Evidentiary) 
-        
+
+    def __getstate__(self):
+        '''Enable pickling'''
+        _dict = super(Evidence, self).__getstate__()
+        for attrName in Evidence.__slots__:
+            # Ugly hack to allow for derived classes setting private member
+            # variables
+            if attrName.startswith('__'):
+                attrName = "_Evidence" + attrName
+                
+            _dict[attrName] = getattr(self, attrName)
+            
+        return _dict   
+         
     @property
     def assertionIDReferences(self):
         '''Gets the list of AssertionID references used as evidence.
@@ -2592,7 +2646,7 @@ class AuthzDecisionQuery(SubjectQuery):
             # Ugly hack to allow for derived classes setting private member
             # variables
             if attrName.startswith('__'):
-                attrName = "_AuthzDecisionQueryy" + attrName
+                attrName = "_AuthzDecisionQuery" + attrName
                 
             _dict[attrName] = getattr(self, attrName)
             

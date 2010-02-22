@@ -141,9 +141,12 @@ class SAMLVersion(object):
     
     def __eq__(self, version):
         """Test for equality against an input version string, tuple or list"""
-                
-        if isinstance(version, basestring):
+        if isinstance(version, SAMLVersion):
+            return str(self) == str(version)
+          
+        elif isinstance(version, basestring):
             return self.__version == SAMLVersion.valueOf(version)
+        
         elif isinstance(version, (tuple, list)):
             return self.__version == tuple(version)
         else:

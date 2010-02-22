@@ -25,7 +25,7 @@ from saml.saml2.core import (SAMLVersion, Attribute, AttributeStatement,
                              AuthzDecisionStatement, Assertion, AttributeQuery, 
                              Response, Issuer, Subject, NameID, StatusCode, 
                              StatusMessage, Status, Conditions, DecisionType,
-                             XSStringAttributeValue, Action,
+                             XSStringAttributeValue, Action, 
                              AuthzDecisionQuery)
 
 from saml.common.xml import SAMLConstants
@@ -384,7 +384,7 @@ class SAMLTestCase(unittest.TestCase):
         print(xmlOutput)
         print("_"*80)
         
-    def test06CreateAuthzDecisionQuery(self):
+    def _createAuthzDecisionQuery(self):
         authzDecisionQuery = AuthzDecisionQuery()
 
         authzDecisionQuery.version = SAMLVersion(SAMLVersion.VERSION_20)
@@ -401,6 +401,13 @@ class SAMLTestCase(unittest.TestCase):
         authzDecisionQuery.subject.nameID.value = SAMLTestCase.NAMEID_VALUE
         
         authzDecisionQuery.resource = "http://LOCALHOST:80/My Secured URI"
+        
+        return authzDecisionQuery
+    
+    def test06CreateAuthzDecisionQuery(self):
+        samlUtil = SAMLUtil()
+        authzDecisionQuery = samlUtil.buildAuthzDecisionQuery()
+        
         self.assert_(":80" not in authzDecisionQuery.resource)
         self.assert_("localhost" in authzDecisionQuery.resource)
         self.assert_(" " not in authzDecisionQuery.resource)
@@ -491,7 +498,6 @@ class SAMLTestCase(unittest.TestCase):
         self.assert_(
             authzDecisionQuery2.actions[0].namespace == Action.GHPP_NS_URI)
         self.assert_(authzDecisionQuery2.evidence is None)
-
 
     def _createAuthzDecisionQueryResponse(self):
         """Helper method for Authz Decision Response"""
@@ -675,6 +681,49 @@ class SAMLTestCase(unittest.TestCase):
                      ].value == response.assertions[0].attributeStatements[0
                                     ].attributes[1].attributeValues[0].value)
              
+    def test15PickleAuthzDecisionQuery(self):
+        samlUtil = SAMLUtil()
+        query = samlUtil.buildAuthzDecisionQuery()
              
+        jar = pickle.dumps(query)
+        query2 = pickle.loads(jar)
+        
+        self.assert_(isinstance(query2, AuthzDecisionQuery))
+        self.assert_(query.resource == query2.resource)
+        self.assert_(query.version == query2.version)
+        self.assert_(len(query2.actions) == 1)
+        self.assert_(query2.actions[0].value == Action.HTTP_GET_ACTION)
+        self.assert_(query2.actions[0].namespace == Action.GHPP_NS_URI)
+
+
+        
+    def test16PickleAuthzDecisionResponse(self):
+        response = self._createAuthzDecisionQueryResponse()
+        
+        jar = pickle.dumps(response)
+        response2 = pickle.loads(jar)
+        
+        self.assert_(isinstance(response2, Response))
+        
+        self.assert_(len(response.assertions) == 1)
+        self.assert_(len(response.assertions[0].authzDecisionStatements) == 1)
+         
+        self.assert_(response.assertions[0].authzDecisionStatements[0
+                        ].resource == response2.assertions[0
+                                        ].authzDecisionStatements[0].resource)
+        
+        self.assert_(len(response.assertions[0].authzDecisionStatements[0
+                        ].actions) == 1)
+        self.assert_(response.assertions[0].authzDecisionStatements[0
+                        ].actions[0].value == response2.assertions[0
+                                        ].authzDecisionStatements[0
+                                                ].actions[0].value)
+        
+        self.assert_(response2.assertions[0].authzDecisionStatements[0
+                        ].actions[0].namespace == Action.GHPP_NS_URI)        
+
+        self.assert_(response2.assertions[0].authzDecisionStatements[0
+                        ].decision == DecisionType.PERMIT)        
+        
 if __name__ == "__main__":
     unittest.main()        
