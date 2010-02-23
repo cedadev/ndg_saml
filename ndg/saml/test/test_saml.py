@@ -21,15 +21,15 @@ import pickle
 from xml.etree.ElementTree import iselement
 from xml.etree import ElementTree
 
-from saml.saml2.core import (SAMLVersion, Attribute, AttributeStatement, 
+from ndg.saml.saml2.core import (SAMLVersion, Attribute, AttributeStatement, 
                              AuthzDecisionStatement, Assertion, AttributeQuery, 
                              Response, Issuer, Subject, NameID, StatusCode, 
                              StatusMessage, Status, Conditions, DecisionType,
                              XSStringAttributeValue, Action, 
                              AuthzDecisionQuery)
 
-from saml.common.xml import SAMLConstants
-from saml.xml.etree import (prettyPrint, AssertionElementTree, 
+from ndg.saml.common.xml import SAMLConstants
+from ndg.saml.xml.etree import (prettyPrint, AssertionElementTree, 
                             AttributeQueryElementTree, ResponseElementTree,
                             AuthzDecisionQueryElementTree)
 

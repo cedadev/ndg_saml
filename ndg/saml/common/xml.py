@@ -28,7 +28,7 @@ __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __license__ = "BSD - see LICENSE file in top-level directory"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = "$Id: $"
-from saml.xml import XMLConstants    
+from ndg.saml.xml import XMLConstants    
 
 class SAMLConstants(XMLConstants):
     '''XML related constants used in the SAML specifications.'''

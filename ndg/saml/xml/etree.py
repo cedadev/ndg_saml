@@ -37,7 +37,7 @@ except ImportError:
     # if you've installed it yourself it comes this way
     import cElementTree, ElementTree
 
-from saml.saml2.core import (SAMLObject, Attribute, AttributeStatement, 
+from ndg.saml.saml2.core import (SAMLObject, Attribute, AttributeStatement, 
                              AuthnStatement, AuthzDecisionStatement, Assertion,
                              Conditions, AttributeValue, AttributeQuery, 
                              AuthzDecisionQuery, Subject, NameID, Issuer, 
@@ -45,11 +45,11 @@ from saml.saml2.core import (SAMLObject, Attribute, AttributeStatement,
                              StatusDetail, Advice, Action, Evidence, 
                              DecisionType, XSStringAttributeValue) 
                              
-from saml.common import SAMLVersion
-from saml.common.xml import SAMLConstants
-from saml.common.xml import QName as GenericQName
-from saml.xml import XMLTypeParseError, UnknownAttrProfile
-from saml.utils import SAMLDateTime
+from ndg.saml.common import SAMLVersion
+from ndg.saml.common.xml import SAMLConstants
+from ndg.saml.common.xml import QName as GenericQName
+from ndg.saml.xml import XMLTypeParseError, UnknownAttrProfile
+from ndg.saml.utils import SAMLDateTime
 
 
 # Generic ElementTree Helper classes

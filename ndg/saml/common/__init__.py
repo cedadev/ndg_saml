@@ -28,7 +28,7 @@ __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __license__ = "BSD - see LICENSE file in top-level directory"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = "$Id: $"
-from saml.common.xml import SAMLConstants, QName
+from ndg.saml.common.xml import SAMLConstants, QName
  
 
 class SAMLObject(object):

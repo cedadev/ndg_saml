@@ -32,9 +32,9 @@ from datetime import datetime
 from urlparse import urlsplit, urlunsplit
 import urllib
 
-from saml.common import SAMLObject, SAMLVersion
-from saml.common.xml import SAMLConstants, QName
-from saml.utils import TypedList
+from ndg.saml.common import SAMLObject, SAMLVersion
+from ndg.saml.common.xml import SAMLConstants, QName
+from ndg.saml.utils import TypedList
 
 
 class Attribute(SAMLObject):
