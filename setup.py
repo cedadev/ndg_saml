@@ -16,13 +16,23 @@ use_setuptools()
 from setuptools import setup, find_packages
 import os
    
+_longDescription = """\
+SAML 2.0 implementation for use with the NERC DataGrid Attribute and 
+Authorisation Query interfaces.  The implementation is based on the Java 
+OpenSAML libraries.  An implementation is provided using ElementTree although it
+is also possible to add plugins for other Python XML parsers.
+
+It is not a complete implementation of SAML 2.0.  Only those components required
+for the NERC DataGrid have been provided (Attribute and AuthZ Decision Query/
+Response).  Where possible, stubs have been provided for other classes.
+"""
 
 setup(
     name =           		'ndg_security_saml',
     version =        		'0.3',
-    description =    		'NERC DataGrid SAML Implementation',
-    long_description =		('SAML 2.0 implementation for use with NDG '
-                             'Attribute Interface'),
+    description =    		('SAML 2.0 implementation for the NERC DataGrid '
+                             'based on the Java OpenSAML library'),
+    long_description =		(),
     author =         		'Philip Kershaw',
     author_email =   		'Philip.Kershaw@stfc.ac.uk',
     maintainer =         	'Philip Kershaw',
