@@ -92,7 +92,7 @@ class Attribute(SAMLObject):
 
     def __getstate__(self):
         '''Enable pickling'''
-        _dict = {}
+        _dict = super(Attribute, self).__getstate__()
         for attrName in Attribute.__slots__:
             # Ugly hack to allow for derived classes setting private member
             # variables
