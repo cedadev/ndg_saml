@@ -108,7 +108,8 @@ class Attribute(SAMLObject):
     
     def _set_name(self, name):
         if not isinstance(name, basestring):
-            raise TypeError("Expecting basestring type for name, got %r"% name)
+            raise TypeError("Expecting basestring type for name, got %r"% 
+                            type(name))
         
         self.__name = name
         
@@ -122,7 +123,7 @@ class Attribute(SAMLObject):
     def _set_nameFormat(self, nameFormat):
         if not isinstance(nameFormat, basestring):
             raise TypeError("Expecting basestring type for nameFormat, got %r"
-                            % nameFormat)
+                            % type(nameFormat))
             
         self.__nameFormat = nameFormat
         
@@ -136,7 +137,7 @@ class Attribute(SAMLObject):
     def _set_friendlyName(self, friendlyName):
         if not isinstance(friendlyName, basestring):
             raise TypeError("Expecting basestring type for friendlyName, got "
-                            "%r" % friendlyName)
+                            "%r" % type(friendlyName))
             
         self.__friendlyName = friendlyName
         
@@ -150,7 +151,7 @@ class Attribute(SAMLObject):
     def _set_attributeValues(self, attributeValues):
         if not isinstance(attributeValues, (list, tuple)):
             raise TypeError("Expecting basestring type for attributeValues, "
-                            "got %r" % attributeValues)
+                            "got %r" % type(attributeValues))
             
         self.__attributeValues = attributeValues
         
