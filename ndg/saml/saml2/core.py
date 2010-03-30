@@ -414,7 +414,23 @@ class DecisionType(object):
         return self.__value
 
     def __eq__(self, decision):
-        return self.__value == decision.value
+        if isinstance(decision, DecisionType):
+            # Cast to string
+            value = decision.value
+            
+        elif isinstance(decision, basestring):
+            value = decision
+            
+        else:
+            raise TypeError('Expecting string or DecisionType instance for '
+                            'input decision value; got %r instead' % 
+                            type(value))
+            
+        if value not in self.__class__.TYPES:
+            raise AttributeError('Permissable decision types are %r; got '
+                                 '%r instead' % (DecisionType.TYPES, value))
+            
+        return self.__value == value
 
 
 class PermitDecisionType(DecisionType):
@@ -1743,7 +1759,7 @@ class Status(SAMLObject):
         '''
         Sets the Code of this Status.
         
-        @param value:         the Code of this Status
+        @param value: the Code of this Status
         '''
         if not isinstance(value, StatusCode):
             raise TypeError('"statusCode" must be a %r derived type, '
@@ -2248,6 +2264,9 @@ class RequestAbstractType(SAMLObject):
 
 class SubjectQuery(RequestAbstractType):
     """SAML 2.0 Core Subject Query type"""
+    
+    DEFAULT_ELEMENT_LOCAL_NAME = 'SubjectQuery'
+    
     __slots__ = ('__subject', )
     
     def __init__(self):

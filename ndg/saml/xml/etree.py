@@ -675,7 +675,7 @@ class AttributeElementTree(Attribute):
             
             attributeValueElementTree = factory(attributeValue)
             
-            attributeValueElem=attributeValueElementTree.toXML(attributeValue)
+            attributeValueElem = attributeValueElementTree.toXML(attributeValue)
             elem.append(attributeValueElem)
             
         return elem
@@ -1012,6 +1012,9 @@ class IssuerElementTree(Issuer):
         # Section 4.1.4.2
         if issuerFormat is not None:
             issuer.format = issuerFormat
+        
+        if elem.text is None:
+            raise XMLTypeParseError('No SAML issuer value set')
         
         issuer.value = elem.text.strip() 
         
