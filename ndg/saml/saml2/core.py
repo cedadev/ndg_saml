@@ -684,7 +684,37 @@ DecisionType.INDETERMINATE = IndeterminateDecisionType()
 
 class AuthzDecisionStatement(Statement):
     '''SAML 2.0 Core AuthzDecisionStatement.  Currently implemented in abstract
-    form only'''
+    form only
+
+    @cvar DEFAULT_ELEMENT_LOCAL_NAME: Element local name
+    @type DEFAULT_ELEMENT_LOCAL_NAME: string
+    @cvar DEFAULT_ELEMENT_NAME: Default element name
+    @type DEFAULT_ELEMENT_NAME: ndg.saml.common.xml.QName
+    @cvar TYPE_LOCAL_NAME: Local name of the XSI type
+    @type TYPE_LOCAL_NAME: string
+    @cvar TYPE_NAME: QName of the XSI type
+    @type TYPE_NAME: ndg.saml.common.xml.QName
+    @cvar RESOURCE_ATTRIB_NAME: Resource attribute name
+    @type RESOURCE_ATTRIB_NAME: string
+    @cvar DECISION_ATTRIB_NAME: Decision attribute name
+    @type DECISION_ATTRIB_NAME: string
+    
+    @ivar __resource: identifier for the resource which is the subject of the 
+    authorisation statement
+    @type __resource: basestring
+    @ivar __decision: decision type for this authorisation statement
+    @type __decision: ndg.saml.saml2.core.DecisionType
+    @ivar __actions: list of ndg.saml.saml2.core.Action elements
+    @type __actions: ndg.saml.utils.TypedList
+    @ivar __evidence: evidence (not currently implemented)
+    @type __evidence: None
+    @ivar __normalizeResource: set to True to normalize the URI object attribute
+    in the set property method (functionality likely to be deprecated)
+    @type __normalizeResource: bool
+    @ivar __safeNormalizationChars: acceptable characters for normalizing URIs
+    (functionality likely to be deprecated)
+    @type __safeNormalizationChars: string
+    '''
     
     # Element local name
     DEFAULT_ELEMENT_LOCAL_NAME = "AuthzDecisionStatement"
@@ -714,13 +744,24 @@ class AuthzDecisionStatement(Statement):
         '__actions', 
         '__evidence',
         '__normalizeResource',
-        '__safeNormalizationChars')
+        '__safeNormalizationChars'
+    )
     
     def __init__(self, 
                  normalizeResource=True, 
                  safeNormalizationChars='/%',
                  **kw):
         '''Create new authorisation decision statement
+        @param normalizeResource: set to True to normalize the URI object 
+        attribute in the set property method (functionality likely to be 
+        deprecated)
+        @type normalizeResource: bool
+        @param safeNormalizationChars: acceptable characters for normalizing 
+        URIs (functionality likely to be deprecated)
+        @type safeNormalizationChars: string
+        @param **kw: keywords for the initialisation of the parent classes'
+        attributes
+        @type **kw: dict
         '''
         super(AuthzDecisionStatement, self).__init__(**kw)
 
@@ -754,9 +795,18 @@ class AuthzDecisionStatement(Statement):
         return _dict
     
     def _getNormalizeResource(self):
+        '''Get normalise resource flag
+        @return: flag value
+        @rtype: bool        
+        '''
         return self.__normalizeResource
 
     def _setNormalizeResource(self, value):
+        '''Set normalise resource flag
+        @param value: flag value
+        @type value: bool
+        @raise TypeError: input value is incorrect type
+        '''
         if not isinstance(value, bool):
             raise TypeError('Expecting bool type for "normalizeResource" '
                             'attribute; got %r instead' % type(value))
@@ -771,9 +821,18 @@ class AuthzDecisionStatement(Statement):
                                      'beginning with "http://" or "https://"')
 
     def _getSafeNormalizationChars(self):
+        '''Get normalisation safe chars
+        @return: normalisation safe chars
+        @rtype value: basetring
+        '''
         return self.__safeNormalizationChars
 
     def _setSafeNormalizationChars(self, value):
+        '''Set normalisation safe chars
+        @param value: normalisation safe chars
+        @type value: basetring
+        @raise TypeError: input value is incorrect type
+        '''
         if not isinstance(value, basestring):
             raise TypeError('Expecting string type for "normalizeResource" '
                             'attribute; got %r instead' % type(value))
@@ -791,17 +850,22 @@ class AuthzDecisionStatement(Statement):
                                           "characters are '/%'")
 
     def _getResource(self):
-        '''Gets the Resource attrib value of this query.
+        '''Gets the Resource attrib value of this statement.
 
-        @return: the Resource attrib value of this query'''
+        @return: the Resource attrib value of this statement
+        @rtype: basestring
+        '''
         return self.__resource
     
     def _setResource(self, value):
-        '''Sets the Resource attrib value of this query normalizing the path
+        '''Sets the Resource attrib value of this statement normalizing the path
         component, removing spurious port numbers (80 for HTTP and 443 for 
         HTTPS) and converting the host component to lower case.
         
-        @param value: the new Resource attrib value of this query'''
+        @param value: the new Resource attrib value of this statement
+        @type: basestring
+        @raise TypeError: input value is incorrect type
+        '''
         if not isinstance(value, basestring):
             raise TypeError('Expecting string type for "resource" attribute; '
                             'got %r instead' % type(value))
@@ -849,6 +913,7 @@ class AuthzDecisionStatement(Statement):
         Sets the decision of the authorization request.
         
         @param value: the decision of the authorization request
+        @raise TypeError: input value is incorrect type
         '''
         if not isinstance(value, DecisionType):
             raise TypeError('Expecting %r type for "decision" attribute; '
@@ -862,18 +927,27 @@ class AuthzDecisionStatement(Statement):
     def actions(self):
         '''The actions for which authorisation is requested
         
-        @return: the Actions of this statement'''
+        @return: the Actions of this statement
+        @rtype: TypedList
+        '''
         return self.__actions
    
     def _getEvidence(self):
-        '''Gets the Evidence of this statement.
+        '''Gets the Evidence of this statement.  Evidence attribute 
+        functionality is not currently implemented in this class
 
-        @return: the Evidence of this statement'''
+        @return: the Evidence of this statement
+        @rtype: None'''
         return self.__evidence
 
     def _setEvidence(self, value):
-        '''Sets the Evidence of this query.
-        @param newEvidence: the new Evidence of this statement'''  
+        '''Sets the Evidence of this statement.  Evidence attribute 
+        functionality is not currently implemented in this class
+        
+        @param value: the new Evidence of this statement 
+        @type value: None 
+        @raise TypeError: input value is incorrect type
+        '''
         if not isinstance(value, Evidence):
             raise TypeError('Expecting Evidence type for "evidence" '
                             'attribute; got %r' % type(value))
@@ -885,6 +959,10 @@ class AuthzDecisionStatement(Statement):
                             "to base its authorisation decision on")
     
     def getOrderedChildren(self):
+        """Get ordered children
+        @return: list actions and evidence for this statement
+        @rtype: tuple
+        """
         children = []
 
         superChildren = super(AuthzDecisionStatement, self).getOrderedChildren()
@@ -903,7 +981,26 @@ class AuthzDecisionStatement(Statement):
         
 
 class Subject(SAMLObject):
-    '''Concrete implementation of @link org.opensaml.saml2.core.Subject.'''
+    '''Implementation of SAML 2.0 Subject
+    
+    @cvar DEFAULT_ELEMENT_LOCAL_NAME: Element local name.
+    @type DEFAULT_ELEMENT_LOCAL_NAME: string
+    @cvar DEFAULT_ELEMENT_NAME: Default element name.
+    @type DEFAULT_ELEMENT_NAME: ndg.saml.common.xml.QName
+    @cvar TYPE_LOCAL_NAME: Local name of the XSI type.
+    @type TYPE_LOCAL_NAME: string
+    @cvar TYPE_NAME: QName of the XSI type.
+    @type TYPE_NAME: ndg.saml.common.xml.QName
+    
+    @ivar __baseID:
+    @type __baseID:
+    @ivar __nameID:
+    @type __nameID:
+    @ivar __encryptedID:
+    @type __encryptedID:
+    @ivar __subjectConfirmations:
+    @type __subjectConfirmations:    
+    '''
     
     # Element local name.
     DEFAULT_ELEMENT_LOCAL_NAME = "Subject"
@@ -920,6 +1017,7 @@ class Subject(SAMLObject):
     TYPE_NAME = QName(SAMLConstants.SAML20_NS, 
                       TYPE_LOCAL_NAME,
                       SAMLConstants.SAML20_PREFIX)
+    
     __slots__ = (
         '__baseID',
         '__nameID',
@@ -948,7 +1046,6 @@ class Subject(SAMLObject):
         @return: object's attribute dictionary
         @rtype: dict
         '''
-
         _dict = super(Subject, self).__getstate__()
         for attrName in Subject.__slots__:
             # Ugly hack to allow for derived classes setting private member
