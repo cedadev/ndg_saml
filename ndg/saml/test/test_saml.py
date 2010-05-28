@@ -39,11 +39,12 @@ from xml.etree.ElementTree import iselement
 from xml.etree import ElementTree
 
 from ndg.saml.saml2.core import (SAMLVersion, Attribute, AttributeStatement, 
-                             AuthzDecisionStatement, Assertion, AttributeQuery, 
-                             Response, Issuer, Subject, NameID, StatusCode, 
-                             StatusMessage, Status, Conditions, DecisionType,
-                             XSStringAttributeValue, Action, 
-                             AuthzDecisionQuery)
+                                 AuthzDecisionStatement, Assertion, 
+                                 AttributeQuery, Response, Issuer, Subject, 
+                                 NameID, StatusCode, StatusMessage, Status, 
+                                 Conditions, DecisionType, 
+                                 XSStringAttributeValue, Action, 
+                                 AuthzDecisionQuery)
 
 from ndg.saml.common.xml import SAMLConstants
 from ndg.saml.xml.etree import (prettyPrint, AssertionElementTree, 

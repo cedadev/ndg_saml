@@ -200,6 +200,8 @@ class SAMLVersion(object):
         
         @param version: SAML version to test
         @type version: SAMLVersion, basestring, tuple or list
+        @return: True if input and this object match
+        @rtype: bool
         @raise TypeError: unexpected type for version input
         """
         if isinstance(version, SAMLVersion):
@@ -219,6 +221,8 @@ class SAMLVersion(object):
         
         @param version: SAML version to test
         @type version: SAMLVersion, basestring, tuple or list
+        @return: True if input and this object don't match
+        @rtype: bool
         @raise TypeError: unexpected type for version input
         """
         return not self.__eq__(version)
@@ -228,6 +232,8 @@ class SAMLVersion(object):
         
         @param version: SAML version to test
         @type version: SAMLVersion, basestring, tuple or list
+        @return: True if this instance version greater than input version
+        @rtype: bool
         @raise TypeError: unexpected type for version input
         """
         if isinstance(version, basestring):
@@ -243,6 +249,8 @@ class SAMLVersion(object):
         
         @param version: SAML version to test
         @type version: SAMLVersion, basestring, tuple or list
+        @return: True if this instance version less than input version
+        @rtype: bool
         @raise TypeError: unexpected type for version input
         """
         if isinstance(version, basestring):
@@ -259,6 +267,9 @@ class SAMLVersion(object):
         
         @param version: SAML version to test
         @type version: SAMLVersion, basestring, tuple or list
+        @return: True if this instance version greater than or equal to input 
+        version
+        @rtype: bool
         @raise TypeError: unexpected type for version input
         """
         if isinstance(version, basestring):
@@ -275,6 +286,9 @@ class SAMLVersion(object):
         
         @param version: SAML version to test
         @type version: SAMLVersion, basestring, tuple or list
+        @return: True if this instance version less than or equal to input 
+        version
+        @rtype: bool
         @raise TypeError: unexpected type for version input
         """
         if isinstance(version, basestring):

@@ -31,7 +31,43 @@ log = logging.getLogger(__name__)
    
 
 class XMLConstants(object):
-    '''XML related constants.'''
+    '''XML related constants.
+    
+    @cvar XMLTOOLING_CONFIG_NS: Configuration namespace
+    @type XMLTOOLING_CONFIG_NS: string
+    @cvar XMLTOOLING_CONFIG_PREFIX: Configuration namespace prefix
+    @type XMLTOOLING_CONFIG_PREFIX: string
+    @cvar XMLTOOLING_DEFAULT_OBJECT_PROVIDER: object provider
+    @type XMLTOOLING_DEFAULT_OBJECT_PROVIDER: string
+    @cvar XML_NS: XML core namespace
+    @type XML_NS: string
+    @cvar XML_PREFIX: XML core prefix for xml attributes
+    @type XML_PREFIX: string
+    @cvar XMLNS_NS: XML namespace for xmlns attributes
+    @type XMLNS_NS: string
+    @cvar XMLNS_PREFIX: XML namespace prefix for xmlns attributes
+    @type XMLNS_PREFIX: string
+    @cvar XSD_NS: XML Schema namespace
+    @type XSD_NS: string
+    @cvar XSD_PREFIX: XML Schema QName prefix
+    @type XSD_PREFIX: string
+    @cvar XSI_NS: XML Schema Instance namespace
+    @type XSI_NS: string
+    @cvar XSI_PREFIX: XML Schema Instance QName prefix
+    @type XSI_PREFIX: string
+    @cvar XMLSIG_NS: XML XMLSecSignatureImpl namespace
+    @type XMLSIG_NS: string
+    @cvar XMLSIG_PREFIX: XML XMLSecSignatureImpl QName prefix
+    @type XMLSIG_PREFIX: string
+    @cvar XMLENC_NS: XML Encryption namespace
+    @type XMLENC_NS: string
+    @cvar XMLENC_PREFIX: XML Encryption QName prefix
+    @type XMLENC_PREFIX: string
+    @cvar XMLENC_ENCDATA_LOCAL_NAME: Local name of EncryptedData element
+    @type XMLENC_ENCDATA_LOCAL_NAME: string
+    @cvar XMLENC_ENCKEY_LOCAL_NAME: Local name of EncryptedKey element
+    @type XMLENC_ENCKEY_LOCAL_NAME: string
+    '''
 
     # XML Tooling
 
@@ -91,10 +127,10 @@ class XMLConstants(object):
 
 
 class XMLTypeError(Exception):
-    pass
+    """Generic XML type exception"""
 
 class XMLTypeParseError(XMLTypeError):
-    pass
+    """Parse error for XML type"""
 
 class UnknownAttrProfile(XMLTypeError):
     """Raise from Attribute Value factory if attribute type is not recognised

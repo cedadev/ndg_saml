@@ -38,7 +38,37 @@ from ndg.saml.utils import TypedList
 
 
 class Attribute(SAMLObject):
-    '''SAML 2.0 Core Attribute.'''
+    '''SAML 2.0 Core Attribute.
+    @cvar DEFAULT_ELEMENT_LOCAL_NAME:  Local name of the Attribute element.
+    @type DEFAULT_ELEMENT_LOCAL_NAME: string
+    @cvar DEFAULT_ELEMENT_NAME:  Default element name.
+    @type DEFAULT_ELEMENT_NAME: ndg.saml.common.xml.QName
+    @cvar TYPE_LOCAL_NAME:  Local name of the XSI type.
+    @type TYPE_LOCAL_NAME: string
+    @cvar TYPE_NAME:  QName of the XSI type.
+    @type TYPE_NAME: ndg.saml.common.xml.QName
+    @cvar NAME_ATTRIB_NAME:  Name of the Name attribute.
+    @type NAME_ATTRIB_NAME: string
+    @cvar NAME_FORMAT_ATTRIB_NAME:  Name for the NameFormat attribute.
+    @type NAME_FORMAT_ATTRIB_NAME: string
+    @cvar FRIENDLY_NAME_ATTRIB_NAME:  Name of the FriendlyName attribute.
+    @type FRIENDLY_NAME_ATTRIB_NAME: string
+    @cvar UNSPECIFIED:  Unspecified attribute format ID.
+    @type UNSPECIFIED: string
+    @cvar URI_REFERENCE:  URI reference attribute format ID.
+    @type URI_REFERENCE: string
+    @cvar BASIC:  Basic attribute format ID.
+    @type BASIC: string
+    
+    @ivar __name: attribute name
+    @type __name: NoneType / basestring
+    @ivar __nameFormat: name format
+    @type __nameFormat: NoneType / basestring
+    @ivar __friendlyName: friendly name for attribute
+    @type __friendlyName: NoneType / basestring
+    @ivar __attributeValues: list of values
+    @type __attributeValues: list / tuple
+    '''
     
     # Local name of the Attribute element. 
     DEFAULT_ELEMENT_LOCAL_NAME = "Attribute"
@@ -82,7 +112,10 @@ class Attribute(SAMLObject):
     )
     
     def __init__(self, **kw):
-        """Initialise Attribute Class attributes"""
+        """Initialise Attribute Class attributes
+        @param **kw: keywords SAMLObject parent instantiation
+        @type **kw: dict
+        """
         super(Attribute, self).__init__(**kw)
         
         self.__name = None
@@ -91,7 +124,11 @@ class Attribute(SAMLObject):
         self.__attributeValues = []
 
     def __getstate__(self):
-        '''Enable pickling'''
+        '''Enable pickling
+        
+        @return: object's attribute dictionary
+        @rtype: dict
+        '''
         _dict = super(Attribute, self).__getstate__()
         for attrName in Attribute.__slots__:
             # Ugly hack to allow for derived classes setting private member
@@ -104,9 +141,18 @@ class Attribute(SAMLObject):
         return _dict
     
     def _get_name(self):
+        """Get name
+        @return: name
+        @rtype: string
+        """
         return self.__name
     
     def _set_name(self, name):
+        """Set name
+        @param: name
+        @type: name
+        @raise TypeError: invalid input value type
+        """
         if not isinstance(name, basestring):
             raise TypeError("Expecting basestring type for name, got %r"% 
                             type(name))
@@ -118,9 +164,18 @@ class Attribute(SAMLObject):
                     doc="name of this attribute")
     
     def _get_nameFormat(self):
+        """Get name format
+        @return: name format
+        @rtype: string
+        """
         return self.__nameFormat
     
     def _set_nameFormat(self, nameFormat):
+        """Set name format
+        @param: name format
+        @type: string
+        @raise TypeError: invalid input value type
+        """
         if not isinstance(nameFormat, basestring):
             raise TypeError("Expecting basestring type for nameFormat, got %r"
                             % type(nameFormat))
@@ -132,9 +187,18 @@ class Attribute(SAMLObject):
                           doc="Get the name format of this attribute.")
     
     def _get_friendlyName(self):
+        """Get friendly name
+        @return: friendly name
+        @rtype: string
+        """
         return self.__friendlyName
     
     def _set_friendlyName(self, friendlyName):
+        """Set friendly name
+        @param: friendly name
+        @type: string
+        @raise TypeError: invalid input value type
+        """
         if not isinstance(friendlyName, basestring):
             raise TypeError("Expecting basestring type for friendlyName, got "
                             "%r" % type(friendlyName))
@@ -146,11 +210,20 @@ class Attribute(SAMLObject):
                             doc="the friendly name of this attribute.")
     
     def _get_attributeValues(self):
+        """Get attribute values
+        @return: attribute values
+        @rtype: string
+        """
         return self.__attributeValues
     
     def _set_attributeValues(self, attributeValues):
+        """Set attribute values
+        @param: attribute values
+        @type: string
+        @raise TypeError: invalid input value type
+        """
         if not isinstance(attributeValues, (list, tuple)):
-            raise TypeError("Expecting basestring type for attributeValues, "
+            raise TypeError("Expecting list/tuple type for attributeValues, "
                             "got %r" % type(attributeValues))
             
         self.__attributeValues = attributeValues
@@ -163,7 +236,17 @@ class Attribute(SAMLObject):
 
 class Statement(SAMLObject):
     '''SAML 2.0 Core Statement.  Abstract base class which all statement 
-    types must implement.'''
+    types must implement.
+    
+    @cvar DEFAULT_ELEMENT_LOCAL_NAME: Element local name
+    @type DEFAULT_ELEMENT_LOCAL_NAME: string
+    @cvar DEFAULT_ELEMENT_NAME: Default element name
+    @type DEFAULT_ELEMENT_NAME: ndg.saml.common.xml.QName
+    @cvar TYPE_LOCAL_NAME: Local name of the XSI type
+    @type TYPE_LOCAL_NAME: string
+    @cvar TYPE_NAME: QName of the XSI type
+    @type TYPE_NAME: ndg.saml.common.xml.QName
+    '''
     __slots__ = ()
     
     # Element local name
@@ -184,7 +267,23 @@ class Statement(SAMLObject):
     
             
 class AttributeStatement(Statement):
-    '''SAML 2.0 Core AttributeStatement'''
+    '''SAML 2.0 Core AttributeStatement
+    
+    @cvar DEFAULT_ELEMENT_LOCAL_NAME: Element local name
+    @type DEFAULT_ELEMENT_LOCAL_NAME: string
+    @cvar DEFAULT_ELEMENT_NAME: Default element name.
+    @type DEFAULT_ELEMENT_NAME: ndg.saml.common.xml.QName
+    @cvar TYPE_LOCAL_NAME: Local name of the XSI type.
+    @type TYPE_LOCAL_NAME: string
+    @cvar TYPE_NAME: QName of the XSI type.
+    @type TYPE_NAME: ndg.saml.common.xml.QName
+    
+    @ivar __attributes: list of ndg.saml.saml2.core.Attribute type attributes
+    @type __attributes: ndg.saml.utils.TypedList
+    @ivar __encryptedAttributes: list of encrypted attributes of type 
+    ndg.saml.saml2.core.Attribute 
+    @type __encryptedAttributes: ndg.saml.utils.TypedList
+    '''
     
     # Element local name
     DEFAULT_ELEMENT_LOCAL_NAME = "AttributeStatement"
@@ -205,13 +304,22 @@ class AttributeStatement(Statement):
     __slots__ = ('__attributes', '__encryptedAttributes')
     
     def __init__(self, **kw):
+        """
+        @param **kw: keywords Statement parent class instantiation
+        @type **kw: dict
+        """
         super(AttributeStatement, self).__init__(**kw)
         
         self.__attributes = TypedList(Attribute)
         self.__encryptedAttributes = TypedList(Attribute)
 
     def __getstate__(self):
-        '''Enable pickling'''
+        '''Enable pickling
+        
+        @return: object's attribute dictionary
+        @rtype: dict
+        '''
+
         _dict = super(AttributeStatement, self).__getstate__()
         for attrName in AttributeStatement.__slots__:
             # Ugly hack to allow for derived classes setting private member
@@ -225,6 +333,7 @@ class AttributeStatement(Statement):
 
     def _get_attributes(self):
         '''@return: the attributes expressed in this statement
+        @rtype: ndg.saml.utils.TypedList
         '''
         return self.__attributes
 
@@ -232,6 +341,7 @@ class AttributeStatement(Statement):
     
     def _get_encryptedAttributes(self):
        '''@return: the encrypted attribtues expressed in this statement
+       @rtype: ndg.saml.utils.TypedList
        '''
        return self.__encryptedAttributes
    
@@ -241,6 +351,21 @@ class AttributeStatement(Statement):
 class AuthnStatement(Statement):
     '''SAML 2.0 Core AuthnStatement.  Currently implemented in abstract form
     only
+    
+    @cvar DEFAULT_ELEMENT_LOCAL_NAME: Element local name
+    @type DEFAULT_ELEMENT_LOCAL_NAME: string
+    @cvar DEFAULT_ELEMENT_NAME: Default element name
+    @type DEFAULT_ELEMENT_NAME: ndg.saml.common.xml.QName
+    @cvar TYPE_LOCAL_NAME: Local name of the XSI type
+    @type TYPE_LOCAL_NAME: string
+    @cvar TYPE_NAME: QName of the XSI type
+    @type TYPE_NAME: ndg.saml.common.xml.QName
+    @cvar AUTHN_INSTANT_ATTRIB_NAME: AuthnInstant attribute name
+    @type AUTHN_INSTANT_ATTRIB_NAME: string
+    @cvar SESSION_INDEX_ATTRIB_NAME: SessionIndex attribute name
+    @type SESSION_INDEX_ATTRIB_NAME: string
+    @cvar SESSION_NOT_ON_OR_AFTER_ATTRIB_NAME: SessionNoOnOrAfter attribute name
+    @type SESSION_NOT_ON_OR_AFTER_ATTRIB_NAME: string
     '''
 
     # Element local name
@@ -271,9 +396,11 @@ class AuthnStatement(Statement):
     __slots__ = ()
     
     def _getAuthnInstant(self):
-        '''Gets the time when the authentication took place.
+        '''Abstract method.  Gets the time when the authentication took place.
         
         @return: the time when the authentication took place
+        @rtype: datetime.datetime
+        @raise NotImplementedError: abstract method
         '''
         raise NotImplementedError()
 
@@ -281,6 +408,8 @@ class AuthnStatement(Statement):
         '''Sets the time when the authentication took place.
         
         @param value: the time when the authentication took place
+        @type: datetime.datetime
+        @raise NotImplementedError: abstract method
         '''
         raise NotImplementedError()
 
@@ -290,6 +419,8 @@ class AuthnStatement(Statement):
         
         @return: the session index between the principal and the authenticating 
         authority
+        @rtype: ?
+        @raise NotImplementedError: abstract method
         '''
         raise NotImplementedError()
 
@@ -299,6 +430,8 @@ class AuthnStatement(Statement):
         
         @param value: the session index between the principal and the 
         authenticating authority
+        @type: ?
+        @raise NotImplementedError: abstract method
         '''
         raise NotImplementedError()
 
@@ -308,6 +441,8 @@ class AuthnStatement(Statement):
         
         @return: the time when the session between the principal and the SAML 
         authority ends
+        @rtype: datetime.datetime
+        @raise NotImplementedError: abstract method
         '''
         raise NotImplementedError()
 
@@ -317,6 +452,8 @@ class AuthnStatement(Statement):
         
         @param value: the time when the session between the 
         principal and the SAML authority ends
+        @type: datetime.datetime
+        @raise NotImplementedError: abstract method
         '''
         raise NotImplementedError()
 
@@ -326,6 +463,8 @@ class AuthnStatement(Statement):
         
         @return: the DNS domain and IP address of the system where the principal
         was authenticated
+        @rtype: ?
+        @raise NotImplementedError: abstract method
         '''
         raise NotImplementedError()
 
@@ -335,6 +474,8 @@ class AuthnStatement(Statement):
         
         @param value: the DNS domain and IP address of the system where 
         the principal was authenticated
+        @type: ?
+        @raise NotImplementedError: abstract method
         '''
         raise NotImplementedError()
 
@@ -342,6 +483,8 @@ class AuthnStatement(Statement):
         '''Gets the context used to authenticate the subject.
         
         @return: the context used to authenticate the subject
+        @type: ?
+        @raise NotImplementedError: abstract method
         '''
         raise NotImplementedError()
 
@@ -349,12 +492,34 @@ class AuthnStatement(Statement):
         '''Sets the context used to authenticate the subject.
         
         @param value: the context used to authenticate the subject
+        @type: ?
+        @raise NotImplementedError: abstract method
         '''
         raise NotImplementedError()
 
 
 class DecisionType(object):
-    """Define decision types for the authorisation decisions"""
+    """Define decision types for the authorisation decisions
+        
+    @cvar PERMIT_STR: "Permit" decision type
+    @type PERMIT_STR: string
+    @cvar DENY_STR: "Deny" decision type
+    @type DENY_STR: string
+    @cvar INDETERMINATE_STR: "Indeterminate" decision type
+    @type INDETERMINATE_STR: string
+    @cvar TYPES: Permissable type strings
+    @type TYPES: string
+
+    @cvar PERMIT: permit as a decision type subclass
+    @type PERMIT: ndg.saml.saml2.core.PermitDecisionType
+    @cvar DENY: deny as a decision type subclass
+    @type DENY: ndg.saml.saml2.core.DenyDecisionType
+    @cvar INDETERMINATE: indeterminate as a decision type subclass
+    @type INDETERMINATE: ndg.saml.saml2.core.IndeterminateDecisionType
+    
+    @ivar __value: decision value
+    @type __value: string
+    """
     
     # "Permit" decision type
     PERMIT_STR = "Permit"
@@ -364,17 +529,26 @@ class DecisionType(object):
     
     # "Indeterminate" decision type
     INDETERMINATE_STR = "Indeterminate"
-        
+    
+    # Permissable type strings
     TYPES = (PERMIT_STR, DENY_STR, INDETERMINATE_STR)
     
     __slots__ = ('__value',)
     
     def __init__(self, decisionType):
+        '''@param decisionType: decision value
+        @type decisionType: string/ndg.saml.saml2.core.DecisionType
+        '''
         self.__value = None
         self.value = decisionType
 
     def __getstate__(self):
-        '''Enable pickling'''
+        '''Enable pickling
+        
+        @return: object's attribute dictionary
+        @rtype: dict
+        '''
+
         _dict = {}
         for attrName in DecisionType.__slots__:
             # Ugly hack to allow for derived classes setting private member
@@ -387,11 +561,19 @@ class DecisionType(object):
         return _dict
   
     def __setstate__(self, attrDict):
-        '''Enable pickling'''
+        '''Enable pickling
+        
+        @param attrDict: object's attribute dictionary
+        @type attrDict: dict
+        '''
         for attrName, val in attrDict.items():
             setattr(self, attrName, val)
             
     def _setValue(self, value):
+        '''Set decision type
+        @param value: decision value
+        @type value: string/ndg.saml.saml2.core.DecisionType
+        '''
         if isinstance(value, DecisionType):
             # Cast to string
             value = str(value)
@@ -406,14 +588,30 @@ class DecisionType(object):
         self.__value = value
         
     def _getValue(self):
+        '''Get decision type
+        @return: decision value
+        @rtype: string/ndg.saml.saml2.core.DecisionType
+        '''
         return self.__value
     
     value = property(fget=_getValue, fset=_setValue, doc="Decision value")
     
     def __str__(self):
+        '''Representation of decision type as a string
+        @return: decision value
+        @rtype: string
+        '''
         return self.__value
 
     def __eq__(self, decision):
+        """Test for equality against an input decision type
+        
+        @param version: decision type
+        @type version: ndg.saml.saml2.core.DecisionType or basestring
+        @return: True if input and this object match
+        @rtype: bool
+        @raise TypeError: unexpected type for decision type input
+        """
         if isinstance(decision, DecisionType):
             # Cast to string
             value = decision.value
@@ -438,9 +636,13 @@ class PermitDecisionType(DecisionType):
     __slots__ = ()
 
     def __init__(self):
+        """Initialise with permit decision setting"""
         super(PermitDecisionType, self).__init__(DecisionType.PERMIT_STR)
         
-    def _setValue(self):  
+    def _setValue(self):
+        """
+        @raise AttributeError: instances have read only decision type
+        """ 
         raise AttributeError("can't set attribute")
 
 
@@ -449,9 +651,13 @@ class DenyDecisionType(DecisionType):
     __slots__ = ()
     
     def __init__(self):
+        """Initialise with deny decision setting"""
         super(DenyDecisionType, self).__init__(DecisionType.DENY_STR)
         
     def _setValue(self, value):  
+        """
+        @raise AttributeError: instances have read only decision type
+        """ 
         raise AttributeError("can't set attribute")
 
 
@@ -460,10 +666,14 @@ class IndeterminateDecisionType(DecisionType):
     __slots__ = ()
     
     def __init__(self):
+        """Initialise with indeterminate decision setting"""
         super(IndeterminateDecisionType, self).__init__(
                                             DecisionType.INDETERMINATE_STR)
         
     def _setValue(self, value):  
+        """
+        @raise AttributeError: instances have read only decision type
+        """ 
         raise AttributeError("can't set attribute")
 
 # Add instances of each for convenience
@@ -526,7 +736,12 @@ class AuthzDecisionStatement(Statement):
         self.safeNormalizationChars = safeNormalizationChars
 
     def __getstate__(self):
-        '''Enable pickling'''
+        '''Enable pickling
+        
+        @return: object's attribute dictionary
+        @rtype: dict
+        '''
+
         _dict = super(AuthzDecisionStatement, self).__getstate__()
         for attrName in AuthzDecisionStatement.__slots__:
             # Ugly hack to allow for derived classes setting private member
@@ -728,7 +943,12 @@ class Subject(SAMLObject):
         self.__subjectConfirmations = []
 
     def __getstate__(self):
-        '''Enable pickling'''
+        '''Enable pickling
+        
+        @return: object's attribute dictionary
+        @rtype: dict
+        '''
+
         _dict = super(Subject, self).__getstate__()
         for attrName in Subject.__slots__:
             # Ugly hack to allow for derived classes setting private member
@@ -874,7 +1094,12 @@ class AbstractNameIDType(SAMLObject):
         self.__value = None
 
     def __getstate__(self):
-        '''Enable pickling'''
+        '''Enable pickling
+        
+        @return: object's attribute dictionary
+        @rtype: dict
+        '''
+
         _dict = super(AbstractNameIDType, self).__getstate__()
         for attrName in AbstractNameIDType.__slots__:
             # Ugly hack to allow for derived classes setting private member
@@ -1030,7 +1255,12 @@ class Conditions(SAMLObject):
         self.__notOnOrAfter = None
 
     def __getstate__(self):
-        '''Enable pickling'''
+        '''Enable pickling
+        
+        @return: object's attribute dictionary
+        @rtype: dict
+        '''
+
         _dict = super(Conditions, self).__getstate__()
         for attrName in Conditions.__slots__:
             # Ugly hack to allow for derived classes setting private member
@@ -1232,7 +1462,12 @@ class Assertion(SAMLObject):
         self.__attributeStatements = TypedList(AttributeStatement)
 
     def __getstate__(self):
-        '''Enable pickling'''
+        '''Enable pickling
+        
+        @return: object's attribute dictionary
+        @rtype: dict
+        '''
+
         _dict = super(Assertion, self).__getstate__()
         for attrName in Assertion.__slots__:
             # Ugly hack to allow for derived classes setting private member
@@ -1418,7 +1653,12 @@ class XSStringAttributeValue(AttributeValue):
         self.__value = None
 
     def __getstate__(self):
-        '''Enable pickling'''
+        '''Enable pickling
+        
+        @return: object's attribute dictionary
+        @rtype: dict
+        '''
+
         _dict = super(XSStringAttributeValue, self).__getstate__()
         for attrName in XSStringAttributeValue.__slots__:
             # Ugly hack to allow for derived classes setting private member
@@ -1471,7 +1711,12 @@ class StatusDetail(SAMLObject):
         self.__unknownChildren = TypedList(SAMLObject)         
 
     def __getstate__(self):
-        '''Enable pickling'''
+        '''Enable pickling
+        
+        @return: object's attribute dictionary
+        @rtype: dict
+        '''
+
         _dict = super(StatusDetail, self).__getstate__()
         for attrName in StatusDetail.__slots__:
             # Ugly hack to allow for derived classes setting private member
@@ -1523,7 +1768,12 @@ class StatusMessage(SAMLObject):
         self.__value = None        
 
     def __getstate__(self):
-        '''Enable pickling'''
+        '''Enable pickling
+        
+        @return: object's attribute dictionary
+        @rtype: dict
+        '''
+
         _dict = super(StatusMessage, self).__getstate__()
         for attrName in StatusMessage.__slots__:
             # Ugly hack to allow for derived classes setting private member
@@ -1662,7 +1912,12 @@ class StatusCode(SAMLObject):
         self.__childStatusCode = None
 
     def __getstate__(self):
-        '''Enable pickling'''
+        '''Enable pickling
+        
+        @return: object's attribute dictionary
+        @rtype: dict
+        '''
+
         _dict = super(StatusCode, self).__getstate__()
         for attrName in StatusCode.__slots__:
             # Ugly hack to allow for derived classes setting private member
@@ -1735,7 +1990,12 @@ class Status(SAMLObject):
         self.__statusDetail = None
         
     def __getstate__(self):
-        '''Enable pickling'''
+        '''Enable pickling
+        
+        @return: object's attribute dictionary
+        @rtype: dict
+        '''
+
         _dict = super(Status, self).__getstate__()
         for attrName in Status.__slots__:
             # Ugly hack to allow for derived classes setting private member
@@ -1930,7 +2190,12 @@ class Action(SAMLObject):
         self.__actionTypes = Action.ACTION_TYPES
         
     def __getstate__(self):
-        '''Enable pickling'''
+        '''Enable pickling
+        
+        @return: object's attribute dictionary
+        @rtype: dict
+        '''
+
         _dict = super(Action, self).__getstate__()
         for attrName in Action.__slots__:
             # Ugly hack to allow for derived classes setting private member
@@ -2112,7 +2377,12 @@ class RequestAbstractType(SAMLObject):
         self.__extensions = None
 
     def __getstate__(self):
-        '''Enable pickling'''
+        '''Enable pickling
+        
+        @return: object's attribute dictionary
+        @rtype: dict
+        '''
+
         _dict = super(RequestAbstractType, self).__getstate__()
         for attrName in RequestAbstractType.__slots__:
             # Ugly hack to allow for derived classes setting private member
@@ -2274,7 +2544,12 @@ class SubjectQuery(RequestAbstractType):
         self.__subject = None
 
     def __getstate__(self):
-        '''Enable pickling'''
+        '''Enable pickling
+        
+        @return: object's attribute dictionary
+        @rtype: dict
+        '''
+
         _dict = super(SubjectQuery, self).__getstate__()
         for attrName in SubjectQuery.__slots__:
             # Ugly hack to allow for derived classes setting private member
@@ -2331,7 +2606,12 @@ class AttributeQuery(SubjectQuery):
         self.__attributes = TypedList(Attribute)
 
     def __getstate__(self):
-        '''Enable pickling'''
+        '''Enable pickling
+        
+        @return: object's attribute dictionary
+        @rtype: dict
+        '''
+
         _dict = super(AttributeQuery, self).__getstate__()
         for attrName in AttributeQuery.__slots__:
             # Ugly hack to allow for derived classes setting private member
@@ -2382,7 +2662,12 @@ class AssertionURIRef(Evidentiary):
         self.__assertionURI = None   
 
     def __getstate__(self):
-        '''Enable pickling'''
+        '''Enable pickling
+        
+        @return: object's attribute dictionary
+        @rtype: dict
+        '''
+
         _dict = super(AssertionURIRef, self).__getstate__()
         for attrName in AssertionURIRef.__slots__:
             # Ugly hack to allow for derived classes setting private member
@@ -2436,7 +2721,12 @@ class AssertionIDRef(Evidentiary):
         self.__assertionID = None
 
     def __getstate__(self):
-        '''Enable pickling'''
+        '''Enable pickling
+        
+        @return: object's attribute dictionary
+        @rtype: dict
+        '''
+
         _dict = super(AssertionIDRef, self).__getstate__()
         for attrName in AssertionIDRef.__slots__:
             # Ugly hack to allow for derived classes setting private member
@@ -2545,7 +2835,12 @@ class Evidence(SAMLObject):
         self.__values = TypedList(Evidentiary) 
 
     def __getstate__(self):
-        '''Enable pickling'''
+        '''Enable pickling
+        
+        @return: object's attribute dictionary
+        @rtype: dict
+        '''
+
         _dict = super(Evidence, self).__getstate__()
         for attrName in Evidence.__slots__:
             # Ugly hack to allow for derived classes setting private member
@@ -2660,7 +2955,12 @@ class AuthzDecisionQuery(SubjectQuery):
         self.safeNormalizationChars = safeNormalizationChars
 
     def __getstate__(self):
-        '''Enable pickling'''
+        '''Enable pickling
+        
+        @return: object's attribute dictionary
+        @rtype: dict
+        '''
+
         _dict = super(AuthzDecisionQuery, self).__getstate__()
         for attrName in AuthzDecisionQuery.__slots__:
             # Ugly hack to allow for derived classes setting private member
@@ -2876,7 +3176,12 @@ class StatusResponseType(SAMLObject):
         self.__extensions = None
 
     def __getstate__(self):
-        '''Enable pickling'''
+        '''Enable pickling
+        
+        @return: object's attribute dictionary
+        @rtype: dict
+        '''
+
         _dict = super(StatusResponseType, self).__getstate__()
         for attrName in StatusResponseType.__slots__:
             # Ugly hack to allow for derived classes setting private member
@@ -3100,7 +3405,12 @@ class Response(StatusResponseType):
         self.__indexedChildren = []
 
     def __getstate__(self):
-        '''Enable pickling'''
+        '''Enable pickling
+        
+        @return: object's attribute dictionary
+        @rtype: dict
+        '''
+
         _dict = super(Response, self).__getstate__()
         for attrName in Response.__slots__:
             # Ugly hack to allow for derived classes setting private member
