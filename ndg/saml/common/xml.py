@@ -25,7 +25,7 @@ __author__ = "P J Kershaw"
 __date__ = "23/07/09"
 __copyright__ = "(C) 2009 Science and Technology Facilities Council"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
-__license__ = "BSD - see LICENSE file in top-level directory"
+__license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = "$Id: $"
 from ndg.saml.xml import XMLConstants    
