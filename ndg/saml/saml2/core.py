@@ -992,14 +992,14 @@ class Subject(SAMLObject):
     @cvar TYPE_NAME: QName of the XSI type.
     @type TYPE_NAME: ndg.saml.common.xml.QName
     
-    @ivar __baseID:
-    @type __baseID:
-    @ivar __nameID:
-    @type __nameID:
-    @ivar __encryptedID:
-    @type __encryptedID:
-    @ivar __subjectConfirmations:
-    @type __subjectConfirmations:    
+    @ivar __baseID: base identifier
+    @type __baseID: basestring
+    @ivar __nameID: name identifier
+    @type __nameID: basestring
+    @ivar __encryptedID: encrypted identifier
+    @type __encryptedID: any - not implemented for type checking
+    @ivar __subjectConfirmations: list of subject confirmations
+    @type __subjectConfirmations: list
     '''
     
     # Element local name.
@@ -1026,6 +1026,10 @@ class Subject(SAMLObject):
     )
     
     def __init__(self, **kw):
+        '''
+        @param **kw: keywords for initialisation of parent class attributes
+        @type **kw: dict
+        '''
         super(Subject, self).__init__(**kw)
         
         # BaseID child element.
@@ -1058,9 +1062,18 @@ class Subject(SAMLObject):
         return _dict
     
     def _getBaseID(self): 
+        """Get base identifier
+        @return: base identifier
+        @rtype: basestring
+        """ 
         return self.__baseID
 
     def _setBaseID(self, value):
+        """Set base identifier
+        @param: base identifier
+        @type: basestring
+        @raise TypeError: invalid input value type
+        """ 
         if not isinstance(value, basestring):
             raise TypeError("Expecting %r type for \"baseID\" got %r" %
                             (basestring, value.__class__))
@@ -1071,9 +1084,18 @@ class Subject(SAMLObject):
                       doc="Base identifier")
       
     def _getNameID(self):
+        """Get name identifier
+        @return: name identifier
+        @rtype: basestring
+        """ 
         return self.__nameID
     
     def _setNameID(self, value):
+        """Set name identifier
+        @param: name identifier
+        @type: basestring
+        @raise TypeError: invalid input value type
+        """ 
         if not isinstance(value, NameID):
             raise TypeError("Expecting %r type for \"nameID\" got %r" %
                             (NameID, type(value)))
@@ -1084,9 +1106,19 @@ class Subject(SAMLObject):
                       doc="Name identifier")
     
     def _getEncryptedID(self):
+        """Get encrypted identifier
+        @return: encrypted identifier
+        @rtype: basestring
+        """ 
         return self.__encryptedID
     
     def _setEncryptedID(self, value): 
+        """Set encrypted identifier
+        
+        @param: encrypted identifier
+        @type: any type
+        @raise TypeError: invalid input value type
+        """ 
         self.__encryptedID = value
 
     encryptedID = property(fget=_getEncryptedID, 
@@ -1094,12 +1126,22 @@ class Subject(SAMLObject):
                            doc="EncryptedID's Docstring")
     
     def _getSubjectConfirmations(self): 
+        """Get list of subject confirmations
+        @return: list of subject confirmations
+        @rtype: list
+        """ 
         return self.__subjectConfirmations
 
     subjectConfirmations = property(fget=_getSubjectConfirmations, 
                                     doc="Subject Confirmations")    
     
     def getOrderedChildren(self): 
+        """Get list containing base, name and encrypted IDs and the subject 
+        confirmations
+        
+        @return: list of all child attributes
+        @rtype: list
+        """ 
         children = []
 
         if self.baseID is not None:
@@ -1117,7 +1159,46 @@ class Subject(SAMLObject):
 
 
 class AbstractNameIDType(SAMLObject):
-    '''Abstract implementation of NameIDType'''
+    '''Abstract implementation of NameIDType
+    
+    @cvar SP_NAME_QUALIFIER_ATTRIB_NAME: SPNameQualifier attribute name.
+    @type SP_NAME_QUALIFIER_ATTRIB_NAME: string
+    @cvar FORMAT_ATTRIB_NAME: Format attribute name.
+    @type FORMAT_ATTRIB_NAME: string
+    @cvar SPPROVIDED_ID_ATTRIB_NAME: SPProviderID attribute name.
+    @type SPPROVIDED_ID_ATTRIB_NAME: string
+    @cvar UNSPECIFIED: URI for unspecified name format.
+    @type UNSPECIFIED: string
+    @cvar EMAIL: URI for email name format.
+    @type EMAIL: string
+    @cvar X509_SUBJECT: URI for X509 subject name format.
+    @type X509_SUBJECT: string
+    @cvar WIN_DOMAIN_QUALIFIED: URI for windows domain qualified name name 
+    format.
+    @type WIN_DOMAIN_QUALIFIED: string
+    @cvar KERBEROS: URI for kerberos name format.
+    @type KERBEROS: string
+    @cvar ENTITY: URI for SAML entity name format.
+    @type ENTITY: string
+    @cvar PERSISTENT: URI for persistent name format.
+    @type PERSISTENT: string
+    @cvar TRANSIENT: URI for transient name format.
+    @type TRANSIENT: string
+    @cvar ENCRYPTED: Special URI used by NameIDPolicy to indicate a NameID 
+    should be encrypted
+    @type ENCRYPTED: string
+
+    @ivar __name: Name of the Name ID.
+    @type __name: string
+    @ivar __nameQualifier: Name Qualifier of the Name ID.
+    @type __nameQualifier: string
+    @ivar __spNameQualifier: SP Name Qualifier of the Name ID.
+    @type __spNameQualifier: string
+    @ivar __format: Format of the Name ID.
+    @type __format: string
+    @ivar __spProvidedID: SP ProvidedID of the NameID.
+    @type __spProvidedID: string
+    '''
 
     # SPNameQualifier attribute name.
     SP_NAME_QUALIFIER_ATTRIB_NAME = "SPNameQualifier"
@@ -1166,10 +1247,9 @@ class AbstractNameIDType(SAMLObject):
     )
     
     def __init__(self, **kw): 
-        '''@param namespaceURI: the namespace the element is in
-        @param elementLocalName: the local name of the XML element this Object 
-        represents
-        @param namespacePrefix: the prefix for the given namespace
+        '''
+        @param **kw: keywords to set attributes of parent class
+        @type **kw: dict
         '''
         super(AbstractNameIDType, self).__init__(**kw)
     
@@ -1209,9 +1289,18 @@ class AbstractNameIDType(SAMLObject):
         return _dict
              
     def _getValue(self):
+        """Get name value
+        @return: name value
+        @rtype: string
+        """
         return self.__value
         
     def _setValue(self, value):
+        """Set name value
+        @param: name value
+        @type: string
+        @raise TypeError: invalid input value type
+        """
         if not isinstance(value, basestring):
             raise TypeError("\"value\" must be a basestring derived type, "
                             "got %r" % value.__class__)
@@ -1221,9 +1310,17 @@ class AbstractNameIDType(SAMLObject):
     value = property(fget=_getValue, fset=_setValue, doc="string value")  
     
     def _getNameQualifier(self): 
+        """Get name qualifier
+        @return: name qualifier
+        @rtype: string
+        """
         return self.__nameQualifier
     
     def _setNameQualifier(self, value): 
+        """Set name qualifier
+        @param: name qualifier
+        @type: string
+        """
         self.__nameQualifier = value
 
     nameQualifier = property(fget=_getNameQualifier, 
@@ -1231,9 +1328,17 @@ class AbstractNameIDType(SAMLObject):
                              doc="Name qualifier")    
 
     def _getSPNameQualifier(self): 
+        """Get SP name qualifier
+        @return: SP name qualifier
+        @rtype: string
+        """
         return self.__spNameQualifier
     
     def _setSPNameQualifier(self, value): 
+        """Set SP name qualifier
+        @param: SP name qualifier
+        @type: string
+        """
         self.__spNameQualifier = value
 
     spNameQualifier = property(fget=_getSPNameQualifier, 
@@ -1241,9 +1346,18 @@ class AbstractNameIDType(SAMLObject):
                                doc="SP Name qualifier")    
     
     def _getFormat(self):
+        """Get name format
+        @return: name format
+        @rtype: string
+        """
         return self.__format
         
     def _setFormat(self, format):
+        """Set name format
+        @param: name format
+        @type: string
+        @raise TypeError: invalid input value type
+        """
         if not isinstance(format, basestring):
             raise TypeError("\"format\" must be a basestring derived type, "
                             "got %r" % format.__class__)
@@ -1253,20 +1367,43 @@ class AbstractNameIDType(SAMLObject):
     format = property(fget=_getFormat, fset=_setFormat, doc="Name format")  
     
     def _getSPProvidedID(self): 
+        """Get SP provided identifier
+        @return: SP provided identifier
+        @rtype: string
+        """
         return self.__spProvidedID
     
     def _setSPProvidedID(self, value): 
+        """Set SP provided identifier
+        @param: SP provided identifier
+        @type: string
+        """
         self.__spProvidedID = value
 
     spProvidedID = property(fget=_getSPProvidedID, fset=_setSPProvidedID, 
                             doc="SP Provided Identifier")  
     
     def getOrderedChildren(self): 
+        """Get attributes as a list - not currently implemented
+        @return: list of object attribute values
+        @rtype: tuple
+        @raise NotImplementedError: not implemented in this version
+        """
         raise NotImplementedError()
 
    
 class Issuer(AbstractNameIDType):
-    """SAML 2.0 Core Issuer type"""
+    """SAML 2.0 Core Issuer type
+    
+    @cvar DEFAULT_ELEMENT_LOCAL_NAME: Element local name.
+    @type DEFAULT_ELEMENT_LOCAL_NAME: string
+    @cvar DEFAULT_ELEMENT_NAME: Default element name.
+    @type DEFAULT_ELEMENT_NAME: ndg.saml.common.xml.QName
+    @cvar TYPE_LOCAL_NAME: Local name of the XSI type.
+    @type TYPE_LOCAL_NAME: string
+    @cvar TYPE_NAME: Qualified Name of the XSI type.
+    @type TYPE_NAME: ndg.saml.common.xml.QName
+    """
     
     # Element local name. 
     DEFAULT_ELEMENT_LOCAL_NAME = "Issuer"
@@ -1288,7 +1425,17 @@ class Issuer(AbstractNameIDType):
 
      
 class NameID(AbstractNameIDType):
-    '''SAML 2.0 Core NameID'''
+    '''SAML 2.0 Core NameID
+    @cvar DEFAULT_ELEMENT_LOCAL_NAME: Element local name.
+    @type DEFAULT_ELEMENT_LOCAL_NAME: string
+    @cvar DEFAULT_ELEMENT_NAME: Default element name.
+    @type DEFAULT_ELEMENT_NAME: ndg.saml.common.xml.QName
+    @cvar TYPE_LOCAL_NAME: Local name of the XSI type.
+    @type TYPE_LOCAL_NAME: string
+    @cvar TYPE_NAME: Qualified Name of the XSI type.
+    @type TYPE_NAME: ndg.saml.common.xml.QName
+    '''
+    
     # Element local name. 
     DEFAULT_ELEMENT_LOCAL_NAME = "NameID"
 
@@ -1309,7 +1456,28 @@ class NameID(AbstractNameIDType):
     
 
 class Conditions(SAMLObject): 
-    '''SAML 2.0 Core Conditions.'''
+    '''SAML 2.0 Core Conditions.
+    
+    @cvar DEFAULT_ELEMENT_LOCAL_NAME: Element local name.
+    @type DEFAULT_ELEMENT_LOCAL_NAME: string
+    @cvar DEFAULT_ELEMENT_NAME: Default element name.
+    @type DEFAULT_ELEMENT_NAME: ndg.saml.common.xml.QName
+    @cvar TYPE_LOCAL_NAME: Local name of the XSI type.
+    @type TYPE_LOCAL_NAME: string
+    @cvar TYPE_NAME: Qualified Name of the XSI type.
+    @type TYPE_NAME: ndg.saml.common.xml.QName
+    @cvar NOT_BEFORE_ATTRIB_NAME: NotBefore attribute name.
+    @type NOT_BEFORE_ATTRIB_NAME: string
+    @cvar NOT_ON_OR_AFTER_ATTRIB_NAME: NotOnOrAfter attribute name.
+    @type NOT_ON_OR_AFTER_ATTRIB_NAME: string
+    
+    @ivar self.__conditions: A list of Conditions.
+    @type self.__conditions: list
+    @ivar self.__notBefore: Not Before condition
+    @type self.__notBefore: NoneType / datetime.datetime
+    @ivar self.__notOnOrAfter: Not On Or After conditions.
+    @type self.__notOnOrAfter: NoneType / datetime.datetime
+    '''
     
     # Element local name.
     DEFAULT_ELEMENT_LOCAL_NAME = "Conditions"
@@ -1342,13 +1510,13 @@ class Conditions(SAMLObject):
     def __init__(self, **kw):
         super(Conditions, self).__init__(**kw)
         
-        # A Condition.
+        # A list of Conditions
         self.__conditions = []
     
-        # Not Before conditions.
+        # Not Before time condition
         self.__notBefore = None
     
-        # Not On Or After conditions.
+        # Not On Or After time conditions
         self.__notOnOrAfter = None
 
     def __getstate__(self):
@@ -1357,7 +1525,6 @@ class Conditions(SAMLObject):
         @return: object's attribute dictionary
         @rtype: dict
         '''
-
         _dict = super(Conditions, self).__getstate__()
         for attrName in Conditions.__slots__:
             # Ugly hack to allow for derived classes setting private member
@@ -1372,13 +1539,16 @@ class Conditions(SAMLObject):
     def _getNotBefore(self):
         '''Get the date/time before which the assertion is invalid.
         
-        @return: the date/time before which the assertion is invalid'''
+        @return: the date/time before which the assertion is invalid
+        @rtype: NoneType / datetime.datetime
+        '''
         return self.__notBefore
     
     def _setNotBefore(self, value):
         '''Sets the date/time before which the assertion is invalid.
         
         @param value: the date/time before which the assertion is invalid
+        @type: datetime.datetime
         '''
         if not isinstance(value, datetime):
             raise TypeError('Expecting "datetime" type for "notBefore", '
@@ -1389,6 +1559,7 @@ class Conditions(SAMLObject):
         '''Gets the date/time on, or after, which the assertion is invalid.
         
         @return: the date/time on, or after, which the assertion is invalid'
+        @rtype: NoneType / datetime.datetime
         '''
         return self.__notOnOrAfter
     
@@ -1397,6 +1568,7 @@ class Conditions(SAMLObject):
         
         @param value: the date/time on, or after, which the assertion 
         is invalid
+        @type: datetime.datetime
         '''
         if not isinstance(value, datetime):
             raise TypeError('Expecting "datetime" type for "notOnOrAfter", '
@@ -1414,33 +1586,47 @@ class Conditions(SAMLObject):
         '''All the conditions on the assertion.
         
         @return: all the conditions on the assertion
+        @rtype: list
         '''
         return self.__conditions
     
     def _getAudienceRestrictions(self):
-        '''Gets the audience restriction conditions for the assertion.
+        '''Get the audience restriction conditions for the assertion.
         
         @return: the audience restriction conditions for the assertion
+        @rtype: list
+        @raise NotImplementedError: not currently implemented
         '''
         raise NotImplementedError()
 
     def _getOneTimeUse(self):
-        '''Gets the OneTimeUse condition for the assertion.
+        '''Get the OneTimeUse condition for the assertion
         
         @return: the OneTimeUse condition for the assertion
+        @rtype: ?
+        @raise NotImplementedError: not currently implemented
         '''
         raise NotImplementedError()
 
     def _getProxyRestriction(self):    
-        '''Gets the ProxyRestriction condition for the assertion.
+        '''Get the ProxyRestriction condition for the assertion
         
         @return: the ProxyRestriction condition for the assertion
+        @rtype: ?
+        @raise NotImplementedError: not currently implemented
         '''
         raise NotImplementedError()
     
     
 class Advice(SAMLObject):
-    '''SAML 2.0 Core Advice.
+    '''SAML 2.0 Core Advice.  Only the skeleton of this class is implemented
+    
+    @cvar DEFAULT_ELEMENT_LOCAL_NAME: Element local name.
+    @type DEFAULT_ELEMENT_LOCAL_NAME: string
+    @cvar DEFAULT_ELEMENT_NAME: Default element name.
+    @type DEFAULT_ELEMENT_NAME: ndg.saml.common.xml.QName
+    @cvar TYPE_LOCAL_NAME: Local name of the XSI type.
+    @type TYPE_LOCAL_NAME: string
     '''
 
     # Element local name
@@ -1466,6 +1652,8 @@ class Advice(SAMLObject):
         Gets the list of all child elements attached to this advice.
         
         @return: the list of all child elements attached to this advice
+        @rtype: list
+        @raise NotImplementedError: not currently implemented
         '''
         raise NotImplementedError()
 
@@ -1473,6 +1661,8 @@ class Advice(SAMLObject):
         '''Gets the list of AssertionID references used as advice.
         
         @return: the list of AssertionID references used as advice
+        @rtype: list
+        @raise NotImplementedError: not currently implemented
         '''
         raise NotImplementedError()
 
@@ -1480,6 +1670,8 @@ class Advice(SAMLObject):
         '''Gets the list of AssertionURI references used as advice.
         
         @return: the list of AssertionURI references used as advice
+        @rtype: list
+        @raise NotImplementedError: not currently implemented
         '''
         raise NotImplementedError()
     
@@ -1487,6 +1679,8 @@ class Advice(SAMLObject):
         '''Gets the list of Assertions used as advice.
         
         @return: the list of Assertions used as advice
+        @rtype: list
+        @raise NotImplementedError: not currently implemented
         '''
         raise NotImplementedError()
     
@@ -1494,13 +1688,54 @@ class Advice(SAMLObject):
         '''Gets the list of EncryptedAssertions used as advice.
         
         @return: the list of EncryptedAssertions used as advice
+        @rtype: list
+        @raise NotImplementedError: not currently implemented
         '''
         raise NotImplementedError()
         
 
 class Assertion(SAMLObject):
     """SAML 2.0 Attribute Assertion for use with NERC DataGrid    
-    """    
+
+    @cvar DEFAULT_ELEMENT_LOCAL_NAME: Element local name.
+    @type DEFAULT_ELEMENT_LOCAL_NAME: string
+    @cvar DEFAULT_ELEMENT_NAME: Default element name.
+    @type DEFAULT_ELEMENT_NAME: ndg.saml.common.xml.QName
+    @cvar TYPE_LOCAL_NAME: Local name of the XSI type.
+    @type TYPE_LOCAL_NAME: string
+    @cvar TYPE_NAME: QName of the XSI type.
+    @type TYPE_NAME: ndg.saml.common.xml.QName
+    @cvar VERSION_ATTRIB_NAME: Version attribute name.
+    @type VERSION_ATTRIB_NAME: string
+    @cvar ISSUE_INSTANT_ATTRIB_NAME: IssueInstant attribute name.
+    @type ISSUE_INSTANT_ATTRIB_NAME: string
+    @cvar ID_ATTRIB_NAME: ID attribute name.
+    @type ID_ATTRIB_NAME: string
+    
+    @ivar __version: SAML version used
+    @type __version: ndg.saml.common.SAMLVersion
+    @ivar __issueInstant: issue instant for assertion
+    @type __issueInstant: datetime.datetime
+    @ivar __id: assertion identifier
+    @type __id: string
+    @ivar __issuer: issuer of this assertion
+    @type __issuer: ndg.saml.saml2.core.Issuer
+    @ivar __subject: subject of this assertion
+    @type __subject: ndg.saml.saml2.core.Subject
+    @ivar __conditions: conditions for this assertion
+    @type __conditions: ndg.saml.saml2.core.Conditions
+    @ivar __advice: advice statement
+    @type __advice: string
+    @ivar __statements: asserted statements
+    @type __statements: ndg.saml.utils.TypedList
+    @ivar __authnStatements: asserted authentication statements
+    @type __authnStatements: list
+    @ivar __authzDecisionStatements: asserted authorization decision statements
+    @type __authzDecisionStatements: ndg.saml.utils.TypedList
+    @ivar __attributeStatements: asserted attribute statements
+    @type __attributeStatements: ndg.saml.utils.TypedList
+    """   
+     
     # Element local name.
     DEFAULT_ELEMENT_LOCAL_NAME = "Assertion"
 
@@ -1553,7 +1788,7 @@ class Assertion(SAMLObject):
         self.__advice = None
         self.__statements = TypedList(Statement)
         
-        # TODO: Implement AuthnStatement and AuthzDecisionStatement classes
+        # TODO: Implement AuthnStatement class
         self.__authnStatements = []
         self.__authzDecisionStatements = TypedList(AuthzDecisionStatement)
         self.__attributeStatements = TypedList(AttributeStatement)
@@ -1564,7 +1799,6 @@ class Assertion(SAMLObject):
         @return: object's attribute dictionary
         @rtype: dict
         '''
-
         _dict = super(Assertion, self).__getstate__()
         for attrName in Assertion.__slots__:
             # Ugly hack to allow for derived classes setting private member
@@ -1577,12 +1811,17 @@ class Assertion(SAMLObject):
         return _dict   
                  
     def _get_version(self):
-        '''@return: the SAML Version of this assertion.
+        '''
+        @return: the SAML Version of this assertion
+        @rtype: ndg.saml.common.SAMLVersion/NoneType
         '''
         return self.__version
     
     def _set_version(self, version):
-        '''@param version: the SAML Version of this assertion
+        '''
+        @param version: the SAML Version of this assertion
+        @type version: ndg.saml.common.SAMLVersion
+        @raise TypeError: incorrect type for input value
         '''
         if not isinstance(version, SAMLVersion):
             raise TypeError("Expecting SAMLVersion type got: %r" % 
@@ -1597,13 +1836,17 @@ class Assertion(SAMLObject):
     def _get_issueInstant(self):
         '''Gets the issue instance of this assertion.
         
-        @return: the issue instance of this assertion'''
+        @return: the issue instance of this assertion
+        @rtype: datetime.datetime/NoneType
+        '''
         return self.__issueInstant
     
     def _set_issueInstant(self, issueInstant):
         '''Sets the issue instance of this assertion.
         
         @param issueInstant: the issue instance of this assertion
+        @type issueInstant: datetime.datetime/NoneType
+        @raise TypeError: incorrect type for input value
         '''
         if not isinstance(issueInstant, datetime):
             raise TypeError('Expecting "datetime" type for "issueInstant", '
@@ -1616,16 +1859,19 @@ class Assertion(SAMLObject):
                             doc="Issue instant of the assertion")
 
     def _get_id(self):
-        '''Sets the ID of this assertion.
+        '''Get the ID of this assertion
         
         @return: the ID of this assertion
+        @rtype: basestring/NoneType
         '''
         return self.__id
     
     def _set_id(self, _id):
-        '''Sets the ID of this assertion.
+        '''Set the ID of this assertion
         
         @param _id: the ID of this assertion
+        @type _id: basestring
+        @raise TypeError: incorrect type for input value
         '''
         if not isinstance(_id, basestring):
             raise TypeError('Expecting basestring derived type for "id", got '
@@ -1635,14 +1881,21 @@ class Assertion(SAMLObject):
     id = property(fget=_get_id, fset=_set_id, doc="ID of assertion")
     
     def _set_issuer(self, issuer):
-        """Set issuer"""
+        """Set issuer
+        @param issuer: issuer of the assertion
+        @type issuer: ndg.saml.saml2.core.Issuer
+        @raise TypeError: incorrect type for input value
+        """
         if not isinstance(issuer, Issuer):
             raise TypeError("issuer must be %r, got %r" % (Issuer, 
                                                            type(issuer)))
         self.__issuer = issuer
     
     def _get_issuer(self):
-        """Get the issuer name """
+        """Get the issuer name 
+        @return: issuer name
+        @rtype: ndg.saml.saml2.core.Issuer
+        """
         return self.__issuer
 
     issuer = property(fget=_get_issuer, 
@@ -1650,7 +1903,10 @@ class Assertion(SAMLObject):
                       doc="Issuer of assertion")
     
     def _set_subject(self, subject):
-        """Set subject string."""
+        """Set subject string
+        @param subject: subject of this assertion
+        @type subject: ndg.saml.saml2.core.Subject
+        @raise TypeError: incorrect type for input value"""
         if not isinstance(subject, Subject):
             raise TypeError("subject must be %r, got %r" % (Subject, 
                                                             type(subject)))
@@ -1658,7 +1914,11 @@ class Assertion(SAMLObject):
         self.__subject = subject
     
     def _get_subject(self):
-        """Get subject string."""
+        """Get subject string
+        
+        @return: subject of this assertion
+        @rtype subject: ndg.saml.saml2.core.Subject
+        """
         return self.__subject
 
     subject = property(fget=_get_subject,
@@ -1666,11 +1926,17 @@ class Assertion(SAMLObject):
                        doc="Attribute Assertion subject")
     
     def _get_conditions(self):
-        """Get conditions string."""
+        """Get conditions 
+        @return: conditions for this assertion
+        @rtype: ndg.saml.saml2.core.Conditions
+        """
         return self.__conditions
     
     def _set_conditions(self, value):
-        """Get conditions string."""
+        """Set conditions 
+        @param value: conditions for this assertion
+        @type value: ndg.saml.saml2.core.Conditions
+        @raise TypeError: incorrect type for input value"""
         if not isinstance(value, Conditions):
             raise TypeError("Conditions must be %r, got %r" % (Conditions, 
                                                                type(value)))
@@ -1682,14 +1948,22 @@ class Assertion(SAMLObject):
                           doc="Attribute Assertion conditions")
     
     def _set_advice(self, advice):
-        """Set advice string."""
+        """Set advice string
+        
+        @param advice: advice for this assertion
+        @type advice: basestring
+        @raise TypeError: incorrect type for input value"""
         if not isinstance(advice, basestring):
             raise TypeError("advice must be a string")
 
         self.__advice = advice
     
     def _get_advice(self):
-        """Get advice string."""
+        """Get advice string
+        
+        @return: advice for this assertion
+        @rtype: basestring
+        """
         return self.__advice
 
     advice = property(fget=_get_advice,
@@ -1698,27 +1972,49 @@ class Assertion(SAMLObject):
     
     @property
     def statements(self):
-        """Attribute Assertion statements"""
+        """Assertion statements
+        
+        @return: list of assertion statements
+        @rtype: ndg.saml.utils.TypedList
+        """
         return self.__statements
     
     @property
     def authnStatements(self):
-        """Attribute Assertion authentication"""
+        """Attribute Assertion authentication
+        
+        @return: list of assertion statements
+        @rtype: ndg.saml.utils.TypedList
+        """
         return self.__authnStatements
     
     @property
     def authzDecisionStatements(self):
-        """Attribute Assertion authorisation decision statements"""
+        """Attribute Assertion authorisation decision statements
+        
+        @return: list of assertion statements
+        @rtype: ndg.saml.utils.TypedList
+        """
         return self.__authzDecisionStatements
     
     @property
     def attributeStatements(self):
-        """Attribute Assertion attribute statements"""
+        """Attribute Assertion attribute statements
+        
+        @return: list of assertion statements
+        @rtype: ndg.saml.utils.TypedList
+        """
         return self.__attributeStatements
     
 
 class AttributeValue(SAMLObject):
-    """Base class for Attribute Value type"""
+    """Base class for Attribute Value type
+    
+    @cvar DEFAULT_ELEMENT_LOCAL_NAME: Element name, no namespace
+    @type DEFAULT_ELEMENT_LOCAL_NAME: string
+    @cvar DEFAULT_ELEMENT_NAME: Default element name
+    @type DEFAULT_ELEMENT_NAME: ndg.saml.common.xml.QName    
+    """
     
     # Element name, no namespace
     DEFAULT_ELEMENT_LOCAL_NAME = "AttributeValue"
@@ -1731,7 +2027,16 @@ class AttributeValue(SAMLObject):
 
 
 class XSStringAttributeValue(AttributeValue):
-    """XML XS:String Attribute Value type"""
+    """XML XS:String Attribute Value type
+    
+    @cvar TYPE_LOCAL_NAME: Local name of the XSI type
+    @type TYPE_LOCAL_NAME: string
+    @cvar TYPE_NAME: QName of the XSI type
+    @type TYPE_NAME: ndg.saml.common.xml.QName
+    
+    @ivar __value: value of this attribute
+    @type __value: basestring
+    """
     
     # Local name of the XSI type
     TYPE_LOCAL_NAME = "string"
@@ -1746,6 +2051,10 @@ class XSStringAttributeValue(AttributeValue):
     __slots__ = ('__value',)
     
     def __init__(self, **kw):
+        """
+        @param **kw: keywords for setting attributes of parent class
+        @type **kw: dict
+        """
         super(XSStringAttributeValue, self).__init__(**kw)
         self.__value = None
 
@@ -1755,7 +2064,6 @@ class XSStringAttributeValue(AttributeValue):
         @return: object's attribute dictionary
         @rtype: dict
         '''
-
         _dict = super(XSStringAttributeValue, self).__getstate__()
         for attrName in XSStringAttributeValue.__slots__:
             # Ugly hack to allow for derived classes setting private member
@@ -1768,9 +2076,18 @@ class XSStringAttributeValue(AttributeValue):
         return _dict
             
     def _getValue(self):
+        """Set value of XS string
+        @return: value of string to assign
+        @rtype: string
+        """
         return self.__value
         
     def _setValue(self, value):
+        """Set value of XS string
+        @param: value
+        @type: string
+        @raise TypeError: invalid input value type
+        """
         if not isinstance(value, basestring):
             raise TypeError("Input must be a basestring derived type, got %r" %
                             value.__class__)
@@ -1781,7 +2098,21 @@ class XSStringAttributeValue(AttributeValue):
 
 
 class StatusDetail(SAMLObject):
-    '''Implementation of SAML 2.0 StatusDetail'''
+    '''Implementation of SAML 2.0 StatusDetail
+    
+    @cvar DEFAULT_ELEMENT_LOCAL_NAME: Local Name of StatusDetail.
+    @type DEFAULT_ELEMENT_LOCAL_NAME: string
+    @cvar DEFAULT_ELEMENT_NAME: Default element name.
+    @type DEFAULT_ELEMENT_NAME: string
+    @cvar TYPE_LOCAL_NAME: Local name of the XSI type.
+    @type TYPE_LOCAL_NAME: string
+    @cvar TYPE_NAME: QName of the XSI type.
+    @type TYPE_NAME: string
+    
+    @ivar __unknownChildren: unknown child elements
+    @type __unknownChildren: ndg.saml.common.SAMLObject
+    
+    '''
     
     # Local Name of StatusDetail.
     DEFAULT_ELEMENT_LOCAL_NAME = "StatusDetail"
@@ -1802,6 +2133,10 @@ class StatusDetail(SAMLObject):
     __slots__ = ('__unknownChildren', )
     
     def __init__(self, **kw):
+        """
+        @param **kw: keywords for setting attributes of parent class
+        @type **kw: dict
+        """
         super(StatusDetail, self).__init__(**kw)
         
         # child "any" elements.
@@ -1825,7 +2160,14 @@ class StatusDetail(SAMLObject):
             
         return _dict
     
-    def getUnknownXMLTypes(self, qname=None): 
+    def getUnknownXMLTypes(self, qname=None):
+        """Retrieve unknown child attributes
+        
+        This is untested
+        @param qname: qualified name for matching types to be retrieved
+        @type qname: ndg.saml.common.xml.QName
+        @raise TypeError: incorrect type for qname keyword
+        """ 
         if qname is not None:
             if not isinstance(qname, QName):
                 raise TypeError("\"qname\" must be a %r derived type, "

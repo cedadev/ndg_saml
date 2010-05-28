@@ -395,7 +395,7 @@ class QName(object):
 
     def _setPrefix(self, value):
         """Set prefix
-        @param: prefix
+        @param value: prefix
         @type: string
         @raise TypeError: invalid input value type
         """
