@@ -60,7 +60,7 @@ setup(
     namespace_packages =	['ndg'],
     include_package_data =  True,
     classifiers = [
-        'Development Status :: Development Status :: 4 - Beta',
+        'Development Status :: 4 - Beta',
         'Environment :: Console',
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
