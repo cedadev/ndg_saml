@@ -713,8 +713,6 @@ class SAMLTestCase(unittest.TestCase):
         self.assert_(query2.actions[0].value == Action.HTTP_GET_ACTION)
         self.assert_(query2.actions[0].namespace == Action.GHPP_NS_URI)
 
-
-        
     def test16PickleAuthzDecisionResponse(self):
         response = self._createAuthzDecisionQueryResponse()
         

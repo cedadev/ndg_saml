@@ -38,12 +38,12 @@ except ImportError:
     import cElementTree, ElementTree
 
 from ndg.saml.saml2.core import (SAMLObject, Attribute, AttributeStatement, 
-                             AuthnStatement, AuthzDecisionStatement, Assertion,
-                             Conditions, AttributeValue, AttributeQuery, 
-                             AuthzDecisionQuery, Subject, NameID, Issuer, 
-                             Response, Status, StatusCode, StatusMessage, 
-                             StatusDetail, Advice, Action, Evidence, 
-                             DecisionType, XSStringAttributeValue) 
+                                 AuthnStatement, AuthzDecisionStatement, 
+                                 Assertion, Conditions, AttributeValue, 
+                                 AttributeQuery, AuthzDecisionQuery, Subject, 
+                                 NameID, Issuer, Response, Status, StatusCode, 
+                                 StatusMessage, StatusDetail, Advice, Action, 
+                                 Evidence, DecisionType, XSStringAttributeValue) 
                              
 from ndg.saml.common import SAMLVersion
 from ndg.saml.common.xml import SAMLConstants
@@ -91,25 +91,43 @@ class QName(ElementTree.QName):
         self.prefix = prefix
     
     def _getPrefix(self):
+        """@return: NS prefix
+        @rtype: basestring
+        """
         return self.__prefix
 
     def _setPrefix(self, value):
+        """@param value: NS prefix
+        @type value: basestring
+        """
         self.__prefix = value
     
     prefix = property(_getPrefix, _setPrefix, None, "Prefix")
 
     def _getLocalPart(self):
+        """@return: NS local name
+        @rtype: basestring
+        """
         return self.__localPart
     
     def _setLocalPart(self, value):
+        """@param value: NS local name
+        @type value: basestring
+        """
         self.__localPart = value
         
     localPart = property(_getLocalPart, _setLocalPart, None, "LocalPart")
 
     def _getNamespaceURI(self):
+        """@return: NS URI
+        @rtype: basestring
+        """
         return self.__namespaceURI
 
     def _setNamespaceURI(self, value):
+        """@param value: NS URI
+        @type value: basestring
+        """
         self.__namespaceURI = value
   
     namespaceURI = property(_getNamespaceURI, _setNamespaceURI, None, 
@@ -121,6 +139,9 @@ class QName(ElementTree.QName):
         
         @type qname: ndg.security.common.utils.etree.QName
         @param qname: Qualified Name to compare with self 
+        
+        @return: True if the qualified names match, False otherwise
+        @rtype: bool
         """
         if not isinstance(qname, QName):
             raise TypeError('Expecting %r; got %r' % (QName, type(qname)))
@@ -135,13 +156,21 @@ class QName(ElementTree.QName):
         
         @type qname: ndg.security.common.utils.etree.QName
         @param qname: Qualified Name to compare with self 
+        @return: True if the qualified names don't match, False otherwise
+        @rtype: bool
         """
         return not self.__eq__(qname)
 
     @classmethod
     def fromGeneric(cls, genericQName):
-        '''Cast the generic QName type in saml.common.xml to the 
-        ElementTree specific implementation'''
+        '''Cast the generic QName type in ndg.saml.common.xml to this
+        ElementTree specific implementation
+        
+        @param genericQName: SAML core qualified name type
+        @type genericQName: ndg.saml.common.xml.QName
+        @return: ElementTree specific qualified name type
+        @rtype: ndg.saml.xml.etree.QName
+        '''
         if not isinstance(genericQName, GenericQName):
             raise TypeError("Expecting %r for QName, got %r" % (GenericQName,
                                                         type(genericQName)))
@@ -153,7 +182,14 @@ class QName(ElementTree.QName):
     
     
 def prettyPrint(*arg, **kw):
-    '''Lightweight pretty printing of ElementTree elements'''
+    '''Lightweight pretty printing of ElementTree elements.  This function
+    wraps the PrettyPrint class
+    
+    @param *arg: arguments to pretty print function
+    @type *arg: tuple
+    @param **kw: keyword arguments to pretty print function
+    @type **kw: dict
+    '''
     
     # Keep track of namespace declarations made so they're not repeated
     declaredNss = []
@@ -163,12 +199,22 @@ def prettyPrint(*arg, **kw):
 
 
 class PrettyPrint(object):
+    '''Class for lightweight pretty printing of ElementTree elements'''
     def __init__(self, declaredNss):
+        """
+        @param declaredNss: declared namespaces
+        @type declaredNss: iterable of string elements
+        """
         self.declaredNss = declaredNss
     
     @staticmethod
     def estrip(elem):
-        ''' Just want to get rid of unwanted whitespace '''
+        '''Utility to remove unwanted leading and trailing whitespace 
+        
+        @param elem: ElementTree element
+        @type elem: ElementTree.Element
+        @return: element content with whitespace removed
+        @rtype: basestring'''
         if elem is None:
             return ''
         else:
@@ -179,7 +225,17 @@ class PrettyPrint(object):
     def __call__(self, elem, indent='', html=0, space=' '*4):
         '''Most of the work done in this wrapped function - wrapped so that
         state can be maintained for declared namespace declarations during
-        recursive calls using "declaredNss" above'''  
+        recursive calls using "declaredNss" above
+        
+        @param elem: ElementTree element
+        @type elem: ElementTree.Element
+        @param indent: set indent for output
+        @type indent: basestring
+        @param space: set output spacing
+        @type space: basestring 
+        @return: pretty print format for doc
+        @rtype: basestring       
+        '''  
         strAttribs = []
         for attr, attrVal in elem.attrib.items():
             nsDeclaration = ''
@@ -246,8 +302,8 @@ class ConditionsElementTree(Conditions):
     def toXML(cls, conditions):
         """Make a tree of a XML elements based on the assertion conditions
         
-        @type assertion: saml.saml2.core.Conditions
-        @param assertion: Assertion conditions to be represented as an 
+        @type conditions: saml.saml2.core.Conditions
+        @param conditions: Assertion conditions to be represented as an 
         ElementTree Element
         @rtype: ElementTree.Element
         @return: ElementTree Element
@@ -283,7 +339,8 @@ class ConditionsElementTree(Conditions):
         @type elem: ElementTree.Element
         @param elem: ElementTree element containing the conditions
         @rtype: saml.saml2.core.Conditions
-        @return: Conditions object"""
+        @return: Conditions object
+        """
         
         if not ElementTree.iselement(elem):
             raise TypeError("Expecting %r input type for parsing; got %r" %
@@ -392,7 +449,8 @@ class AssertionElementTree(Assertion):
         @type attributeValueElementTreeFactoryKw: dict
         @param attributeValueElementTreeFactoryKw: keywords for AttributeValue
         @rtype: saml.saml2.core.Assertion
-        @return: Assertion object"""
+        @return: Assertion object
+        """
         if not ElementTree.iselement(elem):
             raise TypeError("Expecting %r input type for parsing; got %r" %
                             (ElementTree.Element, elem))
@@ -512,7 +570,8 @@ class AttributeStatementElementTree(AttributeStatement):
         @param attributeValueElementTreeFactoryKw: keywords for AttributeValue
         factory
         @rtype: saml.saml2.core.AttributeStatement
-        @return: Attribute Statement"""
+        @return: Attribute Statement
+        """
         
         if not ElementTree.iselement(elem):
             raise TypeError("Expecting %r input type for parsing; got %r" %
@@ -586,9 +645,6 @@ class AuthzDecisionStatementElementTree(AuthzDecisionStatement):
         
         @type elem: ElementTree.Element
         @param elem: ElementTree element containing the AuthzDecisionStatement
-        @type authzDecisionValueElementTreeFactoryKw: dict
-        @param authzDecisionValueElementTreeFactoryKw: keywords for AuthzDecisionValue
-        factory
         @rtype: saml.saml2.core.AuthzDecisionStatement
         @return: AuthzDecision Statement"""
         
@@ -644,8 +700,8 @@ class AttributeElementTree(Attribute):
     def toXML(cls, attribute, **attributeValueElementTreeFactoryKw):
         """Make a tree of a XML elements based on the Attribute
         
-        @type assertion: saml.saml2.core.Attribute
-        @param assertion: Attribute to be represented as an ElementTree Element
+        @type attribute: saml.saml2.core.Attribute
+        @param attribute: Attribute to be represented as an ElementTree Element
         @type attributeValueElementTreeFactoryKw: dict
         @param attributeValueElementTreeFactoryKw: keywords for AttributeValue
         factory
@@ -744,8 +800,9 @@ class AttributeValueElementTreeBase(AttributeValue):
     def toXML(cls, attributeValue):
         """Make a tree of a XML elements based on the Attribute value
         
-        @type assertion: saml.saml2.core.Assertion
-        @param assertion: Assertion to be represented as an ElementTree Element
+        @type attributeValue: saml.saml2.core.AttributeValue
+        @param attributeValue: Assertion to be represented as an ElementTree 
+        Element
         @rtype: ElementTree.Element
         @return: ElementTree Element
         """
@@ -769,8 +826,9 @@ class XSStringAttributeValueElementTree(AttributeValueElementTreeBase,
     def toXML(cls, attributeValue):
         """Create an XML representation of the input SAML Attribute Value 
         
-        @type assertion: saml.saml2.core.XSStringAttributeValue
-        @param assertion: xs:string to be represented as an ElementTree Element
+        @type attributeValue: saml.saml2.core.XSStringAttributeValue
+        @param attributeValue: xs:string to be represented as an ElementTree 
+        Element
         @rtype: ElementTree.Element
         @return: ElementTree Element
         """
@@ -849,8 +907,8 @@ class AttributeValueElementTreeFactory(object):
     @cvar toXMLTypeMap: mapping between SAML AttributeValue class and its 
     ElementTree handler class
     @type toSAMLTypeMap: dict
-    @cvar toSAMLTypeMap: mapping between SAML AttributeValue string identifier and 
-    its ElementTree handler class
+    @cvar toSAMLTypeMap: mapping between SAML AttributeValue string identifier 
+    and its ElementTree handler class
     """
     toXMLTypeMap = {
         XSStringAttributeValue: XSStringAttributeValueElementTree
@@ -858,6 +916,7 @@ class AttributeValueElementTreeFactory(object):
 
     def xsstringMatch(elem):
         """Match function for xs:string type attribute.
+        
         @type elem: ElementTree.Element
         @param elem: Attribute Value element to be checked
         @rtype: XSStringAttributeValueElementTree/None
@@ -884,6 +943,7 @@ class AttributeValueElementTreeFactory(object):
    
     def __init__(self, customToXMLTypeMap={}, customToSAMLTypeMap=[]): 
         """Set-up a SAML class to ElementTree mapping
+        
         @type customToXMLTypeMap: dict
         @param customToXMLTypeMap: mapping for custom SAML AttributeValue 
         classes to their respective ElementTree based representations.  This 
@@ -922,11 +982,11 @@ class AttributeValueElementTreeFactory(object):
         
         @type input: saml.saml2.core.AttributeValue or basestring
         @param input: pass an AttributeValue derived type or a string.  If
-        an AttributeValue type, then self.__toXMLTypeMap is checked for a matching
-        AttributeValue class entry, if a string is passed, self.__toSAMLTypeMap is
-        checked for a matching string ID.  In both cases, if a match is 
-        found an ElementTree class is returned which can render or parse
-        the relevant AttributeValue class
+        an AttributeValue type, then self.__toXMLTypeMap is checked for a 
+        matching AttributeValue class entry, if a string is passed, 
+        self.__toSAMLTypeMap is checked for a matching string ID.  In both 
+        cases, if a match is found an ElementTree class is returned which can 
+        render or parse the relevant AttributeValue class
         """
         if isinstance(input, AttributeValue):
             XMLTypeClass = self.__toXMLTypeMap.get(input.__class__)
@@ -969,7 +1029,13 @@ class IssuerElementTree(Issuer):
     
     @classmethod
     def toXML(cls, issuer):
-        """Create an XML representation of the input SAML issuer object"""
+        """Create an XML representation of the input SAML issuer object
+        
+        @type issuer: saml.saml2.core.Issuer
+        @param issuer: Assertion object
+        @rtype: ElementTree.Element
+        @return: ElementTree element containing the assertion
+        """
         if not isinstance(issuer, Issuer):
             raise TypeError("Expecting %r class got %r" % (Issuer, 
                                                            type(issuer)))
@@ -1031,7 +1097,8 @@ class NameIdElementTree(NameID):
         @type nameID: saml.saml2.core.NameID
         @param nameID: SAML name ID
         @rtype: ElementTree.Element
-        @return: Name ID as ElementTree XML element"""
+        @return: Name ID as ElementTree XML element
+        """
         
         if not isinstance(nameID, NameID):
             raise TypeError("Expecting %r class got %r" % (NameID, 
@@ -1143,7 +1210,8 @@ class StatusCodeElementTree(StatusCode):
         @type statusCode: saml.saml2.core.StatusCode
         @param statusCode: SAML Status Code
         @rtype: ElementTree.Element
-        @return: Status Code as ElementTree XML element"""
+        @return: Status Code as ElementTree XML element
+        """
         
         if not isinstance(statusCode, StatusCode):
             raise TypeError("Expecting %r class got %r" % (StatusCode, 
@@ -1199,7 +1267,8 @@ class StatusMessageElementTree(StatusMessage):
         @type statusMessage: saml.saml2.core.StatusMessage
         @param statusMessage: SAML Status Message
         @rtype: ElementTree.Element
-        @return: Status Code as ElementTree XML element"""
+        @return: Status Code as ElementTree XML element
+        """
         
         if not isinstance(statusMessage, StatusMessage):
             raise TypeError("Expecting %r class got %r" % (StatusMessage, 
@@ -1578,7 +1647,8 @@ class ActionElementTree(Action):
         @type action: saml.saml2.core.Action
         @param action: SAML subject
         @rtype: ElementTree.Element
-        @return: Name ID as ElementTree XML element"""
+        @return: Name ID as ElementTree XML element
+        """
         
         if not isinstance(action, Action):
             raise TypeError("Expecting %r class got %r" % (Action, 

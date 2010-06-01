@@ -3389,16 +3389,15 @@ class AttributeQuery(SubjectQuery):
         @type value: TypedList
         @raise TypeError: incorrect type for attributes list
         '''
-        if not isinstance(value, TypedList):
-            raise TypeError('Expecting %r type for "attributes"; got %r' %
-                            (TypedList, (type)))
-        
-        if not issubclass(value.elementType, Attribute):
+        if isinstance(value, TypedList) and not issubclass(value.elementType, 
+                                                           Attribute):
             raise TypeError('Expecting %r derived type for "attributes" '
                             'elements; got %r' % (Attribute, value.elementType))
+        else:
+            self.__attributes = TypedList(Attribute)
+            for i in value:
+                self.__attributes.append(i)
             
-        self.__attributes = value
-
     attributes = property(fget=_getAttributes, 
                           fset=_setAttributes, 
                           doc="Attributes")
@@ -4014,7 +4013,7 @@ class StatusResponseType(SAMLObject):
     @cvar TYPE_LOCAL_NAME: Local name of the XSI type.
     @type TYPE_LOCAL_NAME: string
     @cvar TYPE_NAME: QName of the XSI type.
-    @type TYPE_NAME: string
+    @type TYPE_NAME: ndg.saml.common.xml.QName
     @cvar ID_ATTRIB_NAME: ID attribute name
     @type ID_ATTRIB_NAME: string
     @cvar IN_RESPONSE_TO_ATTRIB_NAME: InResponseTo attribute name
@@ -4042,6 +4041,25 @@ class StatusResponseType(SAMLObject):
     @cvar INAPPLICABLE_CONSENT: Inapplicable consent URI
     @type INAPPLICABLE_CONSENT: string
 
+    @ivar __version: SAML version
+    @type __version: string
+    @ivar __id: response identifier
+    @type __id: string
+    @ivar __inResponseTo: identifier corresponding to the query this response is
+    responding to
+    @type __inResponseTo: string
+    @ivar __issueInstant: issue instant for the response
+    @type __issueInstant: datetime.datetime
+    @ivar __destination: destination for the response
+    @type __destination: string
+    @ivar __consent: consent information
+    @type __consent: string
+    @ivar __issuer: issuer identifier
+    @type __issuer: ndg.saml.saml2.core.Issuer
+    @ivar __status: status of the response
+    @type __status: ndg.saml.saml2.core.Status
+    @ivar __extensions: response extensions
+    @type __extensions: list or tuple
     '''
 
     # Local name of the XSI type.
@@ -4104,6 +4122,10 @@ class StatusResponseType(SAMLObject):
     )
     
     def __init__(self, **kw):
+        '''
+        @param **kw: keywords for initialisation of superclass
+        @type **kw: dict
+        '''
         super(StatusResponseType, self).__init__(**kw)
         
         self.__version = SAMLVersion(SAMLVersion.VERSION_20)
@@ -4135,12 +4157,15 @@ class StatusResponseType(SAMLObject):
         return _dict
     
     def _get_version(self):
-        '''@return: the SAML Version of this response.
+        '''@return: the SAML Version of this response
+        @rtype: string
         '''
         return self.__version
     
     def _set_version(self, version):
         '''@param version: the SAML Version of this response
+        @type version: basestring
+        @raise TypeError: incorrect type for input version 
         '''
         if not isinstance(version, SAMLVersion):
             raise TypeError("Expecting SAMLVersion type got: %r" % 
@@ -4156,6 +4181,7 @@ class StatusResponseType(SAMLObject):
         '''Sets the ID of this response.
         
         @return: the ID of this response
+        @rtype: basestring
         '''
         return self.__id
     
@@ -4163,6 +4189,8 @@ class StatusResponseType(SAMLObject):
         '''Sets the ID of this response.
         
         @param value: the ID of this response
+        @type value: basestring
+        @raise TypeError: incorrect type for input value
         '''
         if not isinstance(value, basestring):
             raise TypeError('Expecting basestring derived type for "id", got '
@@ -4176,6 +4204,7 @@ class StatusResponseType(SAMLObject):
         
         @return: the unique identifier of the originating 
         request
+        @rtype: basestring
         '''
         return self.__inResponseTo
     
@@ -4184,6 +4213,8 @@ class StatusResponseType(SAMLObject):
         
         @param value: the unique identifier of the originating 
         request
+        @type value: basestring
+        @raise TypeError: incorrect type for input value
         '''
         if not isinstance(value, basestring):
             raise TypeError('Expecting basestring derived type for '
@@ -4196,15 +4227,18 @@ class StatusResponseType(SAMLObject):
                                 "a response")
 
     def _get_issueInstant(self):
-        '''Gets the issue instance of this response.
+        '''Gets the issue instant of this response.
         
-        @return: the issue instance of this response'''
+        @return: the issue instant of this response
+        @rtype: datetime.datetime'''
         return self.__issueInstant
     
     def _set_issueInstant(self, issueInstant):
-        '''Sets the issue instance of this response.
+        '''Set the issue instant of this response
         
-        @param newIssueInstance: the issue instance of this response
+        @param issueInstant: the issue instance of this response
+        @type issueInstant: datetime.datetime
+        @raise TypeError: incorrect type for input value
         '''
         if not isinstance(issueInstant, datetime):
             raise TypeError('Expecting "datetime" type for "issueInstant", '
@@ -4220,13 +4254,17 @@ class StatusResponseType(SAMLObject):
         '''Gets the URI of the destination of the response.
         
         @return: the URI of the destination of the response
+        @rtype: basestring
         '''
         return self.__destination
     
     def _set_destination(self, value):
         '''Sets the URI of the destination of the response.
         
-        @param value: the URI of the destination of the response'''
+        @param value: the URI of the destination of the response
+        @type value: basestring
+        @raise TypeError: incorrect type for input value
+        '''
         if not isinstance(value, basestring):
             raise TypeError('Expecting basestring derived type for '
                             '"destination", got %r' % type(value))
@@ -4237,11 +4275,12 @@ class StatusResponseType(SAMLObject):
                            doc="Destination of response")
      
     def _get_consent(self):
-        '''Gets the consent obtained from the principal for sending this 
-        response.
+        '''Get the consent obtained from the principal for sending this 
+        response
         
         @return: the consent obtained from the principal for sending this 
         response
+        @rtype: basestring
         '''
         return self.__consent
         
@@ -4251,6 +4290,8 @@ class StatusResponseType(SAMLObject):
         
         @param value: the new consent obtained from the principal for 
         sending this response
+        @type value: basestring
+        @raise TypeError: incorrect type for input value
         ''' 
         if not isinstance(value, basestring):
             raise TypeError('Expecting basestring derived type for "consent", '
@@ -4262,14 +4303,25 @@ class StatusResponseType(SAMLObject):
                        doc="Consent for response")
    
     def _set_issuer(self, issuer):
-        """Set issuer of response"""
+        """Set issuer of response
+        
+        @param value: issuer of this response 
+        sending this response
+        @type value: ndg.saml.saml2.core.Issuer
+        @raise TypeError: incorrect type for input value
+        """
         if not isinstance(issuer, Issuer):
             raise TypeError('"issuer" must be a %r, got %r' % (Issuer,
                                                                type(issuer)))
         self.__issuer = issuer
     
     def _get_issuer(self):
-        """Get the issuer name """
+        """Get the issuer name 
+        
+        @return: issuer of this response 
+        sending this response
+        @rtype: ndg.saml.saml2.core.Issuer
+        """
         return self.__issuer
 
     issuer = property(fget=_get_issuer, 
@@ -4280,13 +4332,16 @@ class StatusResponseType(SAMLObject):
         '''Gets the Status of this response.
         
         @return: the Status of this response
+        @rtype: ndg.saml.saml2.core.Status
         '''
         return self.__status
 
     def _setStatus(self, value):
         '''Sets the Status of this response.
         
-        @param newStatus: the Status of this response
+        @param value: the Status of this response
+        @type value: ndg.saml.saml2.core.Status
+        @raise TypeError: incorrect type for input value
         '''
         if not isinstance(value, Status):
             raise TypeError('"status" must be a %r, got %r' % (Status,
@@ -4299,6 +4354,7 @@ class StatusResponseType(SAMLObject):
         '''Gets the Extensions of this response.
         
         @return: the Status of this response
+        @rtype: tuple/list/NoneType
         '''
         return self.__extensions
       
@@ -4306,6 +4362,8 @@ class StatusResponseType(SAMLObject):
         '''Sets the Extensions of this response.
         
         @param value: the Extensions of this response
+        @type value: tuple or list
+        @raise TypeError: incorrect type for input value        
         '''
         if not isinstance(value, (list, tuple)):
             raise TypeError('Expecting list or tuple for "extensions", got %r'
@@ -4318,7 +4376,20 @@ class StatusResponseType(SAMLObject):
 
 
 class Response(StatusResponseType):
-    '''SAML2 Core Response'''
+    '''SAML2 Core Response
+    
+    @cvar DEFAULT_ELEMENT_LOCAL_NAME: Element local name.
+    @type DEFAULT_ELEMENT_LOCAL_NAME: ndg.saml.common.xml.QName
+    @cvar DEFAULT_ELEMENT_NAME: Default element name.
+    @type DEFAULT_ELEMENT_NAME: string
+    @cvar TYPE_LOCAL_NAME: Local name of the XSI type.
+    @type TYPE_LOCAL_NAME: string
+    @cvar TYPE_NAME: QName of the XSI type.
+    @type TYPE_NAME: ndg.saml.common.xml.QName
+    
+    @ivar __indexedChildren: response elements
+    @type __indexedChildren: list
+    '''
     
     # Element local name.
     DEFAULT_ELEMENT_LOCAL_NAME = "Response"
@@ -4339,7 +4410,10 @@ class Response(StatusResponseType):
     __slots__ = ('__indexedChildren',)
     
     def __init__(self, **kw):
-        '''''' 
+        '''
+        @param **kw: keywords to initialise superclass instance
+        @type **kw: dict
+        ''' 
         super(Response, self).__init__(**kw)
         
         # Assertion child elements
@@ -4365,5 +4439,9 @@ class Response(StatusResponseType):
         
     @property
     def assertions(self): 
-        "Assertions contained in this response"
+        """Assertions contained in this response
+        
+        @return: list of assertion for this response
+        @rtype: list
+        """
         return self.__indexedChildren

@@ -38,12 +38,16 @@ from datetime import datetime, timedelta
 class SAMLDateTime(object):
     """Generic datetime formatting utility for SAML timestamps - XMLSchema
     Datetime format
+    
+    @cvar DATETIME_FORMAT: date/time format string for SAML timestamps
+    @type DATETIME_FORMAT: string
     """
     DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
     
     @classmethod
     def toString(cls, dtValue):
         """Convert issue instant datetime to correct string type for output
+        
         @type dtValue: datetime.datetime
         @param dtValue: issue instance as a datetime
         @rtype: basestring
@@ -60,6 +64,7 @@ class SAMLDateTime(object):
     @classmethod
     def fromString(cls, strDateTime):
         """Convert issue instant string to datetime type
+        
         @type strDateTime: basestring
         @param strDateTime: issue instance as a string
         @rtype: datetime.datetime
@@ -94,12 +99,19 @@ class TypedList(list):
         super(TypedList, self).__init__(*arg, **kw)
     
     def _getElementType(self):
+        """@return: element type for this list
+        @rtype: type
+        """
         return self.__elementType
     
     elementType = property(fget=_getElementType, 
                            doc="The allowed type or types for list elements")
      
     def extend(self, iter):
+        """Extend an existing list with the input iterable
+        @param iter: iterable to extend list with
+        @type iter: iterable
+        """
         for i in iter:
             if not isinstance(i, self.__elementType):
                 raise TypeError("List items must be of type %s" % 
@@ -108,6 +120,11 @@ class TypedList(list):
         return super(TypedList, self).extend(iter)
         
     def __iadd__(self, iter):
+        """Extend an existing list with the input iterable with += operator
+        
+        @param iter: iterable to extend list with
+        @type iter: iterable
+        """
         for i in iter:
             if not isinstance(i, self.__elementType):
                 raise TypeError("List items must be of type %s" % 
@@ -116,6 +133,11 @@ class TypedList(list):
         return super(TypedList, self).__iadd__(iter)
          
     def append(self, item):
+        """Append a list with the given item
+        
+        @param item: item to extend list
+        @type item: must agree witj "elementType" attribute of this list 
+        """
         if not isinstance(item, self.__elementType):
                 raise TypeError("List items must be of type %s" % 
                                 (self.__elementType,))
