@@ -54,7 +54,7 @@ setup(
     author_email =   		'Philip.Kershaw@stfc.ac.uk',
     maintainer =         	'Philip Kershaw',
     maintainer_email =   	'Philip.Kershaw@stfc.ac.uk',
-    url =            		'http://proj.badc.rl.ac.uk/ndg/wiki/Security',
+    url =            		'http://proj.badc.rl.ac.uk/ndg/wiki/Security/SAML2.0',
     license =               'http://www.apache.org/licenses/LICENSE-2.0',
     packages =			    find_packages(),
     namespace_packages =	['ndg'],
