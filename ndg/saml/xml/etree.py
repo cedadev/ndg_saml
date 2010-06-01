@@ -185,10 +185,10 @@ def prettyPrint(*arg, **kw):
     '''Lightweight pretty printing of ElementTree elements.  This function
     wraps the PrettyPrint class
     
-    @param *arg: arguments to pretty print function
-    @type *arg: tuple
-    @param **kw: keyword arguments to pretty print function
-    @type **kw: dict
+    @param arg: arguments to pretty print function
+    @type arg: tuple
+    @param kw: keyword arguments to pretty print function
+    @type kw: dict
     '''
     
     # Keep track of namespace declarations made so they're not repeated
@@ -533,8 +533,8 @@ class AttributeStatementElementTree(AttributeStatement):
     def toXML(cls, attributeStatement, **attributeValueElementTreeFactoryKw):
         """Make a tree of a XML elements based on the attribute statement
         
-        @type assertion: saml.saml2.core.AttributeStatement
-        @param assertion: Attribute Statement to be represented as an 
+        @type attributeStatement: saml.saml2.core.AttributeStatement
+        @param attributeStatement: Attribute Statement to be represented as an 
         ElementTree Element
         @type attributeValueElementTreeFactoryKw: dict
         @param attributeValueElementTreeFactoryKw: keywords for AttributeValue
@@ -601,10 +601,9 @@ class AuthzDecisionStatementElementTree(AuthzDecisionStatement):
     def toXML(cls, authzDecisionStatement):
         """Make a tree of a XML elements based on the authzDecision statement
         
-        @type assertion: saml.saml2.core.AuthzDecisionStatement
-        @param assertion: AuthzDecision Statement to be represented as an 
-        ElementTree Element
-        factory
+        @type authzDecisionStatement: saml.saml2.core.AuthzDecisionStatement
+        @param authzDecisionStatement: AuthzDecision Statement to be represented
+        as an ElementTree Element
         @rtype: ElementTree.Element
         @return: ElementTree Element
         """
@@ -1314,8 +1313,8 @@ class StatusElementTree(Status):
     @classmethod
     def toXML(cls, status):
         """Create an XML representation of the input SAML subject object
-        @type subject: saml.saml2.core.Status
-        @param subject: SAML subject
+        @type status: saml.saml2.core.Status
+        @param status: SAML subject
         @rtype: ElementTree.Element
         @return: subject as ElementTree XML element
         """

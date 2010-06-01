@@ -6,7 +6,8 @@ NERC DataGrid Project
 This implementation is adapted from the Java OpenSAML implementation.  The 
 copyright and licence information are included here:
 
-Copyright [2005] [University Corporation for Advanced Internet Development, Inc.]
+Copyright [2005] [University Corporation for Advanced Internet Development, 
+Inc.]
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,13 +26,12 @@ __date__ = "10/08/09"
 __copyright__ = "(C) 2009 Science and Technology Facilities Council"
 __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
-__revision__ = '$Id:$'
+__revision__ = '$Id$'
 
 # Bootstrap setuptools if necessary.
 from ez_setup import use_setuptools
 use_setuptools()
 from setuptools import setup, find_packages
-import os
    
 _longDescription = """\
 SAML 2.0 implementation for use with the NERC DataGrid / Earth System Grid 
@@ -45,7 +45,7 @@ Response).  Where possible, stubs have been provided for other classes.
 """
 
 setup(
-    name =           		'ndg_security_saml',
+    name =           		'ndg_saml',
     version =        		'0.4',
     description =    		('SAML 2.0 implementation for the NERC DataGrid '
                              'based on the Java OpenSAML library'),
@@ -57,7 +57,7 @@ setup(
     url =            		'http://proj.badc.rl.ac.uk/ndg/wiki/Security',
     license =               'http://www.apache.org/licenses/LICENSE-2.0',
     packages =			    find_packages(),
-    namespace_packages =	[],
+    namespace_packages =	['ndg'],
     include_package_data =  True,
     classifiers = [
         'Development Status :: Development Status :: 4 - Beta',

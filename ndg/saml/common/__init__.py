@@ -68,6 +68,7 @@ class SAMLObject(object):
     @property
     def qname(self):
         """Qualified Name for this type
+        
         @return: qualified name
         @rtype: ndg.saml.common.xml.QName
         """

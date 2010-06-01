@@ -396,7 +396,7 @@ class QName(object):
     def _setPrefix(self, value):
         """Set prefix
         @param value: prefix
-        @type: string
+        @type value: string
         @raise TypeError: invalid input value type
         """
         if not isinstance(value, basestring):
@@ -415,8 +415,8 @@ class QName(object):
     
     def _setLocalPart(self, value):
         """Set local part
-        @param: local part
-        @type: string
+        @param value: local part
+        @type value: string
         @raise TypeError: invalid input value type
         """
         if not isinstance(value, basestring):
@@ -435,8 +435,8 @@ class QName(object):
 
     def _setNamespaceURI(self, value):
         """Set namespace URI
-        @param: namespace URI
-        @type: string
+        @param value: namespace URI
+        @type value: string
         @raise TypeError: invalid input value type
         """
         if not isinstance(value, basestring):

@@ -114,8 +114,8 @@ class Attribute(SAMLObject):
     
     def __init__(self, **kw):
         """Initialise Attribute Class attributes
-        @param **kw: keywords SAMLObject parent instantiation
-        @type **kw: dict
+        @param kw: keywords SAMLObject parent instantiation
+        @type kw: dict
         """
         super(Attribute, self).__init__(**kw)
         
@@ -150,8 +150,8 @@ class Attribute(SAMLObject):
     
     def _set_name(self, name):
         """Set name
-        @param: name
-        @type: name
+        @param name: name
+        @type name: basestring
         @raise TypeError: invalid input value type
         """
         if not isinstance(name, basestring):
@@ -173,8 +173,8 @@ class Attribute(SAMLObject):
     
     def _set_nameFormat(self, nameFormat):
         """Set name format
-        @param: name format
-        @type: string
+        @param nameFormat: name format
+        @type nameFormat: string
         @raise TypeError: invalid input value type
         """
         if not isinstance(nameFormat, basestring):
@@ -196,8 +196,8 @@ class Attribute(SAMLObject):
     
     def _set_friendlyName(self, friendlyName):
         """Set friendly name
-        @param: friendly name
-        @type: string
+        @param friendlyName: friendly name
+        @type friendlyName: string
         @raise TypeError: invalid input value type
         """
         if not isinstance(friendlyName, basestring):
@@ -219,8 +219,8 @@ class Attribute(SAMLObject):
     
     def _set_attributeValues(self, attributeValues):
         """Set attribute values
-        @param: attribute values
-        @type: string
+        @param attributeValues: attribute values
+        @type attributeValues: list/tuple
         @raise TypeError: invalid input value type
         """
         if not isinstance(attributeValues, (list, tuple)):
@@ -306,8 +306,8 @@ class AttributeStatement(Statement):
     
     def __init__(self, **kw):
         """
-        @param **kw: keywords Statement parent class instantiation
-        @type **kw: dict
+        @param kw: keywords Statement parent class instantiation
+        @type kw: dict
         """
         super(AttributeStatement, self).__init__(**kw)
         
@@ -409,7 +409,7 @@ class AuthnStatement(Statement):
         '''Sets the time when the authentication took place.
         
         @param value: the time when the authentication took place
-        @type: datetime.datetime
+        @type value: datetime.datetime
         @raise NotImplementedError: abstract method
         '''
         raise NotImplementedError()
@@ -431,7 +431,7 @@ class AuthnStatement(Statement):
         
         @param value: the session index between the principal and the 
         authenticating authority
-        @type: ?
+        @type value: ?
         @raise NotImplementedError: abstract method
         '''
         raise NotImplementedError()
@@ -453,7 +453,7 @@ class AuthnStatement(Statement):
         
         @param value: the time when the session between the 
         principal and the SAML authority ends
-        @type: datetime.datetime
+        @type value: datetime.datetime
         @raise NotImplementedError: abstract method
         '''
         raise NotImplementedError()
@@ -475,7 +475,7 @@ class AuthnStatement(Statement):
         
         @param value: the DNS domain and IP address of the system where 
         the principal was authenticated
-        @type: ?
+        @type value: ?
         @raise NotImplementedError: abstract method
         '''
         raise NotImplementedError()
@@ -484,7 +484,7 @@ class AuthnStatement(Statement):
         '''Gets the context used to authenticate the subject.
         
         @return: the context used to authenticate the subject
-        @type: ?
+        @rtype: ?
         @raise NotImplementedError: abstract method
         '''
         raise NotImplementedError()
@@ -493,7 +493,7 @@ class AuthnStatement(Statement):
         '''Sets the context used to authenticate the subject.
         
         @param value: the context used to authenticate the subject
-        @type: ?
+        @type value: ?
         @raise NotImplementedError: abstract method
         '''
         raise NotImplementedError()
@@ -607,8 +607,8 @@ class DecisionType(object):
     def __eq__(self, decision):
         """Test for equality against an input decision type
         
-        @param version: decision type
-        @type version: ndg.saml.saml2.core.DecisionType or basestring
+        @param decision: decision type
+        @type decision: ndg.saml.saml2.core.DecisionType or basestring
         @return: True if input and this object match
         @rtype: bool
         @raise TypeError: unexpected type for decision type input
@@ -760,9 +760,9 @@ class AuthzDecisionStatement(Statement):
         @param safeNormalizationChars: acceptable characters for normalizing 
         URIs (functionality likely to be deprecated)
         @type safeNormalizationChars: string
-        @param **kw: keywords for the initialisation of the parent classes'
+        @param kw: keywords for the initialisation of the parent classes'
         attributes
-        @type **kw: dict
+        @type kw: dict
         '''
         super(AuthzDecisionStatement, self).__init__(**kw)
 
@@ -824,7 +824,7 @@ class AuthzDecisionStatement(Statement):
     def _getSafeNormalizationChars(self):
         '''Get normalisation safe chars
         @return: normalisation safe chars
-        @rtype value: basetring
+        @rtype: basetring
         '''
         return self.__safeNormalizationChars
 
@@ -864,7 +864,7 @@ class AuthzDecisionStatement(Statement):
         HTTPS) and converting the host component to lower case.
         
         @param value: the new Resource attrib value of this statement
-        @type: basestring
+        @type value: basestring
         @raise TypeError: input value is incorrect type
         '''
         if not isinstance(value, basestring):
@@ -1028,8 +1028,8 @@ class Subject(SAMLObject):
     
     def __init__(self, **kw):
         '''
-        @param **kw: keywords for initialisation of parent class attributes
-        @type **kw: dict
+        @param kw: keywords for initialisation of parent class attributes
+        @type kw: dict
         '''
         super(Subject, self).__init__(**kw)
         
@@ -1071,8 +1071,8 @@ class Subject(SAMLObject):
 
     def _setBaseID(self, value):
         """Set base identifier
-        @param: base identifier
-        @type: basestring
+        @param value: base identifier
+        @type value: basestring
         @raise TypeError: invalid input value type
         """ 
         if not isinstance(value, basestring):
@@ -1093,8 +1093,8 @@ class Subject(SAMLObject):
     
     def _setNameID(self, value):
         """Set name identifier
-        @param: name identifier
-        @type: basestring
+        @param value: name identifier
+        @type value: basestring
         @raise TypeError: invalid input value type
         """ 
         if not isinstance(value, NameID):
@@ -1116,8 +1116,8 @@ class Subject(SAMLObject):
     def _setEncryptedID(self, value): 
         """Set encrypted identifier
         
-        @param: encrypted identifier
-        @type: any type
+        @param value: encrypted identifier
+        @type value: any type
         @raise TypeError: invalid input value type
         """ 
         self.__encryptedID = value
@@ -1249,8 +1249,8 @@ class AbstractNameIDType(SAMLObject):
     
     def __init__(self, **kw): 
         '''
-        @param **kw: keywords to set attributes of parent class
-        @type **kw: dict
+        @param kw: keywords to set attributes of parent class
+        @type kw: dict
         '''
         super(AbstractNameIDType, self).__init__(**kw)
     
@@ -1298,8 +1298,8 @@ class AbstractNameIDType(SAMLObject):
         
     def _setValue(self, value):
         """Set name value
-        @param: name value
-        @type: string
+        @param value: name value
+        @type value: string
         @raise TypeError: invalid input value type
         """
         if not isinstance(value, basestring):
@@ -1319,8 +1319,8 @@ class AbstractNameIDType(SAMLObject):
     
     def _setNameQualifier(self, value): 
         """Set name qualifier
-        @param: name qualifier
-        @type: string
+        @param value: name qualifier
+        @type value: string
         """
         self.__nameQualifier = value
 
@@ -1337,8 +1337,8 @@ class AbstractNameIDType(SAMLObject):
     
     def _setSPNameQualifier(self, value): 
         """Set SP name qualifier
-        @param: SP name qualifier
-        @type: string
+        @param value: SP name qualifier
+        @type value: string
         """
         self.__spNameQualifier = value
 
@@ -1355,8 +1355,8 @@ class AbstractNameIDType(SAMLObject):
         
     def _setFormat(self, format):
         """Set name format
-        @param: name format
-        @type: string
+        @param format: name format
+        @type format: string
         @raise TypeError: invalid input value type
         """
         if not isinstance(format, basestring):
@@ -1376,8 +1376,8 @@ class AbstractNameIDType(SAMLObject):
     
     def _setSPProvidedID(self, value): 
         """Set SP provided identifier
-        @param: SP provided identifier
-        @type: string
+        @param value: SP provided identifier
+        @type value: string
         """
         self.__spProvidedID = value
 
@@ -1549,7 +1549,7 @@ class Conditions(SAMLObject):
         '''Sets the date/time before which the assertion is invalid.
         
         @param value: the date/time before which the assertion is invalid
-        @type: datetime.datetime
+        @type value: datetime.datetime
         '''
         if not isinstance(value, datetime):
             raise TypeError('Expecting "datetime" type for "notBefore", '
@@ -1569,7 +1569,7 @@ class Conditions(SAMLObject):
         
         @param value: the date/time on, or after, which the assertion 
         is invalid
-        @type: datetime.datetime
+        @type value: datetime.datetime
         '''
         if not isinstance(value, datetime):
             raise TypeError('Expecting "datetime" type for "notOnOrAfter", '
@@ -1918,7 +1918,7 @@ class Assertion(SAMLObject):
         """Get subject string
         
         @return: subject of this assertion
-        @rtype subject: ndg.saml.saml2.core.Subject
+        @rtype: ndg.saml.saml2.core.Subject
         """
         return self.__subject
 
@@ -2053,8 +2053,8 @@ class XSStringAttributeValue(AttributeValue):
     
     def __init__(self, **kw):
         """
-        @param **kw: keywords for setting attributes of parent class
-        @type **kw: dict
+        @param kw: keywords for setting attributes of parent class
+        @type kw: dict
         """
         super(XSStringAttributeValue, self).__init__(**kw)
         self.__value = None
@@ -2085,8 +2085,8 @@ class XSStringAttributeValue(AttributeValue):
         
     def _setValue(self, value):
         """Set value of XS string
-        @param: value
-        @type: string
+        @param value: value
+        @type value: string
         @raise TypeError: invalid input value type
         """
         if not isinstance(value, basestring):
@@ -2135,8 +2135,8 @@ class StatusDetail(SAMLObject):
     
     def __init__(self, **kw):
         """
-        @param **kw: keywords for setting attributes of parent class
-        @type **kw: dict
+        @param kw: keywords for setting attributes of parent class
+        @type kw: dict
         """
         super(StatusDetail, self).__init__(**kw)
         
@@ -2242,8 +2242,8 @@ class StatusMessage(SAMLObject):
         
     def _setValue(self, value):
         '''
-        @param __value: message text
-        @type __value: basestring
+        @param value: message text
+        @type value: basestring
         @raise TypeError: incorrect type for input value
         '''
         if not isinstance(value, basestring):
@@ -2424,8 +2424,8 @@ class StatusCode(SAMLObject):
     
     def __init__(self, **kw):
         """
-        @param **kw: keywords to initialise superclass attributes
-        @type **kw: dict
+        @param kw: keywords to initialise superclass attributes
+        @type kw: dict
         """
         super(StatusCode, self).__init__(**kw)
         
@@ -2462,8 +2462,8 @@ class StatusCode(SAMLObject):
     
     def _setStatusCode(self, value):
         """Set child status code
-        @param __value: status code value
-        @type __value: ndg.saml.saml2.core.StatusCode
+        @param value: status code value
+        @type value: ndg.saml.saml2.core.StatusCode
         """
         if not isinstance(value, StatusCode):
             raise TypeError('Child "statusCode" must be a %r derived type, '
@@ -3432,8 +3432,8 @@ class AssertionURIRef(Evidentiary):
     def __init__(self, **kw):
         '''Create assertion URI reference
         
-        @param **kw: keywords to initialise superclasses
-        @type **kw: dict
+        @param kw: keywords to initialise superclasses
+        @type kw: dict
         '''
         super(AssertionURIRef, self).__init__(**kw)
         
@@ -3460,16 +3460,16 @@ class AssertionURIRef(Evidentiary):
     def _getAssertionURI(self):
         '''Get assertion URI
         
-        @return assertionURI: assertion URI 
-        @rtype assertionURI: basestring
+        @return: assertion URI 
+        @rtype: basestring
         '''
         return self.__assertionURI
 
     def _setAssertionURI(self, value):
         '''Set assertion URI
         
-        @param assertionURI: assertion URI
-        @type assertionURI: basestring
+        @param value: assertion URI
+        @type value: basestring
         @raise TypeError: incorrect input value type
         '''
         if not isinstance(value, basestring):
@@ -3509,8 +3509,8 @@ class AssertionIDRef(Evidentiary):
     
     def __init__(self, **kw):
         '''
-        @param **kw: keywords for superclass initialisation
-        @type **kw: dict
+        @param kw: keywords for superclass initialisation
+        @type kw: dict
         '''
         super(AssertionIDRef, self).__init__(**kw)
         self.__assertionID = None
@@ -3656,8 +3656,8 @@ class Evidence(SAMLObject):
     def __init__(self, **kw):
         '''Create an authorization evidence type
         
-        @param **kw: keyword to initialise superclasses
-        @type **kw: dict
+        @param kw: keyword to initialise superclasses
+        @type kw: dict
         '''
         super(Evidence, self).__init__(**kw)
 
@@ -3867,10 +3867,9 @@ class AuthzDecisionQuery(SubjectQuery):
 
     def _getSafeNormalizationChars(self):
         '''
-        @param value: safe normalisation characters for input into normalisation
+        @return: safe normalisation characters for input into normalisation
         of resource URI.
-        @type value: string
-        @raise TypeError: incorrect type for input value
+        @rtype: string
         '''
         return self.__safeNormalizationChars
 
@@ -4123,8 +4122,8 @@ class StatusResponseType(SAMLObject):
     
     def __init__(self, **kw):
         '''
-        @param **kw: keywords for initialisation of superclass
-        @type **kw: dict
+        @param kw: keywords for initialisation of superclass
+        @type kw: dict
         '''
         super(StatusResponseType, self).__init__(**kw)
         
@@ -4305,9 +4304,9 @@ class StatusResponseType(SAMLObject):
     def _set_issuer(self, issuer):
         """Set issuer of response
         
-        @param value: issuer of this response 
+        @param issuer: issuer of this response 
         sending this response
-        @type value: ndg.saml.saml2.core.Issuer
+        @type issuer: ndg.saml.saml2.core.Issuer
         @raise TypeError: incorrect type for input value
         """
         if not isinstance(issuer, Issuer):
@@ -4411,8 +4410,8 @@ class Response(StatusResponseType):
     
     def __init__(self, **kw):
         '''
-        @param **kw: keywords to initialise superclass instance
-        @type **kw: dict
+        @param kw: keywords to initialise superclass instance
+        @type kw: dict
         ''' 
         super(Response, self).__init__(**kw)
         
