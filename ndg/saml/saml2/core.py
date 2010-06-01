@@ -38,7 +38,8 @@ from ndg.saml.utils import TypedList
 
 
 class Attribute(SAMLObject):
-    '''SAML 2.0 Core Attribute.
+    '''SAML 2.0 Core Attribute
+    
     @cvar DEFAULT_ELEMENT_LOCAL_NAME:  Local name of the Attribute element.
     @type DEFAULT_ELEMENT_LOCAL_NAME: string
     @cvar DEFAULT_ELEMENT_NAME:  Default element name.
@@ -2103,11 +2104,11 @@ class StatusDetail(SAMLObject):
     @cvar DEFAULT_ELEMENT_LOCAL_NAME: Local Name of StatusDetail.
     @type DEFAULT_ELEMENT_LOCAL_NAME: string
     @cvar DEFAULT_ELEMENT_NAME: Default element name.
-    @type DEFAULT_ELEMENT_NAME: string
+    @type DEFAULT_ELEMENT_NAME: ndg.saml.common.xml.QName
     @cvar TYPE_LOCAL_NAME: Local name of the XSI type.
     @type TYPE_LOCAL_NAME: string
     @cvar TYPE_NAME: QName of the XSI type.
-    @type TYPE_NAME: string
+    @type TYPE_NAME: ndg.saml.common.xml.QName
     
     @ivar __unknownChildren: unknown child elements
     @type __unknownChildren: ndg.saml.common.SAMLObject
@@ -2191,7 +2192,16 @@ class StatusDetail(SAMLObject):
     
 
 class StatusMessage(SAMLObject):
-    '''Implementation of SAML 2.0 Status Message'''
+    '''Implementation of SAML 2.0 Status Message
+    
+    @cvar DEFAULT_ELEMENT_LOCAL_NAME:  Local name of the Status message element
+    @type DEFAULT_ELEMENT_LOCAL_NAME: string
+    @cvar DEFAULT_ELEMENT_NAME:  Default element name
+    @type DEFAULT_ELEMENT_NAME: ndg.saml.common.xml.QName
+    
+    @ivar __value: message text
+    @type __value: basestring
+    '''
 
     DEFAULT_ELEMENT_LOCAL_NAME = "StatusMessage"
     DEFAULT_ELEMENT_NAME = QName(SAMLConstants.SAML20P_NS, 
@@ -2203,7 +2213,7 @@ class StatusMessage(SAMLObject):
     def __init__(self, **kw):
         super(StatusMessage, self).__init__(**kw)
         
-        # Value attribute URI.
+        # message text
         self.__value = None        
 
     def __getstate__(self):
@@ -2212,7 +2222,6 @@ class StatusMessage(SAMLObject):
         @return: object's attribute dictionary
         @rtype: dict
         '''
-
         _dict = super(StatusMessage, self).__getstate__()
         for attrName in StatusMessage.__slots__:
             # Ugly hack to allow for derived classes setting private member
@@ -2225,9 +2234,18 @@ class StatusMessage(SAMLObject):
         return _dict
     
     def _getValue(self):
+        '''
+        @return: message text
+        @rtype: basestring
+        '''
         return self.__value
         
     def _setValue(self, value):
+        '''
+        @param __value: message text
+        @type __value: basestring
+        @raise TypeError: incorrect type for input value
+        '''
         if not isinstance(value, basestring):
             raise TypeError("\"value\" must be a basestring derived type, "
                             "got %r" % type(value))
@@ -2238,7 +2256,70 @@ class StatusMessage(SAMLObject):
 
 
 class StatusCode(SAMLObject):
-    '''Implementation of SAML 2.0 StatusCode.'''
+    '''Implementation of SAML 2.0 StatusCode.
+    
+    @cvar DEFAULT_ELEMENT_LOCAL_NAME: Local Name of StatusCode.                                                                        
+    @type DEFAULT_ELEMENT_LOCAL_NAME: string                                                                                           
+    @cvar DEFAULT_ELEMENT_NAME: Default element name.                                                                                  
+    @type DEFAULT_ELEMENT_NAME: ndg.saml.common.xml.QName                                                                                                 
+    @cvar TYPE_LOCAL_NAME: Local name of the XSI type.                                                                                 
+    @type TYPE_LOCAL_NAME: string                                                                                                      
+    @cvar TYPE_NAME: QName of the XSI type.                                                                                            
+    @type TYPE_NAME: ndg.saml.common.xml.QName                                                                                                            
+    @cvar VALUE_ATTRIB_NAME: Local Name of the Value attribute.                                                                        
+    @type VALUE_ATTRIB_NAME: string                                                                                                    
+    @cvar SUCCESS_URI: URI for Success status code.                                                                                    
+    @type SUCCESS_URI: string                                                                                                          
+    @cvar REQUESTER_URI: URI for Requester status code.                                                                                
+    @type REQUESTER_URI: string                                                                                                        
+    @cvar RESPONDER_URI: URI for Responder status code.
+    @type RESPONDER_URI: string
+    @cvar VERSION_MISMATCH_URI: URI for VersionMismatch status code.
+    @type VERSION_MISMATCH_URI: string
+    @cvar AUTHN_FAILED_URI: URI for AuthnFailed status code.
+    @type AUTHN_FAILED_URI: string
+    @cvar INVALID_ATTR_NAME_VALUE_URI: URI for InvalidAttrNameOrValue status code.
+    @type INVALID_ATTR_NAME_VALUE_URI: string
+    @cvar INVALID_NAMEID_POLICY_URI: URI for InvalidNameIDPolicy status code.
+    @type INVALID_NAMEID_POLICY_URI: string
+    @cvar NO_AUTHN_CONTEXT_URI: URI for NoAuthnContext status code.
+    @type NO_AUTHN_CONTEXT_URI: string
+    @cvar NO_AVAILABLE_IDP_URI: URI for NoAvailableIDP status code.
+    @type NO_AVAILABLE_IDP_URI: string
+    @cvar NO_PASSIVE_URI: URI for NoPassive status code.
+    @type NO_PASSIVE_URI: string
+    @cvar NO_SUPPORTED_IDP_URI: URI for NoSupportedIDP status code.
+    @type NO_SUPPORTED_IDP_URI: string
+    @cvar PARTIAL_LOGOUT_URI: URI for PartialLogout status code.
+    @type PARTIAL_LOGOUT_URI: string
+    @cvar PROXY_COUNT_EXCEEDED_URI: URI for ProxyCountExceeded status code.
+    @type PROXY_COUNT_EXCEEDED_URI: string
+    @cvar REQUEST_DENIED_URI: URI for RequestDenied status code.
+    @type REQUEST_DENIED_URI: string
+    @cvar REQUEST_UNSUPPORTED_URI: URI for RequestUnsupported status code.
+    @type REQUEST_UNSUPPORTED_URI: string
+    @cvar REQUEST_VERSION_DEPRECATED_URI: URI for RequestVersionDeprecated status code.
+    @type REQUEST_VERSION_DEPRECATED_URI: string
+    @cvar REQUEST_VERSION_TOO_HIGH_URI: URI for RequestVersionTooHigh status code.
+    @type REQUEST_VERSION_TOO_HIGH_URI: string
+    @cvar REQUEST_VERSION_TOO_LOW_URI: URI for RequestVersionTooLow status code.
+    @type REQUEST_VERSION_TOO_LOW_URI: string
+    @cvar RESOURCE_NOT_RECOGNIZED_URI: URI for ResourceNotRecognized status code.
+    @type RESOURCE_NOT_RECOGNIZED_URI: string
+    @cvar TOO_MANY_RESPONSES: URI for TooManyResponses status code.
+    @type TOO_MANY_RESPONSES: string
+    @cvar UNKNOWN_ATTR_PROFILE_URI: URI for UnknownAttrProfile status code.
+    @type UNKNOWN_ATTR_PROFILE_URI: string
+    @cvar UNKNOWN_PRINCIPAL_URI: URI for UnknownPrincipal status code.
+    @type UNKNOWN_PRINCIPAL_URI: string
+    @cvar UNSUPPORTED_BINDING_URI: URI for UnsupportedBinding status code.
+    @type UNSUPPORTED_BINDING_URI: string
+    
+    @ivar __value: status code value
+    @type __value:
+    @ivar __childStatusCode: child element status code value
+    @type __childStatusCode:
+    '''
     
     # Local Name of StatusCode.
     DEFAULT_ELEMENT_LOCAL_NAME = "StatusCode"
@@ -2342,6 +2423,10 @@ class StatusCode(SAMLObject):
     __slots__ = ('__value', '__childStatusCode',)
     
     def __init__(self, **kw):
+        """
+        @param **kw: keywords to initialise superclass attributes
+        @type **kw: dict
+        """
         super(StatusCode, self).__init__(**kw)
         
         # Value attribute URI.
@@ -2369,9 +2454,17 @@ class StatusCode(SAMLObject):
         return _dict
     
     def _getStatusCode(self): 
+        """Get child status code
+        @return: status code value
+        @rtype: ndg.saml.saml2.core.StatusCode
+        """
         return self.__childStatusCode
     
     def _setStatusCode(self, value):
+        """Set child status code
+        @param __value: status code value
+        @type __value: ndg.saml.saml2.core.StatusCode
+        """
         if not isinstance(value, StatusCode):
             raise TypeError('Child "statusCode" must be a %r derived type, '
                             "got %r" % (StatusCode, type(value)))
@@ -2383,9 +2476,17 @@ class StatusCode(SAMLObject):
                      doc="Child Status code")
               
     def _getValue(self):
+        """Get status message
+        @return: message text
+        @rtype: basestring
+        """ 
         return self.__value
         
     def _setValue(self, value):
+        """Set status message
+        @param value: message text
+        @type value: basestring
+        """ 
         if not isinstance(value, basestring):
             raise TypeError("\"value\" must be a basestring derived type, "
                             "got %r" % value.__class__)
@@ -2396,7 +2497,24 @@ class StatusCode(SAMLObject):
         
 
 class Status(SAMLObject): 
-    '''SAML 2.0 Core Status'''
+    '''SAML 2.0 Core Status
+    
+    @cvar DEFAULT_ELEMENT_LOCAL_NAME: Local Name of Status.
+    @type DEFAULT_ELEMENT_LOCAL_NAME: string
+    @cvar DEFAULT_ELEMENT_NAME: Default element name.
+    @type DEFAULT_ELEMENT_NAME: ndg.common.xml.QName
+    @cvar TYPE_LOCAL_NAME: Local name of the XSI type.
+    @type TYPE_LOCAL_NAME: string
+    @cvar TYPE_NAME: QName of the XSI type.
+    @type TYPE_NAME: ndg.common.xml.QName
+    
+    @ivar __statusCode: status code
+    @type __statusCode: ndg.saml.saml2.core.StatusCode
+    @ivar __statusMessage: status message
+    @type __statusMessage: ndg.saml.saml2.core.StatusMessage
+    @ivar __statusDetail: status detail
+    @type __statusDetail: ndg.saml.saml2.core.StatusDetail
+    '''
     
     # Local Name of Status.
     DEFAULT_ELEMENT_LOCAL_NAME = "Status"
@@ -2414,7 +2532,11 @@ class Status(SAMLObject):
                       TYPE_LOCAL_NAME,
                       SAMLConstants.SAML20P_PREFIX)
 
-    __slots__ = ('__statusCode', '__statusMessage', '__statusDetail', )
+    __slots__ = (
+        '__statusCode', 
+        '__statusMessage', 
+        '__statusDetail', 
+    )
     
     def __init__(self, **kw):
         super(Status, self).__init__(**kw)
@@ -2434,7 +2556,6 @@ class Status(SAMLObject):
         @return: object's attribute dictionary
         @rtype: dict
         '''
-
         _dict = super(Status, self).__getstate__()
         for attrName in Status.__slots__:
             # Ugly hack to allow for derived classes setting private member
@@ -2447,18 +2568,19 @@ class Status(SAMLObject):
         return _dict
     
     def _getStatusCode(self):
-        '''
-        Gets the Code of this Status.
+        '''Get the Code of this Status
         
-        @return: Status StatusCode
+        @return: Status object's StatusCode
+        @rtype: ndg.saml.saml2.core.StatusCode
         '''
         return self.__statusCode
 
     def _setStatusCode(self, value):
-        '''
-        Sets the Code of this Status.
+        '''Set the Code of this Status
         
-        @param value: the Code of this Status
+        @param value: the Code of this Status object
+        @type value: ndg.saml.saml2.core.StatusCode
+        @raise TypeError: incorrect type for input code value
         '''
         if not isinstance(value, StatusCode):
             raise TypeError('"statusCode" must be a %r derived type, '
@@ -2471,18 +2593,19 @@ class Status(SAMLObject):
                           doc="status code object")
     
     def _getStatusMessage(self):
-        '''
-        Gets the Message of this Status.
+        '''Get the Message of this Status.
         
-        @return: Status StatusMessage
+        @return: Status message
+        @rtype: ndg.saml.saml2.core.StatusMessage
         '''
         return self.__statusMessage
 
     def _setStatusMessage(self, value):
-        '''
-        Sets the Message of this Status.
+        '''Set the Message of this Status
         
-        @param value: the Message of this Status
+        @param value: the Message associated with this Status
+        @type value: ndg.saml.saml2.core.StatusMessage
+        @raise TypeError: incorrect input value type
         '''
         if not isinstance(value, StatusMessage):
             raise TypeError('"statusMessage" must be a %r derived type, '
@@ -2495,10 +2618,10 @@ class Status(SAMLObject):
                              doc="status message")
 
     def _getStatusDetail(self):
-        '''
-        Gets the Detail of this Status.
+        '''Get the Detail of this Status
         
-        @return: Status StatusDetail
+        @return: Status object's StatusDetail
+        @rtype: ndg.saml.saml2.core.StatusDetail
         '''
         return self.__statusDetail
     
@@ -2507,16 +2630,81 @@ class Status(SAMLObject):
         Sets the Detail of this Status.
         
         @param value: the Detail of this Status
+        @type value: ndg.saml.saml2.core.StatusDetail;
+        @raise TypeError: incorrect input value type
         '''
+        if not isinstance(value, StatusDetail):
+            raise TypeError('"statusDetail" must be a %r derived type, '
+                            "got %r" % (StatusDetail, type(value)))
         self.__statusDetail = value
         
     statusDetail = property(fget=_getStatusDetail,
                             fset=_setStatusDetail,
-                            doc="status message")
+                            doc="status detail")
 
 
 class Action(SAMLObject): 
-    '''SAML 2.0 Core Action'''
+    '''SAML 2.0 Core Action
+    @cvar DEFAULT_ELEMENT_LOCAL_NAME: Element local name.                                  
+    @type DEFAULT_ELEMENT_LOCAL_NAME: string                                               
+    @cvar DEFAULT_ELEMENT_NAME: Default element name.                                      
+    @type DEFAULT_ELEMENT_NAME: ndg.saml.common.xml.QName                                                     
+    @cvar TYPE_LOCAL_NAME: Local name of the XSI type.                                     
+    @type TYPE_LOCAL_NAME: string                                                          
+    @cvar TYPE_NAME: QName of the XSI type                                                 
+    @type TYPE_NAME: ndg.saml.common.xml.QName                                                                
+    @cvar NAMESPACE_ATTRIB_NAME: Name of the Namespace attribute.
+    @type NAMESPACE_ATTRIB_NAME: string
+    @cvar RWEDC_NS_URI: Read/Write/Execute/Delete/Control action namespace.
+    @type RWEDC_NS_URI: string
+    @cvar RWEDC_NEGATION_NS_URI: Read/Write/Execute/Delete/Control negation 
+    action namespace.
+    @type RWEDC_NEGATION_NS_URI: string
+    @cvar GHPP_NS_URI: Get/Head/Put/Post action namespace.
+    @type GHPP_NS_URI: string
+    @cvar UNIX_NS_URI: UNIX file permission action namespace.
+    @type UNIX_NS_URI: string
+    @cvar ACTION_NS_IDENTIFIERS: Action namespace identifiers
+    @type ACTION_NS_IDENTIFIERS: tuple
+    @cvar READ_ACTION: Read action.
+    @type READ_ACTION: string
+    @cvar WRITE_ACTION: Write action.
+    @type WRITE_ACTION: string
+    @cvar EXECUTE_ACTION: Execute action.
+    @type EXECUTE_ACTION: string
+    @cvar DELETE_ACTION: Delete action.
+    @type DELETE_ACTION: string
+    @cvar CONTROL_ACTION: Control action.
+    @type CONTROL_ACTION: string
+    @cvar NEG_READ_ACTION: Negated Read action.
+    @type NEG_READ_ACTION: string
+    @cvar NEG_WRITE_ACTION: Negated Write action.
+    @type NEG_WRITE_ACTION: string
+    @cvar NEG_EXECUTE_ACTION: Negated Execute action.
+    @type NEG_EXECUTE_ACTION: string
+    @cvar NEG_DELETE_ACTION: Negated Delete action.
+    @type NEG_DELETE_ACTION: string
+    @cvar NEG_CONTROL_ACTION: Negated Control action.
+    @type NEG_CONTROL_ACTION: string
+    @cvar HTTP_GET_ACTION: HTTP GET action.
+    @type HTTP_GET_ACTION: string
+    @cvar HTTP_HEAD_ACTION: HTTP HEAD action.
+    @type HTTP_HEAD_ACTION: string
+    @cvar HTTP_PUT_ACTION: HTTP PUT action.
+    @type HTTP_PUT_ACTION: string
+    @cvar HTTP_POST_ACTION: HTTP POST action.
+    @type HTTP_POST_ACTION: string
+    @cvar ACTION_TYPES: Recognised action URI to action types mapping
+    @type ACTION_TYPES: dict 
+       
+    @ivar __namespace: action namespace
+    @type __namespace: string
+    @ivar __value: action type value
+    @type __value: string
+    @ivar __actionTypes: valid action types for each of a given set of action
+    namespaces
+    @type __actionTypes: dict
+    '''
     
     # Element local name. 
     DEFAULT_ELEMENT_LOCAL_NAME = "Action"
@@ -2549,6 +2737,7 @@ class Action(SAMLObject):
     # UNIX file permission action namespace. 
     UNIX_NS_URI = "urn:oasis:names:tc:SAML:1.0:action:unix"
 
+    # Action namespace identifiers
     ACTION_NS_IDENTIFIERS = (
         RWEDC_NS_URI,
         RWEDC_NEGATION_NS_URI,    
@@ -2598,6 +2787,7 @@ class Action(SAMLObject):
     # HTTP POST action. 
     HTTP_POST_ACTION = "POST"
     
+    # Recognised action URI to action types mapping
     ACTION_TYPES = {
         RWEDC_NS_URI: (READ_ACTION, WRITE_ACTION, EXECUTE_ACTION, DELETE_ACTION,
                        CONTROL_ACTION),
@@ -2612,7 +2802,11 @@ class Action(SAMLObject):
         UNIX_NS_URI: ()   
     }
     
-    __slots__ = ('__namespace', '__value', '__actionTypes')
+    __slots__ = (
+        '__namespace', 
+        '__value', 
+        '__actionTypes'
+    )
     
     def __init__(self, **kw):
         '''Create an authorization action type
@@ -2634,7 +2828,6 @@ class Action(SAMLObject):
         @return: object's attribute dictionary
         @rtype: dict
         '''
-
         _dict = super(Action, self).__getstate__()
         for attrName in Action.__slots__:
             # Ugly hack to allow for derived classes setting private member
@@ -2647,9 +2840,18 @@ class Action(SAMLObject):
         return _dict
     
     def _getActionTypes(self):
+        """Get action namespace to action types map
+        @return: action types map
+        @rtype: dict
+        """ 
         return self.__actionTypes
 
     def _setActionTypes(self, value):
+        """Set action namespace to action types map
+        @param value: action types map
+        @type value: dict
+        @raise TypeError: incorrect type for input value
+        """ 
         if not isinstance(value, dict):
             raise TypeError('Expecting list or tuple type for "actionTypes" '
                             'attribute; got %r' % type(value))
@@ -2666,17 +2868,18 @@ class Action(SAMLObject):
                            doc="Restrict vocabulary of action types")
         
     def _getNamespace(self):
-        '''
-        gets the namespace scope of the specified value.
+        '''Get the namespace of the action
         
-        @return: the namespace scope of the specified value
+        @return: the namespace of the action
+        @rtype: basestring
         '''
         return self.__namespace
 
     def _setNamespace(self, value):
-        '''Sets the namespace scope of the specified value.
+        '''Set the namespace of the action
         
-        @param value: the namespace scope of the specified value
+        @param value: the namespace of the action
+        @type value: basestring
         '''
         if not isinstance(value, basestring):
             raise TypeError('Expecting string type for "namespace" '
@@ -2692,16 +2895,19 @@ class Action(SAMLObject):
     namespace = property(_getNamespace, _setNamespace, doc="Action Namespace")
 
     def _getValue(self):
-        '''gets the URI of the action to be performed.
+        '''Get the URI of the action to be performed.
         
         @return: the URI of the action to be performed
+        @rtype: basestring or int
         '''
         return self.__value
 
     def _setValue(self, value):
-        '''Sets the URI of the action to be performed.
+        '''Set the URI of the action to be performed.
         
         @param value: the URI of the value to be performed
+        @type value: basestring or int
+        @raise TypeError: incorrect type for input value
         '''
         # int and oct allow for UNIX file permissions action type
         if not isinstance(value, (basestring, int)):
@@ -2731,7 +2937,52 @@ class Action(SAMLObject):
         
 
 class RequestAbstractType(SAMLObject): 
-    '''SAML 2.0 Core RequestAbstractType'''
+    '''SAML 2.0 Core RequestAbstractType
+    
+    @cvar TYPE_LOCAL_NAME: Local name of the XSI type.
+    @type TYPE_LOCAL_NAME: string
+    @cvar TYPE_NAME: QName of the XSI type.
+    @type TYPE_NAME: ndg.saml.common.xml.QName
+    @cvar ID_ATTRIB_NAME: ID attribute name.
+    @type ID_ATTRIB_NAME: string
+    @cvar VERSION_ATTRIB_NAME: Version attribute name.
+    @type VERSION_ATTRIB_NAME: string
+    @cvar ISSUE_INSTANT_ATTRIB_NAME: IssueInstant attribute name.
+    @type ISSUE_INSTANT_ATTRIB_NAME: string
+    @cvar DESTINATION_ATTRIB_NAME: Destination attribute name.
+    @type DESTINATION_ATTRIB_NAME: string
+    @cvar CONSENT_ATTRIB_NAME: Consent attribute name.
+    @type CONSENT_ATTRIB_NAME: string
+    @cvar UNSPECIFIED_CONSENT: Unspecified consent URI.
+    @type UNSPECIFIED_CONSENT: string
+    @cvar OBTAINED_CONSENT: Obtained consent URI.
+    @type OBTAINED_CONSENT: string
+    @cvar PRIOR_CONSENT: Prior consent URI.
+    @type PRIOR_CONSENT: string
+    @cvar IMPLICIT_CONSENT: Implicit consent URI.
+    @type IMPLICIT_CONSENT: string
+    @cvar EXPLICIT_CONSENT: Explicit consent URI.
+    @type EXPLICIT_CONSENT: string
+    @cvar UNAVAILABLE_CONSENT: Unavailable consent URI.
+    @type UNAVAILABLE_CONSENT: string
+    @cvar INAPPLICABLE_CONSENT: Inapplicable consent URI.
+    @type INAPPLICABLE_CONSENT: string
+    
+    @ivar __version: SAML version
+    @type __version: string
+    @ivar __id: request identifier
+    @type __id: string
+    @ivar __issueInstant: issue instant
+    @type __issueInstant: string
+    @ivar __destination: destination for request
+    @type __destination: string
+    @ivar __consent: consent information
+    @type __consent: string
+    @ivar __issuer: request issuer identifier
+    @type __issuer: string
+    @ivar __extensions: request extensions
+    @type __extensions: string
+    '''
     
     # Local name of the XSI type.
     TYPE_LOCAL_NAME = "RequestAbstractType"
@@ -2834,12 +3085,17 @@ class RequestAbstractType(SAMLObject):
         return _dict
     
     def _get_version(self):
-        '''@return: the SAML Version of this assertion.
+        '''
+        @return: the SAML Version of this assertion
+        @rtype: ndg.saml.common.SAMLVersion
         '''
         return self.__version
     
     def _set_version(self, version):
-        '''@param version: the SAML Version of this assertion
+        '''
+        @param version: the SAML Version of this assertion
+        @type version: ndg.saml.common.SAMLVersion
+        @raise TypeError: incorrect input version value type
         '''
         if not isinstance(version, SAMLVersion):
             raise TypeError("Expecting SAMLVersion type got: %r" % 
@@ -2852,15 +3108,18 @@ class RequestAbstractType(SAMLObject):
                        doc="SAML Version of the assertion")
 
     def _get_issueInstant(self):
-        '''Gets the date/time the request was issued
+        '''Get the date/time the request was issued
         
-        @return: the issue instance of this request'''
+        @return: the issue instance of this request
+        @rtype: datetime.datetime
+        '''
         return self.__issueInstant
     
     def _set_issueInstant(self, value):
         '''Sets the date/time the request was issued
         
         @param value: the issue instance of this request
+        @type value: datetime.datetime
         '''
         if not isinstance(value, datetime):
             raise TypeError('Expecting "datetime" type for "issueInstant", '
@@ -2873,16 +3132,19 @@ class RequestAbstractType(SAMLObject):
                             doc="Issue instant of the request") 
 
     def _get_id(self):
-        '''Sets the unique identifier for this request.
+        '''Get the unique identifier for this request
         
         @return: the ID of this request
+        @rtype: basestring
         '''
         return self.__id
     
     def _set_id(self, value):
-        '''Sets the unique identifier for this request
+        '''Set the unique identifier for this request
         
         @param value: the ID of this assertion
+        @type value: basestring
+        @raise TypeError: incorrect input type
         '''
         if not isinstance(value, basestring):
             raise TypeError('Expecting basestring derived type for "id", got '
@@ -2892,16 +3154,20 @@ class RequestAbstractType(SAMLObject):
     id = property(fget=_get_id, fset=_set_id, doc="ID of request")
 
     def _get_destination(self):
-        '''Gets the URI of the destination of the request.
+        '''Get the URI of the destination of the request
         
         @return: the URI of the destination of the request
+        @rtype: basestring
         '''
         return self.__destination
     
     def _set_destination(self, value):
-        '''Sets the URI of the destination of the request.
+        '''Set the URI of the destination of the request
         
-        @param value: the URI of the destination of the request'''
+        @param value: the URI of the destination of the request
+        @type value: basestring
+        @raise TypeError: incorrect input value type
+        '''
         if not isinstance(value, basestring):
             raise TypeError('Expecting basestring derived type for '
                             '"destination", got %r' % type(value))
@@ -2912,20 +3178,23 @@ class RequestAbstractType(SAMLObject):
                            doc="Destination of request")
      
     def _get_consent(self):
-        '''Gets the consent obtained from the principal for sending this 
-        request.
+        '''Get the consent obtained from the principal for sending this 
+        request
         
         @return: the consent obtained from the principal for sending this 
         request
+        @rtype: basestring
         '''
         return self.__consent
         
     def _set_consent(self, value):
-        '''Sets the consent obtained from the principal for sending this 
-        request.
+        '''Set the consent obtained from the principal for sending this 
+        request
         
         @param value: the new consent obtained from the principal for 
         sending this request
+        @type value: basestring
+        @raise TypeError: incorrect input type
         ''' 
         if not isinstance(value, basestring):
             raise TypeError('Expecting basestring derived type for "consent", '
@@ -2937,7 +3206,12 @@ class RequestAbstractType(SAMLObject):
                        doc="Consent for request")
    
     def _set_issuer(self, issuer):
-        """Set issuer of request"""
+        """Set issuer of request
+        
+        @param issuer: issuer of the request
+        @type issuer: ndg.saml.saml2.coreIssuer
+        @raise TypeError: incorrect input type
+        """
         if not isinstance(issuer, Issuer):
             raise TypeError('"issuer" must be a %r, got %r' % (Issuer, 
                                                                type(issuer)))
@@ -2945,7 +3219,11 @@ class RequestAbstractType(SAMLObject):
         self.__issuer = issuer
     
     def _get_issuer(self):
-        """Get the issuer name """
+        """Get the issuer name 
+                
+        @return: issuer of the request
+        @rtype: ndg.saml.saml2.coreIssuer
+        """
         return self.__issuer
 
     issuer = property(fget=_get_issuer, 
@@ -2953,9 +3231,10 @@ class RequestAbstractType(SAMLObject):
                       doc="Issuer of request")
  
     def _get_extensions(self):
-        '''Gets the Extensions of this request.
+        '''Get the Extensions of this request
         
         @return: the Status of this request
+        @rtype: iterable
         '''
         return self.__extensions
       
@@ -2963,6 +3242,7 @@ class RequestAbstractType(SAMLObject):
         '''Sets the Extensions of this request.
         
         @param value: the Extensions of this request
+        @type value: iterable
         '''
         self.__extensions = value
         
@@ -2972,14 +3252,25 @@ class RequestAbstractType(SAMLObject):
 
 
 class SubjectQuery(RequestAbstractType):
-    """SAML 2.0 Core Subject Query type"""
+    """SAML 2.0 Core Subject Query type
+    
+    @cvar DEFAULT_ELEMENT_LOCAL_NAME: XML element name for Subject Query
+    @type DEFAULT_ELEMENT_LOCAL_NAME: string
+    
+    @ivar __subject: subject for this query
+    @type __subject: ndg.saml.saml2.core.Subject 
+    """
     
     DEFAULT_ELEMENT_LOCAL_NAME = 'SubjectQuery'
     
     __slots__ = ('__subject', )
     
-    def __init__(self):
-        super(SubjectQuery, self).__init__()
+    def __init__(self, **kw):
+        '''Subject Query initialisation
+        @type kw: dict
+        @param kw: keywords to set attributes of superclasses
+        '''
+        super(SubjectQuery, self).__init__(**kw)
         self.__subject = None
 
     def __getstate__(self):
@@ -3003,13 +3294,18 @@ class SubjectQuery(RequestAbstractType):
     def _getSubject(self):
         '''Gets the Subject of this request.
         
-        @return: the Subject of this request'''   
+        @return: the Subject of this request
+        @rtype: ndg.saml.saml2.core.Subject
+        '''   
         return self.__subject
     
     def _setSubject(self, value):
         '''Sets the Subject of this request.
         
-        @param value: the Subject of this request'''
+        @param value: the Subject of this request
+        @type value: ndg.saml.saml2.core.Subject
+        @raise TypeError: incorrect input type
+        '''
         if not isinstance(value, Subject):
             raise TypeError('Setting "subject", got %r, expecting %r' %
                             (Subject, type(value)))
@@ -3020,7 +3316,20 @@ class SubjectQuery(RequestAbstractType):
     
     
 class AttributeQuery(SubjectQuery):
-    '''SAML 2.0 AttributeQuery'''
+    '''SAML 2.0 AttributeQuery
+    
+    @cvar DEFAULT_ELEMENT_LOCAL_NAME: Element local name.
+    @type DEFAULT_ELEMENT_LOCAL_NAME: string
+    @cvar DEFAULT_ELEMENT_NAME: Default element name.
+    @type DEFAULT_ELEMENT_NAME: ndg.saml.common.xml.QName
+    @cvar TYPE_LOCAL_NAME: Local name of the XSI type.
+    @type TYPE_LOCAL_NAME: string
+    @cvar TYPE_NAME: QName of the XSI type.
+    @type TYPE_NAME: ndg.saml.common.xml.QName
+
+    @ivar __attributes: list of attributes for this query
+    @type __attributes: TypedList
+    '''
     
     # Element local name.
     DEFAULT_ELEMENT_LOCAL_NAME = "AttributeQuery"
@@ -3040,8 +3349,12 @@ class AttributeQuery(SubjectQuery):
 
     __slots__ = ('__attributes',)
     
-    def __init__(self):
-        super(AttributeQuery, self).__init__()
+    def __init__(self, **kw):
+        '''Attribute Query initialisation
+        @type kw: dict
+        @param kw: keywords to set attributes of superclasses
+        '''
+        super(AttributeQuery, self).__init__(**kw)
         self.__attributes = TypedList(Attribute)
 
     def __getstate__(self):
@@ -3063,12 +3376,27 @@ class AttributeQuery(SubjectQuery):
         return _dict
  
     def _getAttributes(self):
-        '''Gets the Attributes of this query.
+        '''Get the Attributes of this query
         
-        @return: the list of Attributes of this query'''
+        @return: the list of Attributes of this query
+        @rtype: ndg.saml.utils.TypedList'''
         return self.__attributes
 
     def _setAttributes(self, value):
+        '''Set the attributes for this query
+        
+        @param value: new attributes for this query
+        @type value: TypedList
+        @raise TypeError: incorrect type for attributes list
+        '''
+        if not isinstance(value, TypedList):
+            raise TypeError('Expecting %r type for "attributes"; got %r' %
+                            (TypedList, (type)))
+        
+        if not issubclass(value.elementType, Attribute):
+            raise TypeError('Expecting %r derived type for "attributes" '
+                            'elements; got %r' % (Attribute, value.elementType))
+            
         self.__attributes = value
 
     attributes = property(fget=_getAttributes, 
@@ -3082,7 +3410,16 @@ class Evidentiary(SAMLObject):
 
 
 class AssertionURIRef(Evidentiary):
-    '''SAML 2.0 Core AssertionURIRef'''
+    '''SAML 2.0 Core AssertionURIRef
+    
+    @cvar DEFAULT_ELEMENT_LOCAL_NAME: Element local name
+    @type DEFAULT_ELEMENT_LOCAL_NAME: string
+    @cvar DEFAULT_ELEMENT_NAME: Default element name
+    @type DEFAULT_ELEMENT_NAME: ndg.saml.common.xml.QName
+
+    @ivar __assertionURI: URI for this assertion reference
+    @type __assertionURI: basestring
+    '''
     __slots__ = ('__assertionURI',)
     
     # Element local name
@@ -3093,9 +3430,13 @@ class AssertionURIRef(Evidentiary):
                                  DEFAULT_ELEMENT_LOCAL_NAME,
                                  SAMLConstants.SAML20_PREFIX)
     
-    def __init__(self):
-        '''Create assertion URI reference'''
-        super(AssertionURIRef, self).__init__()
+    def __init__(self, **kw):
+        '''Create assertion URI reference
+        
+        @param **kw: keywords to initialise superclasses
+        @type **kw: dict
+        '''
+        super(AssertionURIRef, self).__init__(**kw)
         
         # URI of the Assertion
         self.__assertionURI = None   
@@ -3106,7 +3447,6 @@ class AssertionURIRef(Evidentiary):
         @return: object's attribute dictionary
         @rtype: dict
         '''
-
         _dict = super(AssertionURIRef, self).__getstate__()
         for attrName in AssertionURIRef.__slots__:
             # Ugly hack to allow for derived classes setting private member
@@ -3119,23 +3459,44 @@ class AssertionURIRef(Evidentiary):
         return _dict
     
     def _getAssertionURI(self):
+        '''Get assertion URI
+        
+        @return assertionURI: assertion URI 
+        @rtype assertionURI: basestring
+        '''
         return self.__assertionURI
 
     def _setAssertionURI(self, value):
+        '''Set assertion URI
+        
+        @param assertionURI: assertion URI
+        @type assertionURI: basestring
+        @raise TypeError: incorrect input value type
+        '''
         if not isinstance(value, basestring):
             raise TypeError('Expecting string type for "assertionID" '
                             'attribute; got %r' % type(value))
         self.__assertionURI = value
 
     def getOrderedChildren(self):
-        return None
+        """Return list of all attributes - not implemented for this class
+        """
 
     assertionURI = property(_getAssertionURI, _setAssertionURI, 
                             doc="Assertion URI")
     
     
 class AssertionIDRef(Evidentiary):
-    '''SAML 2.0 Core AssertionIDRef.'''
+    '''SAML 2.0 Core AssertionIDRef.
+    
+    @cvar DEFAULT_ELEMENT_LOCAL_NAME: Element local name.
+    @type DEFAULT_ELEMENT_LOCAL_NAME: string
+    @cvar DEFAULT_ELEMENT_NAME: Default element name.
+    @type DEFAULT_ELEMENT_NAME: ndg.saml.common.xml.QName
+
+    @ivar __assertionID: assertion identifier
+    @type __assertionID: basestring
+    '''
 
     # Element local name.
     DEFAULT_ELEMENT_LOCAL_NAME = "AssertionIDRef"
@@ -3145,18 +3506,14 @@ class AssertionIDRef(Evidentiary):
                                  DEFAULT_ELEMENT_LOCAL_NAME,
                                  SAMLConstants.SAML20_PREFIX)
     
-    __slots__ = ("_AssertionID",)
+    __slots__ = ("__assertionID",)
     
-    def __init__(self, namespaceURI, elementLocalName, namespacePrefix):
+    def __init__(self, **kw):
         '''
-        @param namespaceURI: the namespace the element is in
-        @param elementLocalName: the local name of the XML element this Object 
-        represents
-        @param namespacePrefix: the prefix for the given namespace
+        @param **kw: keywords for superclass initialisation
+        @type **kw: dict
         '''
-        super(AssertionIDRef, self).__init__(namespaceURI, 
-                                             elementLocalName, 
-                                             namespacePrefix)
+        super(AssertionIDRef, self).__init__(**kw)
         self.__assertionID = None
 
     def __getstate__(self):
@@ -3178,29 +3535,42 @@ class AssertionIDRef(Evidentiary):
         return _dict
         
     def _getAssertionID(self):
-        '''Gets the ID of the assertion this references.
+        '''Get the ID of the assertion this references
         
-        @return: the ID of the assertion this references'''
+        @return: the ID of the assertion this references
+        @rtype: basestring
+        '''
         return self.__assertionID
         
     def _setAssertionID(self, value):
         '''Sets the ID of the assertion this references.
         
-        @param value: the ID of the assertion this references'''
+        @param value: the ID of the assertion this references
+        @type value: basestring
+        @raise TypeError: incorrect type for input value
+        '''
         if not isinstance(value, basestring):
             raise TypeError('Expecting string type for "assertionID" '
                             'attribute; got %r' % type(value))
         self.__assertionID = value
 
     def getOrderedChildren(self):
-        return None
+        '''Get attributes for this element as a list - not implemented for this
+        class'''
 
     assertionID = property(_getAssertionID, _setAssertionID, 
                            doc="Assertion ID")
         
     
 class EncryptedElementType(SAMLObject):
-    '''SAML 2.0 Core EncryptedElementType'''
+    '''SAML 2.0 Core EncryptedElementType
+    
+    @cvar TYPE_LOCAL_NAME: Local name of the XSI type.
+    @type TYPE_LOCAL_NAME: string
+    @cvar TYPE_NAME: QName of the XSI type.
+    @type TYPE_NAME: string
+
+    '''
     
     # Local name of the XSI type.
     TYPE_LOCAL_NAME = "EncryptedElementType"
@@ -3213,26 +3583,32 @@ class EncryptedElementType(SAMLObject):
     __slots__ = ()
     
     def _getEncryptedData(self):
-        '''Get the EncryptedData child element.
+        '''Get the EncryptedData child element.  Not currently implemented
         
-        @return the EncryptedData child element'''
+        @return: the EncryptedData child element'''
         raise NotImplementedError()
     
     def _setEncryptedData(self, value):
-        '''Set the EncryptedData child element.
+        '''Set the EncryptedData child element.  Not currently implemented
         
-        @param newEncryptedData the new EncryptedData child element'''
+        @param value: the new EncryptedData child element'''
         raise NotImplementedError()
     
     def _getEncryptedKeys(self):
-        '''A list of EncryptedKey child elements.
+        '''A list of EncryptedKey child elements.  Not currently implemented
         
-        @return a list of EncryptedKey child elements'''
+        @return: a list of EncryptedKey child elements'''
         raise NotImplementedError()
     
     
 class EncryptedAssertion(EncryptedElementType, Evidentiary):
-    '''SAML 2.0 Core EncryptedAssertion.'''
+    '''SAML 2.0 Core EncryptedAssertion
+    
+    @cvar DEFAULT_ELEMENT_LOCAL_NAME: Element local name.
+    @type DEFAULT_ELEMENT_LOCAL_NAME: string
+    @cvar DEFAULT_ELEMENT_NAME: Default element name.
+    @type DEFAULT_ELEMENT_NAME: ndg.saml.common.xml.QName
+    '''
     
     # Element local name. 
     DEFAULT_ELEMENT_LOCAL_NAME = "EncryptedAssertion"
@@ -3245,7 +3621,20 @@ class EncryptedAssertion(EncryptedElementType, Evidentiary):
       
     
 class Evidence(SAMLObject):
-    '''SAML 2.0 Core Evidence.'''
+    '''SAML 2.0 Core Evidence
+    
+    @cvar DEFAULT_ELEMENT_LOCAL_NAME: Element local name.
+    @type DEFAULT_ELEMENT_LOCAL_NAME: string
+    @cvar DEFAULT_ELEMENT_NAME: Default element name.
+    @type DEFAULT_ELEMENT_NAME: ndg.saml.common.xml.QName
+    @cvar TYPE_LOCAL_NAME: Local name of the XSI type.
+    @type TYPE_LOCAL_NAME: string
+    @cvar TYPE_NAME: QName of the XSI type.
+    @type TYPE_NAME: ndg.saml.common.xml.QName
+    
+    @ivar __values: list of evidence values
+    @type __values: ndg.saml.utils.TypedList
+    '''
     
     # Element local name.
     DEFAULT_ELEMENT_LOCAL_NAME = "Evidence"
@@ -3267,6 +3656,9 @@ class Evidence(SAMLObject):
     
     def __init__(self, **kw):
         '''Create an authorization evidence type
+        
+        @param **kw: keyword to initialise superclasses
+        @type **kw: dict
         '''
         super(Evidence, self).__init__(**kw)
 
@@ -3293,27 +3685,32 @@ class Evidence(SAMLObject):
          
     @property
     def assertionIDReferences(self):
-        '''Gets the list of AssertionID references used as evidence.
+        '''Get the list of Assertion ID references used as evidence
     
-        @return: the list of AssertionID references used as evidence'''
+        @return: the list of AssertionID references used as evidence
+        @rtype: list
+        '''
         return [i for i in self.__values 
                 if (getattr(i, "DEFAULT_ELEMENT_NAME") == 
                     AssertionIDRef.DEFAULT_ELEMENT_NAME)]
     
     @property
     def assertionURIReferences(self):
-        '''Gets the list of AssertionURI references used as evidence.
+        '''Get the list of Assertion URI references used as evidence
        
-        @return: the list of AssertionURI references used as evidence'''
+        @return: the list of AssertionURI references used as evidence
+        @rtype: list'''
         return [i for i in self.__values 
                 if (getattr(i, "DEFAULT_ELEMENT_NAME") == 
                     AssertionURIRef.DEFAULT_ELEMENT_NAME)]
     
     @property
     def assertions(self):
-        '''Gets the list of Assertions used as evidence.
+        '''Get the list of Assertions used as evidence
        
-        @return: the list of Assertions used as evidence'''
+        @return: the list of Assertions used as evidence
+        @rtype: list
+        '''
         return [i for i in self.__values 
                 if (getattr(i, "DEFAULT_ELEMENT_NAME") == 
                     Assertion.DEFAULT_ELEMENT_NAME)]
@@ -3322,19 +3719,25 @@ class Evidence(SAMLObject):
     def encryptedAssertions(self):
         '''Gets the list of EncryptedAssertions used as evidence.
        
-        @return: the list of EncryptedAssertions used as evidence'''
+        @return: the list of EncryptedAssertions used as evidence
+        @rtype: list
+        '''
         return [i for i in self.__values 
                 if (getattr(i, "DEFAULT_ELEMENT_NAME") == 
                     EncryptedAssertion.DEFAULT_ELEMENT_NAME)]   
 
     @property
     def values(self):
-        '''Gets the list of all elements used as evidence.
+        '''Get the list of all elements used as evidence.
        
-        @return: the list of Evidentiary objects used as evidence'''
+        @return: the list of Evidentiary objects used as evidence
+        @rtype: ndg.saml.utils.TypedList
+        '''
         return self.__values
     
     def getOrderedChildren(self):
+        '''Return list of evidence objects
+        '''
         children = []
 
         if len(self.__values) == 0:
@@ -3346,7 +3749,31 @@ class Evidence(SAMLObject):
     
 
 class AuthzDecisionQuery(SubjectQuery):
-    '''SAML 2.0 AuthzDecisionQuery.'''
+    '''SAML 2.0 AuthzDecisionQuery
+    
+    @cvar DEFAULT_ELEMENT_LOCAL_NAME: Element local name.
+    @type DEFAULT_ELEMENT_LOCAL_NAME: string
+    @cvar DEFAULT_ELEMENT_NAME: Default element name.
+    @type DEFAULT_ELEMENT_NAME: string
+    @cvar TYPE_LOCAL_NAME: Local name of the XSI type.
+    @type TYPE_LOCAL_NAME: string
+    @cvar TYPE_NAME: QName of the XSI type.
+    @type TYPE_NAME: string
+    @cvar RESOURCE_ATTRIB_NAME: Resource attribute name.
+    @type RESOURCE_ATTRIB_NAME: string
+   
+    @ivar resource: Resource attribute value.
+    @type resource: string
+    @ivar evidence: Evidence child element.
+    @type evidence: string
+    @ivar actions: Action child elements.
+    @type actions: string
+    @ivar normalizeResource: Set to Truefor normalization of resource URIs in 
+    property set method
+    @type normalizeResource: bool
+    @ivar safeNormalizationChars: safe character settings for normalisation
+    @type safeNormalizationChars: string
+    '''
 
     # Element local name.
     DEFAULT_ELEMENT_LOCAL_NAME = "AuthzDecisionQuery"
@@ -3412,9 +3839,20 @@ class AuthzDecisionQuery(SubjectQuery):
         return _dict
     
     def _getNormalizeResource(self):
+        '''
+        @return: flag to set whether to apply normalisation of resource URI or 
+        not
+        @rtype: bool
+        '''
         return self.__normalizeResource
 
     def _setNormalizeResource(self, value):
+        '''
+        @param value: flag to set whether to apply normalisation of resource URI 
+        or not
+        @type value: bool
+        @raise TypeError: incorrect type for input value
+        '''
         if not isinstance(value, bool):
             raise TypeError('Expecting bool type for "normalizeResource" '
                             'attribute; got %r instead' % type(value))
@@ -3429,9 +3867,21 @@ class AuthzDecisionQuery(SubjectQuery):
                                      'beginning with "http://" or "https://"')
 
     def _getSafeNormalizationChars(self):
+        '''
+        @param value: safe normalisation characters for input into normalisation
+        of resource URI.
+        @type value: string
+        @raise TypeError: incorrect type for input value
+        '''
         return self.__safeNormalizationChars
 
     def _setSafeNormalizationChars(self, value):
+        '''
+        @param value: safe normalisation characters for input into normalisation
+        of resource URI.  It only applies if normalizeResource is set to True
+        @type value: string
+        @raise TypeError: incorrect type for input value
+        '''
         if not isinstance(value, basestring):
             raise TypeError('Expecting string type for "normalizeResource" '
                             'attribute; got %r instead' % type(value))
@@ -3449,17 +3899,24 @@ class AuthzDecisionQuery(SubjectQuery):
                                           "characters are '/%'")
 
     def _getResource(self):
-        '''Gets the Resource attrib value of this query.
+        '''Get the Resource attrib value of this query
 
-        @return: the Resource attrib value of this query'''
+        @return: the Resource attrib value of this query
+        @rtype: basestring
+        '''
         return self.__resource
     
     def _setResource(self, value):
-        '''Sets the Resource attrib value of this query normalizing the path
-        component, removing spurious port numbers (80 for HTTP and 443 for 
-        HTTPS) and converting the host component to lower case.
+        '''Sets the Resource attrib value of this query.
         
-        @param value: the new Resource attrib value of this query'''
+        If normalizeResource attribute is True, the path is normalized
+        removing spurious port numbers (80 for HTTP and 443 for HTTPS) and 
+        converting the host component to lower case.
+        
+        @param value: the new Resource attrib value of this query
+        @type value: basestring
+        @raise TypeError: if incorrect input type 
+        '''
         if not isinstance(value, basestring):
             raise TypeError('Expecting string type for "resource" attribute; '
                             'got %r instead' % type(value))
@@ -3498,18 +3955,26 @@ class AuthzDecisionQuery(SubjectQuery):
     def actions(self):
         '''The actions for which authorisation is requested
         
-        @return: the Actions of this query'''
+        @return: the Actions of this query
+        @rtype: ndg.saml.utils.TypedList
+        '''
         return self.__actions
    
     def _getEvidence(self):
-        '''Gets the Evidence of this query.
+        '''Get the Evidence of this query
 
-        @return: the Evidence of this query'''
+        @return: the Evidence of this query
+        @rtype: ndg.saml.saml2.core.Evidence or NoneType
+        '''
         return self.__evidence
 
     def _setEvidence(self, value):
-        '''Sets the Evidence of this query.
-        @param newEvidence: the new Evidence of this query'''  
+        '''Set the Evidence of this query
+        
+        @param value: the new Evidence of this query
+        @type value: ndg.saml.saml2.core.Evidence
+        @raise TypeError: incorrect input type
+        '''  
         if not isinstance(value, Evidence):
             raise TypeError('Expecting Evidence type for "evidence" '
                             'attribute; got %r' % type(value))
@@ -3521,6 +3986,11 @@ class AuthzDecisionQuery(SubjectQuery):
                             "to base its authorisation decision on")
     
     def getOrderedChildren(self):
+        '''Return attributes for this element as a tuple
+        
+        @return: attributes for this element
+        @rtype: tuple
+        '''
         children = []
 
         superChildren = super(AuthzDecisionQuery, self).getOrderedChildren()
@@ -3540,6 +4010,38 @@ class AuthzDecisionQuery(SubjectQuery):
 
 class StatusResponseType(SAMLObject):
     '''SAML 2.0 Core Status Response Type
+
+    @cvar TYPE_LOCAL_NAME: Local name of the XSI type.
+    @type TYPE_LOCAL_NAME: string
+    @cvar TYPE_NAME: QName of the XSI type.
+    @type TYPE_NAME: string
+    @cvar ID_ATTRIB_NAME: ID attribute name
+    @type ID_ATTRIB_NAME: string
+    @cvar IN_RESPONSE_TO_ATTRIB_NAME: InResponseTo attribute name
+    @type IN_RESPONSE_TO_ATTRIB_NAME: string
+    @cvar VERSION_ATTRIB_NAME: Version attribute name
+    @type VERSION_ATTRIB_NAME: string
+    @cvar ISSUE_INSTANT_ATTRIB_NAME: IssueInstant attribute name
+    @type ISSUE_INSTANT_ATTRIB_NAME: string
+    @cvar DESTINATION_ATTRIB_NAME: Destination attribute name
+    @type DESTINATION_ATTRIB_NAME: string
+    @cvar CONSENT_ATTRIB_NAME: Consent attribute name.
+    @type CONSENT_ATTRIB_NAME: string
+    @cvar UNSPECIFIED_CONSENT: Unspecified consent URI
+    @type UNSPECIFIED_CONSENT: string
+    @cvar OBTAINED_CONSENT: Obtained consent URI
+    @type OBTAINED_CONSENT: string
+    @cvar PRIOR_CONSENT: Prior consent URI
+    @type PRIOR_CONSENT: string
+    @cvar IMPLICIT_CONSENT: Implicit consent URI
+    @type IMPLICIT_CONSENT: string
+    @cvar EXPLICIT_CONSENT: Explicit consent URI
+    @type EXPLICIT_CONSENT: string
+    @cvar UNAVAILABLE_CONSENT: Unavailable consent URI
+    @type UNAVAILABLE_CONSENT: string
+    @cvar INAPPLICABLE_CONSENT: Inapplicable consent URI
+    @type INAPPLICABLE_CONSENT: string
+
     '''
 
     # Local name of the XSI type.
