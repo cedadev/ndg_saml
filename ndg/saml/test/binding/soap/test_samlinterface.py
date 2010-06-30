@@ -7,7 +7,7 @@ __date__ = "21/07/09"
 __copyright__ = "(C) 2009 Science and Technology Facilities Council"
 __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
-__revision__ = '$Id: test_samlinterface.py 7077 2010-06-24 15:38:19Z pjkersha $'
+__revision__ = '$Id$'
 import logging
 logging.basicConfig(level=logging.DEBUG)
 import unittest

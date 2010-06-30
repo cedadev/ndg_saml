@@ -8,7 +8,7 @@ __date__ = "21/08/09"
 __copyright__ = "(C) 2009 Science and Technology Facilities Council"
 __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
-__revision__ = '$Id: $'
+__revision__ = '$Id$'
 import unittest
 from uuid import uuid4
 from datetime import datetime
