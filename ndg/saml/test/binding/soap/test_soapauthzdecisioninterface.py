@@ -14,16 +14,15 @@ from uuid import uuid4
 from datetime import datetime, timedelta
 from cStringIO import StringIO
 
+from ndg.soap.etree import SOAPEnvelope
+
 from ndg.saml.saml2.core import (SAMLVersion, Subject, NameID, Issuer, 
                                  AuthzDecisionQuery, AuthzDecisionStatement, 
                                  Status, StatusCode, StatusMessage, 
                                  DecisionType, Action, Conditions, Assertion)
 from ndg.saml.xml.etree import (AuthzDecisionQueryElementTree, 
                                 ResponseElementTree)
-
-from ndg.soap.etree import SOAPEnvelope
-from ndg.security.common.saml_utils.esg import EsgSamlNamespaces
-from ndg.security.test.unit.wsgi.saml import SoapSamlInterfaceMiddlewareTestCase
+from ndg.saml.test.binding.soap import SoapSamlInterfaceMiddlewareTestCase
 
 
 class TestAuthorisationServiceMiddleware(object):
@@ -115,7 +114,7 @@ class SOAPAuthzDecisionInterfaceMiddlewareTestCase(
                         
         query.subject = Subject()  
         query.subject.nameID = NameID()
-        query.subject.nameID.format = EsgSamlNamespaces.NAMEID_FORMAT
+        query.subject.nameID.format = "urn:ndg:saml:test:openid"
         query.subject.nameID.value = subject
                                  
         if resource is None:

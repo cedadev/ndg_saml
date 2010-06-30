@@ -7,7 +7,7 @@ __author__ = "P J Kershaw"
 __date__ = "15/02/10"
 __copyright__ = "(C) 2010 Science and Technology Facilities Council"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
-__revision__ = "$Id:$"
+__revision__ = "$Id$"
 __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 import logging
 log = logging.getLogger(__name__)
@@ -15,22 +15,17 @@ import traceback
 from cStringIO import StringIO
 from uuid import uuid4
 from datetime import datetime, timedelta
-from xml.etree import ElementTree
 
+from ndg.soap.server.wsgi.middleware import SOAPMiddleware
+from ndg.soap.etree import SOAPEnvelope
+from ndg.soap.utils import str2Bool
+
+from ndg.saml.utils.factory import importModuleObject
+from ndg.saml.xml import UnknownAttrProfile
 from ndg.saml.common import SAMLVersion
 from ndg.saml.utils import SAMLDateTime
 from ndg.saml.saml2.core import (Response, Status, StatusCode, StatusMessage, 
                                  Issuer) 
-from ndg.saml.xml import UnknownAttrProfile
-
-from ndg.security.common.utils import str2Bool
-from ndg.security.common.utils.factory import importModuleObject
-from ndg.security.common.soap.etree import SOAPEnvelope
-from ndg.security.common.saml_utils.esg import XSGroupRoleAttributeValue
-from ndg.security.common.saml_utils.esg.xml.etree import (
-                                        XSGroupRoleAttributeValueElementTree)
-from ndg.security.server.wsgi import NDGSecurityPathFilter
-from ndg.soap.server.wsgi import SOAPMiddleware
 
 
 class SOAPQueryInterfaceMiddlewareError(Exception):
@@ -41,7 +36,7 @@ class SOAPQueryInterfaceMiddlewareConfigError(Exception):
     """WSGI SAML 2.0 SOAP Query Interface Configuration problem"""
 
 
-class SOAPQueryInterfaceMiddleware(SOAPMiddleware, NDGSecurityPathFilter):
+class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
     """Implementation of SAML 2.0 SOAP Binding for Query/Request Binding
     
     @type PATH_OPTNAME: basestring
@@ -55,7 +50,7 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware, NDGSecurityPathFilter):
     SAML query interface in environ
     """
     log = logging.getLogger('SOAPQueryInterfaceMiddleware')
-    PATH_OPTNAME = "pathMatchList"
+    PATH_OPTNAME = "mountPath"
     QUERY_INTERFACE_KEYNAME_OPTNAME = "queryInterfaceKeyName"
     DEFAULT_QUERY_INTERFACE_KEYNAME = ("ndg.security.server.wsgi.saml."
                             "SOAPQueryInterfaceMiddleware.queryInterface")
@@ -85,14 +80,15 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware, NDGSecurityPathFilter):
         '''@type app: callable following WSGI interface
         @param app: next middleware application in the chain 
         '''     
-        NDGSecurityPathFilter.__init__(self, app, None)
+        super(SOAPQueryInterfaceMiddleware, self).__init__(app, None)
         
         self._app = app
         
         # Set defaults
         cls = SOAPQueryInterfaceMiddleware
         self.__queryInterfaceKeyName = cls.DEFAULT_QUERY_INTERFACE_KEYNAME
-        self.pathMatchList = ['/']
+        self.__mountPath = None
+        self.mountPath = ['/']
         self.__requestEnvelopeClass = None
         self.__responseEnvelopeClass = None
         self.__serialise = None
@@ -120,8 +116,6 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware, NDGSecurityPathFilter):
         @param app_conf: PasteDeploy application specific configuration 
         dictionary
         '''
-        cls = SOAPQueryInterfaceMiddleware
-        
         # Override where set in config
         for name in SOAPQueryInterfaceMiddleware.CONFIG_FILE_OPTNAMES:
             val = app_conf.get(prefix + name)
@@ -287,7 +281,32 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware, NDGSecurityPathFilter):
     samlVersion = property(_getSamlVersion, _setSamlVersion, None, 
                            "SAML Version to enforce for incoming queries.  "
                            "Defaults to version 2.0")
-
+        
+    def _getMountPath(self):
+        return self.__mountPath
+    
+    def _setMountPath(self, value):
+        '''
+        @type value: basestring
+        @param value: URL paths to apply this middleware to. Paths are relative 
+        to the point at which this middleware is mounted as set in 
+        environ['PATH_INFO']
+        @raise TypeError: incorrect input type
+        '''
+        
+        if not isinstance(value, basestring):
+            raise TypeError('Expecting string type for "mountPath" attribute; '
+                            'got %r' % value)
+            
+        self.__mountPath = value
+            
+    mountPath = property(fget=_getMountPath,
+                         fset=_setMountPath,
+                         doc='URL path to mount this application equivalent to '
+                             'environ[\'PATH_INFO\'] (Nb. doesn\'t '
+                             'include server domain name or '
+                             'environ[\'SCRIPT_NAME\'] setting')
+    
     @classmethod
     def filter_app_factory(cls, app, global_conf, **app_conf):
         """Set-up using a Paste app factory pattern.  Set this method to avoid
@@ -323,7 +342,6 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware, NDGSecurityPathFilter):
                                      doc="environ key name for Attribute Query "
                                          "interface")
     
-    @NDGSecurityPathFilter.initCall
     def __call__(self, environ, start_response):
         """Check for and parse a SOAP SAML Attribute Query and return a
         SAML Response
