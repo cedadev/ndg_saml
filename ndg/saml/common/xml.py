@@ -27,7 +27,7 @@ __copyright__ = "(C) 2009 Science and Technology Facilities Council"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
-__revision__ = "$Id: $"
+__revision__ = "$Id$"
 from ndg.saml.xml import XMLConstants    
 
 

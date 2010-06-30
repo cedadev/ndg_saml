@@ -7,7 +7,7 @@ __date__ = "27/07/09"
 __copyright__ = ""
 __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
-__revision__ = '$Id: $'
+__revision__ = '$Id$'
 import logging
 log = logging.getLogger(__name__)
 
@@ -251,7 +251,7 @@ class UrlLib2SOAPClient(SOAPClientBase):
         soapRequestStr = soapRequest.envelope.serialize()
 
         if log.getEffectiveLevel() <= logging.DEBUG:
-            from ndg.security.common.utils.etree import prettyPrint
+            from ndg.soap.utils.etree import prettyPrint
             log.debug("SOAP Request:")
             log.debug("_"*80)
             log.debug(prettyPrint(soapRequest.envelope.elem))

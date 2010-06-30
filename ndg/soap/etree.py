@@ -7,7 +7,7 @@ __date__ = "27/07/09"
 __copyright__ = ""
 __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
-__revision__ = '$Id: $'
+__revision__ = '$Id$'
 import logging
 log = logging.getLogger(__name__)
     
