@@ -453,6 +453,8 @@ class QName(object):
         @param qname: Qualified Name to compare with self 
         @return: True if input and this object match
         @rtype: bool
+        @return: True if input and this object match
+        @rtype: bool
         """
         if not isinstance(qname, QName):
             raise TypeError('Expecting %r; got %r' % (QName, type(qname)))
