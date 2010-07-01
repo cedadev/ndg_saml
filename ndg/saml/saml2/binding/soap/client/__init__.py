@@ -23,13 +23,7 @@ from ndg.soap import SOAPEnvelopeBase
 from ndg.soap.etree import SOAPEnvelope
 from ndg.soap.client import (UrlLib2SOAPClient, UrlLib2SOAPRequest)
 
-
-class SOAPBindingError(Exception):
-    '''Base exception type for client SAML SOAP Binding for Attribute Query'''
-
-
-class SOAPBindingInvalidResponse(SOAPBindingError):
-    '''Raise if the response is invalid'''
+from ndg.saml.saml2.binding.soap import SOAPBindingInvalidResponse
     
     
 _isIterable = lambda obj: getattr(obj, '__iter__', False) 

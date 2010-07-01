@@ -18,14 +18,15 @@ from datetime import datetime, timedelta
 
 from ndg.soap.server.wsgi.middleware import SOAPMiddleware
 from ndg.soap.etree import SOAPEnvelope
-from ndg.soap.utils import str2Bool
 
+from ndg.saml.utils import str2Bool
 from ndg.saml.utils.factory import importModuleObject
 from ndg.saml.xml import UnknownAttrProfile
 from ndg.saml.common import SAMLVersion
 from ndg.saml.utils import SAMLDateTime
 from ndg.saml.saml2.core import (Response, Status, StatusCode, StatusMessage, 
                                  Issuer) 
+from ndg.saml.saml2.binding.soap import SOAPBindingInvalidResponse
 
 
 class SOAPQueryInterfaceMiddlewareError(Exception):
@@ -36,6 +37,10 @@ class SOAPQueryInterfaceMiddlewareConfigError(Exception):
     """WSGI SAML 2.0 SOAP Query Interface Configuration problem"""
 
 
+class QueryIssueInstantInvalid(SOAPBindingInvalidResponse):
+    """Invalid timestamp for incoming query"""
+    
+    
 class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
     """Implementation of SAML 2.0 SOAP Binding for Query/Request Binding
     
@@ -80,7 +85,7 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         '''@type app: callable following WSGI interface
         @param app: next middleware application in the chain 
         '''     
-        super(SOAPQueryInterfaceMiddleware, self).__init__(app, None)
+        super(SOAPQueryInterfaceMiddleware, self).__init__()
         
         self._app = app
         
@@ -88,7 +93,7 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         cls = SOAPQueryInterfaceMiddleware
         self.__queryInterfaceKeyName = cls.DEFAULT_QUERY_INTERFACE_KEYNAME
         self.__mountPath = None
-        self.mountPath = ['/']
+        self.mountPath = '/'
         self.__requestEnvelopeClass = None
         self.__responseEnvelopeClass = None
         self.__serialise = None
@@ -353,7 +358,8 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         """
     
         # Ignore non-matching path
-        if not self.pathMatch:
+        if environ['PATH_INFO'] not in (self.mountPath, 
+                                        self.mountPath + '/'):
             return self._app(environ, start_response)
           
         # Ignore non-POST requests
@@ -393,7 +399,8 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         except UnknownAttrProfile, e:
             log.exception("%r raised parsing incoming query: %s" % 
                           (type(e), traceback.format_exc()))
-            samlResponse.statusCode.value = StatusCode.UNKNOWN_ATTR_PROFILE_URI
+            samlResponse.status.statusCode.value = \
+                                            StatusCode.UNKNOWN_ATTR_PROFILE_URI
         else:   
             # Check for Query Interface in environ
             queryInterface = environ.get(self.queryInterfaceKeyName)

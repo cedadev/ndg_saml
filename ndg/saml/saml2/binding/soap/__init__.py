@@ -11,3 +11,32 @@ __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = "$Id$"
+class SOAPBindingError(Exception):
+    '''Base exception type for client SAML SOAP Binding'''
+
+
+class SOAPBindingInvalidResponse(SOAPBindingError):
+    '''Raise if the response is invalid'''
+    def __init__(self, *arg, **kw):
+        SOAPBindingInvalidResponse.__init__(self, *arg, **kw)
+        self.__response = None
+    
+    def _getResponse(self):
+        '''Gets the response corresponding to this error
+        
+        @return the response
+        '''
+        return self.__response
+
+    def _setResponse(self, value):
+        '''Sets the response corresponding to this error.
+        
+        @param value: the response
+        '''
+        if not isinstance(value, Response):
+            raise TypeError('"response" must be a %r, got %r' % (Response,
+                                                                 type(value)))
+        self.__response = value
+        
+    response = property(fget=_getResponse, fset=_setResponse, 
+                        doc="SAML Response associated with this exception")

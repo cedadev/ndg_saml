@@ -9,7 +9,7 @@ __date__ = "21/08/09"
 __copyright__ = "(C) 2009 Science and Technology Facilities Council"
 __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
-__revision__ = '$Id:$'
+__revision__ = '$Id$'
 import os
 import unittest
 import paste.fixture
@@ -41,4 +41,4 @@ class SoapSamlInterfaceMiddlewareTestCase(unittest.TestCase):
         
         self.app = paste.fixture.TestApp(wsgiapp)
          
-        BaseTestCase.__init__(self, *args, **kwargs)
+        unittest.TestCase.__init__(self, *args, **kwargs)

@@ -63,9 +63,18 @@ class TestAuthorisationServiceMiddleware(object):
             assertion.issueInstant = now
             
             authzDecisionStatement = AuthzDecisionStatement()
-            authzDecisionStatement.decision = DecisionType.PERMIT
-            authzDecisionStatement.resource = \
-                TestAuthorisationServiceMiddleware.RESOURCE_URI
+            
+            # Make some simple logic to simulate a full access policy
+            if query.resource == self.__class__.RESOURCE_URI:
+                if query.actions[0].value == Action.HTTP_GET_ACTION:
+                    authzDecisionStatement.decision = DecisionType.PERMIT
+                else:
+                    authzDecisionStatement.decision = DecisionType.DENY
+            else:
+                authzDecisionStatement.decision = DecisionType.INDETERMINATE
+                
+            authzDecisionStatement.resource = query.resource
+                
             authzDecisionStatement.actions.append(Action())
             authzDecisionStatement.actions[-1].namespace = Action.GHPP_NS_URI
             authzDecisionStatement.actions[-1].value = Action.HTTP_GET_ACTION
@@ -100,7 +109,7 @@ class SOAPAuthzDecisionInterfaceMiddlewareTestCase(
     def _createAuthzDecisionQuery(self, 
                             issuer="/O=Site A/CN=PEP",
                             subject="https://openid.localhost/philip.kershaw",
-                            resource=None,
+                            resource=RESOURCE_URI,
                             action=Action.HTTP_GET_ACTION,
                             actionNs=Action.GHPP_NS_URI):
         query = AuthzDecisionQuery()
@@ -116,11 +125,8 @@ class SOAPAuthzDecisionInterfaceMiddlewareTestCase(
         query.subject.nameID = NameID()
         query.subject.nameID.format = "urn:ndg:saml:test:openid"
         query.subject.nameID.value = subject
-                                 
-        if resource is None:
-            query.resource = self.__class__.RESOURCE_URI
-        else:   
-            query.resource = resource
+   
+        query.resource = resource
                  
         query.actions.append(Action())
         query.actions[0].namespace = actionNs
@@ -161,7 +167,7 @@ class SOAPAuthzDecisionInterfaceMiddlewareTestCase(
         
         return response
     
-    def test01ValidQuery(self):
+    def test01AccessGranted(self):
         query = self._createAuthzDecisionQuery()
         request = self._makeRequest(query=query)
         
@@ -186,30 +192,9 @@ class SOAPAuthzDecisionInterfaceMiddlewareTestCase(
         self.assert_(samlResponse.assertions[0].authzDecisionStatements[0])
         self.assert_(samlResponse.assertions[0].authzDecisionStatements[0
                                             ].decision == DecisionType.PERMIT)
-
-        
-class SOAPAuthzServiceMiddlewareTestCase(
-                                SOAPAuthzDecisionInterfaceMiddlewareTestCase):
-    """Test the actual server side middleware 
-    ndg.security.server.wsgi.authzservice.AuthzServiceMiddleware
-    rather than a test stub
-    """
-    CONFIG_FILENAME = 'authz-service.ini'
-    RESOURCE_URI = 'http://localhost/dap/data/my.nc.dods?time[0:1:0]&lat'
-    ACCESS_DENIED_RESOURCE_URI = \
-        'http://localhost/dap/data/test_accessDeniedToSecuredURI'
-    
-    def __init__(self, *arg, **kw):
-        """Extend base init to include SAML Attribute Authority required by
-        Authorisation Service"""
-        super(SOAPAuthzDecisionInterfaceMiddlewareTestCase, self).__init__(
-                                                                    *arg, **kw)
-        self.startSiteAAttributeAuthority(withSSL=True, port=5443)
-        
+   
     def test02AccessDenied(self):
-        cls = SOAPAuthzServiceMiddlewareTestCase
-        query = self._createAuthzDecisionQuery(
-                                        resource=cls.ACCESS_DENIED_RESOURCE_URI)
+        query = self._createAuthzDecisionQuery(action=Action.HTTP_POST_ACTION)
         request = self._makeRequest(query=query)
         
         header = {
@@ -222,6 +207,7 @@ class SOAPAuthzServiceMiddlewareTestCase(
                                  headers=header, 
                                  status=200)
         print("Response status=%d" % response.status)
+        
         samlResponse = self._getSAMLResponse(response.body)
 
         self.assert_(samlResponse.status.statusCode.value == \
@@ -232,8 +218,36 @@ class SOAPAuthzServiceMiddlewareTestCase(
         self.assert_(samlResponse.assertions[0])
         self.assert_(samlResponse.assertions[0].authzDecisionStatements[0])
         self.assert_(samlResponse.assertions[0].authzDecisionStatements[0
-                                            ].decision == DecisionType.DENY)   
-    
-    
+                                            ].decision == DecisionType.DENY)
+        
+    def test03IndeterminateResponse(self):
+        query = self._createAuthzDecisionQuery(
+                            resource=self.__class__.RESOURCE_URI + 'invalid')
+        request = self._makeRequest(query=query)
+        
+        header = {
+            'soapAction': "http://www.oasis-open.org/committees/security",
+            'Content-length': str(len(request)),
+            'Content-type': 'text/xml'
+        }
+        response = self.app.post('/authorisationservice/', 
+                                 params=request, 
+                                 headers=header, 
+                                 status=200)
+        print("Response status=%d" % response.status)
+        
+        samlResponse = self._getSAMLResponse(response.body)
+
+        self.assert_(samlResponse.status.statusCode.value == \
+                     StatusCode.SUCCESS_URI)
+        self.assert_(samlResponse.inResponseTo == query.id)
+        self.assert_(samlResponse.assertions[0].subject.nameID.value == \
+                     query.subject.nameID.value)
+        self.assert_(samlResponse.assertions[0])
+        self.assert_(samlResponse.assertions[0].authzDecisionStatements[0])
+        self.assert_(samlResponse.assertions[0].authzDecisionStatements[0
+                                    ].decision == DecisionType.INDETERMINATE)
+        
+
 if __name__ == "__main__":
     unittest.main()

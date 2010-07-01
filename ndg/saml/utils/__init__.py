@@ -33,8 +33,12 @@ except ImportError:
     strptime = lambda datetimeStr, format: datetime(*(_strptime(datetimeStr, 
                                                                 format)[0:6]))
 from datetime import datetime, timedelta
+
         
-        
+# Interpret a string as a boolean
+str2Bool = lambda str: str.lower() in ("yes", "true", "t", "1")
+
+      
 class SAMLDateTime(object):
     """Generic datetime formatting utility for SAML timestamps - XMLSchema
     Datetime format
