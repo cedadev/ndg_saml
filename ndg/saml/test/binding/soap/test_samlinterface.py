@@ -1,4 +1,4 @@
-"""Attribute Authority SAML Interface unit test package
+"""SAML Generic SOAP Binding Query/Response Interface unit test package
 
 NERC DataGrid Project
 """
@@ -10,6 +10,7 @@ __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = '$Id$'
 import logging
 logging.basicConfig(level=logging.DEBUG)
+log = logging.getLogger(__name__)
 import unittest
 
 from datetime import datetime, timedelta
@@ -26,7 +27,7 @@ from ndg.saml.saml2.core import (Response, Assertion, Attribute,
                              Conditions, Status, StatusCode)
 from ndg.saml.xml import XMLConstants
 from ndg.saml.xml.etree import AttributeQueryElementTree, ResponseElementTree
-from ndg.saml.saml2.binding.soap.subjectquery import (
+from ndg.saml.saml2.binding.soap.client.subjectquery import (
     SubjectQuerySOAPBinding, ResponseIssueInstantInvalid, 
     AssertionIssueInstantInvalid, AssertionConditionNotBeforeInvalid, 
     AssertionConditionNotOnOrAfterInvalid)
@@ -37,6 +38,13 @@ from ndg.soap.utils.etree import QName, prettyPrint
 
 
 class SamlSoapBindingApp(object):
+    """Simple WSGI application to handle SAML Attribute Query/Response
+    """
+    FIRSTNAME_ATTRNAME = "urn:ndg:saml:firstname"
+    LASTNAME_ATTRNAME = "urn:ndg:saml:lastname"
+    EMAILADDRESS_ATTRNAME = "urn:ndg:saml:emailaddress"
+    NAMEID_FORMAT = "urn:ndg:saml:openid"
+    
     def __init__(self):
         self.firstName = "Philip"
         self.lastName = "Kershaw"
@@ -84,7 +92,7 @@ class SamlSoapBindingApp(object):
         assertion.attributeStatements.append(AttributeStatement())
         
         for attribute in attributeQuery.attributes:
-            if attribute.name == EsgSamlNamespaces.FIRSTNAME_ATTRNAME:
+            if attribute.name == SamlSoapBindingApp.FIRSTNAME_ATTRNAME:
                 # special case handling for 'FirstName' attribute
                 fnAttribute = Attribute()
                 fnAttribute.name = attribute.name
@@ -97,7 +105,7 @@ class SamlSoapBindingApp(object):
     
                 assertion.attributeStatements[0].attributes.append(fnAttribute)
             
-            elif attribute.name == EsgSamlNamespaces.LASTNAME_ATTRNAME:
+            elif attribute.name == SamlSoapBindingApp.LASTNAME_ATTRNAME:
                 lnAttribute = Attribute()
                 lnAttribute.name = attribute.name
                 lnAttribute.nameFormat = attribute.nameFormat
@@ -109,7 +117,7 @@ class SamlSoapBindingApp(object):
     
                 assertion.attributeStatements[0].attributes.append(lnAttribute)
                
-            elif attribute.name == EsgSamlNamespaces.EMAILADDRESS_ATTRNAME:
+            elif attribute.name == SamlSoapBindingApp.EMAILADDRESS_ATTRNAME:
                 emailAddressAttribute = Attribute()
                 emailAddressAttribute.name = attribute.name
                 emailAddressAttribute.nameFormat = attribute.nameFormat
@@ -124,13 +132,6 @@ class SamlSoapBindingApp(object):
         
         samlResponse.assertions.append(assertion)
         
-        # Add mapping for ESG Group/Role Attribute Value to enable ElementTree
-        # Attribute Value factory to render the XML output
-        toXMLTypeMap = {
-            XSGroupRoleAttributeValue: XSGroupRoleAttributeValueElementTree
-        }
-
-        
         samlResponse.status = Status()
         samlResponse.status.statusCode = StatusCode()
         samlResponse.status.statusCode.value = StatusCode.SUCCESS_URI        
@@ -141,6 +142,7 @@ class SamlSoapBindingApp(object):
         samlResponseElem = ResponseElementTree.toXML(samlResponse,
                                             customToXMLTypeMap=toXMLTypeMap)
         xml = ElementTree.tostring(samlResponseElem)
+        log.debug('Sending response to query:\n%s', xml)
         
         # Create SOAP response and attach the SAML Response payload
         soapResponse = SOAPEnvelope()
@@ -155,8 +157,8 @@ class SamlSoapBindingApp(object):
         return [response]
 
         
-class SamlAttributeAuthorityInterfaceTestCase(BaseTestCase):
-    """TODO: test SAML Attribute Authority interface"""
+class SamlAttributeQueryTestCase(unittest.TestCase):
+    """Test the SAML SOAP binding using an Attribute Query as an example"""
     thisDir = os.path.dirname(os.path.abspath(__file__))
     RESPONSE = '''\
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
@@ -204,7 +206,7 @@ class SamlAttributeAuthorityInterfaceTestCase(BaseTestCase):
         wsgiApp = SamlSoapBindingApp()
         self.app = paste.fixture.TestApp(wsgiApp)
          
-        BaseTestCase.__init__(self, *args, **kwargs)
+        unittest.TestCase.__init__(self, *args, **kwargs)
         
     def test01AttributeQuery(self):
         attributeQuery = AttributeQuery()
@@ -220,13 +222,13 @@ class SamlAttributeAuthorityInterfaceTestCase(BaseTestCase):
                         
         attributeQuery.subject = Subject()  
         attributeQuery.subject.nameID = NameID()
-        attributeQuery.subject.nameID.format = EsgSamlNamespaces.NAMEID_FORMAT
+        attributeQuery.subject.nameID.format = SamlSoapBindingApp.NAMEID_FORMAT
         attributeQuery.subject.nameID.value = \
                                     "https://openid.localhost/philip.kershaw"
         
         # special case handling for 'FirstName' attribute
         fnAttribute = Attribute()
-        fnAttribute.name = EsgSamlNamespaces.FIRSTNAME_ATTRNAME
+        fnAttribute.name = SamlSoapBindingApp.FIRSTNAME_ATTRNAME
         fnAttribute.nameFormat = "http://www.w3.org/2001/XMLSchema#string"
         fnAttribute.friendlyName = "FirstName"
 
@@ -234,7 +236,7 @@ class SamlAttributeAuthorityInterfaceTestCase(BaseTestCase):
     
         # special case handling for 'LastName' attribute
         lnAttribute = Attribute()
-        lnAttribute.name = EsgSamlNamespaces.LASTNAME_ATTRNAME
+        lnAttribute.name = SamlSoapBindingApp.LASTNAME_ATTRNAME
         lnAttribute.nameFormat = "http://www.w3.org/2001/XMLSchema#string"
         lnAttribute.friendlyName = "LastName"
 
@@ -242,7 +244,7 @@ class SamlAttributeAuthorityInterfaceTestCase(BaseTestCase):
     
         # special case handling for 'LastName' attribute
         emailAddressAttribute = Attribute()
-        emailAddressAttribute.name = EsgSamlNamespaces.EMAILADDRESS_ATTRNAME
+        emailAddressAttribute.name = SamlSoapBindingApp.EMAILADDRESS_ATTRNAME
         emailAddressAttribute.nameFormat = XMLConstants.XSD_NS+"#"+\
                                     XSStringAttributeValue.TYPE_LOCAL_NAME
         emailAddressAttribute.friendlyName = "emailAddress"
@@ -313,13 +315,13 @@ class SamlAttributeAuthorityInterfaceTestCase(BaseTestCase):
 
         attributeQuery.subject = Subject()  
         attributeQuery.subject.nameID = NameID()
-        attributeQuery.subject.nameID.format = EsgSamlNamespaces.NAMEID_FORMAT
+        attributeQuery.subject.nameID.format = SamlSoapBindingApp.NAMEID_FORMAT
         attributeQuery.subject.nameID.value = \
                             "https://esg.prototype.ucar.edu/myopenid/testUser"
         
         # special case handling for 'FirstName' attribute
         fnAttribute = Attribute()
-        fnAttribute.name = EsgSamlNamespaces.FIRSTNAME_ATTRNAME
+        fnAttribute.name = SamlSoapBindingApp.FIRSTNAME_ATTRNAME
         fnAttribute.nameFormat = "http://www.w3.org/2001/XMLSchema#string"
         fnAttribute.friendlyName = "FirstName"
 
@@ -327,7 +329,7 @@ class SamlAttributeAuthorityInterfaceTestCase(BaseTestCase):
     
         # special case handling for 'LastName' attribute
         lnAttribute = Attribute()
-        lnAttribute.name = EsgSamlNamespaces.LASTNAME_ATTRNAME
+        lnAttribute.name = SamlSoapBindingApp.LASTNAME_ATTRNAME
         lnAttribute.nameFormat = "http://www.w3.org/2001/XMLSchema#string"
         lnAttribute.friendlyName = "LastName"
 
@@ -335,7 +337,7 @@ class SamlAttributeAuthorityInterfaceTestCase(BaseTestCase):
     
         # special case handling for 'LastName' attribute
         emailAddressAttribute = Attribute()
-        emailAddressAttribute.name = EsgSamlNamespaces.EMAILADDRESS_ATTRNAME
+        emailAddressAttribute.name = SamlSoapBindingApp.EMAILADDRESS_ATTRNAME
         emailAddressAttribute.nameFormat = XMLConstants.XSD_NS+"#"+\
                                     XSStringAttributeValue.TYPE_LOCAL_NAME
         emailAddressAttribute.friendlyName = "emailAddress"
@@ -364,67 +366,7 @@ class SamlAttributeAuthorityInterfaceTestCase(BaseTestCase):
         if QName.getLocalPart(response.envelope.body.elem[0].tag)!='Response':
             self.fail('Expecting "Response" element in SOAP body')
             
-        toSAMLTypeMap = [XSGroupRoleAttributeValueElementTree.factoryMatchFunc]
-        response = ResponseElementTree.fromXML(response.envelope.body.elem[0],
-                                            customToSAMLTypeMap=toSAMLTypeMap)
-        self.assert_(response)
-        
-    def test03ParseResponse(self):
-        response = \
-'''<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
-   <SOAP-ENV:Body>
-      <samlp:Response ID="05680cb2-4973-443d-9d31-7bc99bea87c1" InResponseTo="e3183380-ae82-4285-8827-8c40613842de" IssueInstant="2009-08-17T12:28:37.325Z" Version="2.0" xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol">
-         <saml:Issuer Format="urn:esg:issuer" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">ESG-NCAR</saml:Issuer>
-         <samlp:Status>
-            <samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success" />
-         </samlp:Status>
-         <saml:Assertion ID="192c67d9-f9cd-457a-9242-999e7b943166" IssueInstant="2009-08-17T12:28:37.347Z" Version="2.0" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">
-            <saml:Issuer Format="urn:esg:issuer">ESG-NCAR</saml:Issuer>
-            <saml:Subject>
-               <saml:NameID Format="urn:esg:openid">https://esg.prototype.ucar.edu/myopenid/testUser</saml:NameID>
-            </saml:Subject>
-            <saml:Conditions NotBefore="2009-08-17T12:28:37.347Z" NotOnOrAfter="2009-08-18T12:28:37.347Z" />
-            <saml:AttributeStatement>
-               <saml:Attribute FriendlyName="FirstName" Name="urn:esg:first:name" NameFormat="http://www.w3.org/2001/XMLSchema#string">
-                  <saml:AttributeValue xsi:type="xs:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Test</saml:AttributeValue>
-               </saml:Attribute>
-               <saml:Attribute FriendlyName="LastName" Name="urn:esg:last:name" NameFormat="http://www.w3.org/2001/XMLSchema#string">
-                  <saml:AttributeValue xsi:type="xs:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">User</saml:AttributeValue>
-               </saml:Attribute>
-               <saml:Attribute FriendlyName="EmailAddress" Name="urn:esg:first:email:address" NameFormat="http://www.w3.org/2001/XMLSchema#string">
-                  <saml:AttributeValue xsi:type="xs:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">ejn@ucar.edu</saml:AttributeValue>
-               </saml:Attribute>
-               <saml:Attribute FriendlyName="GroupRole" Name="urn:esg:group:role" NameFormat="groupRole">
-                  <saml:AttributeValue>
-                     <esg:groupRole group="CCSM" role="default" xmlns:esg="http://www.esg.org" />
-                  </saml:AttributeValue>
-                  <saml:AttributeValue>
-                     <esg:groupRole group="Dynamical Core" role="default" xmlns:esg="http://www.esg.org" />
-                  </saml:AttributeValue>
-                  <saml:AttributeValue>
-                     <esg:groupRole group="NARCCAP" role="default" xmlns:esg="http://www.esg.org" />
-                  </saml:AttributeValue>
-               </saml:Attribute>
-            </saml:AttributeStatement>
-         </saml:Assertion>
-      </samlp:Response>
-   </SOAP-ENV:Body>
-</SOAP-ENV:Envelope>'''
-        
-        soapResponse = SOAPEnvelope()
-        
-        responseStream = StringIO()
-        responseStream.write(response)
-        responseStream.seek(0)
-        
-        soapResponse.parse(responseStream)
-        
-        print("Parsed response ...")
-        print(soapResponse.serialize())
-        
-        toSAMLTypeMap = [XSGroupRoleAttributeValueElementTree.factoryMatchFunc]
-        response = ResponseElementTree.fromXML(soapResponse.body.elem[0],
-                                            customToSAMLTypeMap=toSAMLTypeMap)
+        response = ResponseElementTree.fromXML(response.envelope.body.elem[0])
         self.assert_(response)
 
     def _parseResponse(self, responseStr):
@@ -440,9 +382,7 @@ class SamlAttributeAuthorityInterfaceTestCase(BaseTestCase):
         print("Parsed response ...")
         print(soapResponse.serialize())
         
-        toSAMLTypeMap = [XSGroupRoleAttributeValueElementTree.factoryMatchFunc]
-        response = ResponseElementTree.fromXML(soapResponse.body.elem[0],
-                                            customToSAMLTypeMap=toSAMLTypeMap)
+        response = ResponseElementTree.fromXML(soapResponse.body.elem[0])
         return response
         
     def test03ParseResponse(self):
@@ -454,7 +394,7 @@ class SamlAttributeAuthorityInterfaceTestCase(BaseTestCase):
             'notOnOrAfter': SAMLDateTime.toString(utcNow + timedelta(
                                                             seconds=60*60*8))
         }
-        responseStr = SamlAttributeAuthorityInterfaceTestCase.RESPONSE % \
+        responseStr = self.__class__.RESPONSE % \
                                                                         respDict
         response = self._parseResponse(responseStr)
         self.assert_(response)
@@ -470,7 +410,7 @@ class SamlAttributeAuthorityInterfaceTestCase(BaseTestCase):
             'notOnOrAfter': SAMLDateTime.toString(issueInstant + timedelta(
                                                             seconds=60*60*8))
         }
-        responseStr = SamlAttributeAuthorityInterfaceTestCase.RESPONSE % \
+        responseStr = self.__class__.RESPONSE % \
                                                                     respDict
         response = self._parseResponse(responseStr)
         binding = SubjectQuerySOAPBinding()
@@ -490,7 +430,7 @@ class SamlAttributeAuthorityInterfaceTestCase(BaseTestCase):
             'notOnOrAfter': SAMLDateTime.toString(utcNow + timedelta(
                                                             seconds=60*60*8))
         }
-        responseStr = SamlAttributeAuthorityInterfaceTestCase.RESPONSE % \
+        responseStr = self.__class__.RESPONSE % \
                                                                     respDict
         response = self._parseResponse(responseStr)
         binding = SubjectQuerySOAPBinding()
@@ -509,7 +449,7 @@ class SamlAttributeAuthorityInterfaceTestCase(BaseTestCase):
             'notOnOrAfter': SAMLDateTime.toString(utcNow + timedelta(
                                                             seconds=60*60*8))
         }
-        responseStr = SamlAttributeAuthorityInterfaceTestCase.RESPONSE % \
+        responseStr = self.__class__.RESPONSE % \
                                                                     respDict
         response = self._parseResponse(responseStr)
         binding = SubjectQuerySOAPBinding()
@@ -529,7 +469,7 @@ class SamlAttributeAuthorityInterfaceTestCase(BaseTestCase):
             'notOnOrAfter': SAMLDateTime.toString(utcNow + timedelta(
                                                             seconds=60*60*8))
         }
-        responseStr = SamlAttributeAuthorityInterfaceTestCase.RESPONSE % \
+        responseStr = self.__class__.RESPONSE % \
                                                                     respDict
         response = self._parseResponse(responseStr)
         binding = SubjectQuerySOAPBinding()
@@ -549,7 +489,7 @@ class SamlAttributeAuthorityInterfaceTestCase(BaseTestCase):
             'notOnOrAfter': SAMLDateTime.toString(utcNow + timedelta(
                                                             seconds=60*60*8))
         }
-        responseStr = SamlAttributeAuthorityInterfaceTestCase.RESPONSE % \
+        responseStr = self.__class__.RESPONSE % \
                                                                     respDict
         response = self._parseResponse(responseStr)
         binding = SubjectQuerySOAPBinding()
@@ -573,8 +513,7 @@ class SamlAttributeAuthorityInterfaceTestCase(BaseTestCase):
             'notOnOrAfter': SAMLDateTime.toString(issueInstant + timedelta(
                                                             seconds=60*60*8))
         }
-        responseStr = SamlAttributeAuthorityInterfaceTestCase.RESPONSE % \
-                                                                    respDict
+        responseStr = self.__class__.RESPONSE % respDict
         response = self._parseResponse(responseStr)
         binding = SubjectQuerySOAPBinding()
         

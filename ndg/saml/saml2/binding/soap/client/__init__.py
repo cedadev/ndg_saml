@@ -12,13 +12,11 @@ import logging
 log = logging.getLogger(__name__)
 
 from os import path
-from ConfigParser import ConfigParser
+from ConfigParser import ConfigParser, SafeConfigParser
 
 from ndg.saml.common import SAMLObject
 
-from ndg.security.common.utils.factory import importModuleObject
-from ndg.security.common.utils.configfileparsers import (
-                                                    CaseSensitiveConfigParser)
+from ndg.saml.utils.factory import importModuleObject
 from ndg.soap import SOAPEnvelopeBase
 from ndg.soap.etree import SOAPEnvelope
 from ndg.soap.client import (UrlLib2SOAPClient, UrlLib2SOAPRequest)
@@ -222,7 +220,9 @@ class SOAPBinding(object):
         '''  
         if isinstance(cfg, basestring):
             cfgFilePath = path.expandvars(cfg)
-            _cfg = CaseSensitiveConfigParser()
+            _cfg = SafeConfigParser()
+            _cfg.optionxform = str
+
             _cfg.read(cfgFilePath)
             
         elif isinstance(cfg, ConfigParser):
