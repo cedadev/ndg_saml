@@ -41,7 +41,14 @@ class TestAuthorisationServiceMiddleware(object):
         return self._app(environ, start_response)
     
     def authzDecisionQueryFactory(self):
+        """Makes the authorisation decision"""
+        
         def authzDecisionQuery(query, response):
+            """Authorisation Decision Query interface called by the next 
+            middleware in the stack the SAML SOAP Query interface middleware 
+            instance
+            (ndg.saml.saml2.binding.soap.server.wsgi.queryinterface.SOAPQueryInterfaceMiddleware)
+            """
             now = datetime.utcnow()
             response.issueInstant = now
             

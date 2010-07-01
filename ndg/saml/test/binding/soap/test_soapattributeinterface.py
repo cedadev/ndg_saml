@@ -11,23 +11,158 @@ __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = '$Id$'
 import unittest
 from uuid import uuid4
-from datetime import datetime
+from datetime import datetime, timedelta
 from cStringIO import StringIO
 
-from ndg.saml.saml2.core import (Attribute, SAMLVersion, Subject, NameID, 
-                                 Issuer, AttributeQuery, XSStringAttributeValue, 
-                                 StatusCode)
+from ndg.soap.etree import SOAPEnvelope
+
+from ndg.saml.saml2.core import (Assertion, Attribute, AttributeStatement, 
+                                 SAMLVersion, Subject, NameID, Issuer, 
+                                 AttributeQuery, XSStringAttributeValue, 
+                                 Conditions, Status, StatusCode)
 from ndg.saml.xml import XMLConstants
 from ndg.saml.xml.etree import AttributeQueryElementTree, ResponseElementTree
+from ndg.saml.test.binding.soap import SoapSamlInterfaceMiddlewareTestCase
 
-from ndg.soap.etree import SOAPEnvelope
-from ndg.security.common.saml_utils.esg import EsgSamlNamespaces
-from ndg.security.test.unit.wsgi.saml import SoapSamlInterfaceMiddlewareTestCase
+
+class TestAttributeServiceMiddleware(object):
+    """Test Attribute Service interface stub"""
+    QUERY_INTERFACE_KEYNAME_OPTNAME = 'queryInterfaceKeyName'
+    ISSUER_DN = '/O=Test/OU=Attribute Service/CN=Service Stub'
+    
+    FIRSTNAME_ATTRNAME = "urn:ndg:saml:firstname"
+    LASTNAME_ATTRNAME = "urn:ndg:saml:lastname"
+    EMAILADDRESS_ATTRNAME = "urn:ndg:saml:emailaddress"
+    
+    VALID_QUERY_ISSUERS = (
+        "/O=Site A/CN=Authorisation Service",
+        "/O=Site B/CN=Authorisation Service"
+    )
+    VALID_SUBJECTS = ("https://openid.localhost/philip.kershaw", )
+    VALID_ATTR_NAME_URIS = (
+        FIRSTNAME_ATTRNAME, LASTNAME_ATTRNAME, EMAILADDRESS_ATTRNAME
+    )
+    
+    def __init__(self, app, global_conf, **app_conf):
+        self.queryInterfaceKeyName = app_conf[
+            self.__class__.QUERY_INTERFACE_KEYNAME_OPTNAME]
+        self._app = app
+
+        self.firstName = "Philip"
+        self.lastName = "Kershaw"
+        self.emailAddress = "pkershaw@somewhere.ac.uk"
+    
+    def __call__(self, environ, start_response):
+        environ[self.queryInterfaceKeyName] = self.attributeQueryFactory()
+        return self._app(environ, start_response)
+    
+    def attributeQueryFactory(self):
+        """Makes the attribute query method"""
+        
+        def attributeQuery(query, response):
+            """Attribute Query interface called by the next middleware in the 
+            stack the SAML SOAP Query interface middleware instance
+            (ndg.saml.saml2.binding.soap.server.wsgi.queryinterface.SOAPQueryInterfaceMiddleware)
+            """
+            response.issueInstant = datetime.utcnow()
+            response.id = str(uuid4())
+            response.issuer = Issuer()
+            
+            # SAML 2.0 spec says format must be omitted
+            #response.issuer.format = Issuer.X509_SUBJECT
+            response.issuer.value = \
+                            "/O=NDG/OU=BADC/CN=attributeauthority.badc.rl.ac.uk"
+            
+            response.inResponseTo = query.id
+
+            if query.issuer.value not in self.__class__.VALID_QUERY_ISSUERS:
+                response.status.statusCode.value = \
+                                            StatusCode.REQUEST_DENIED_URI   
+                return response    
+
+            if query.subject.nameID.value not in self.__class__.VALID_SUBJECTS:
+                response.status.statusCode.value = \
+                                            StatusCode.UNKNOWN_PRINCIPAL_URI   
+                return response    
+                
+            assertion = Assertion()
+            
+            assertion.version = SAMLVersion(SAMLVersion.VERSION_20)
+            assertion.id = str(uuid4())
+            assertion.issueInstant = response.issueInstant
+            
+            assertion.conditions = Conditions()
+            assertion.conditions.notBefore = assertion.issueInstant
+            assertion.conditions.notOnOrAfter = \
+                assertion.conditions.notBefore + timedelta(seconds=60*60*8)
+            
+            assertion.subject = Subject()  
+            assertion.subject.nameID = NameID()
+            assertion.subject.nameID.format = query.subject.nameID.format
+            assertion.subject.nameID.value = query.subject.nameID.value
+    
+            assertion.attributeStatements.append(AttributeStatement())                
+            
+            for attribute in query.attributes:
+                if attribute.name == self.__class__.FIRSTNAME_ATTRNAME:
+                    # special case handling for 'FirstName' attribute
+                    fnAttribute = Attribute()
+                    fnAttribute.name = attribute.name
+                    fnAttribute.nameFormat = attribute.nameFormat
+                    fnAttribute.friendlyName = attribute.friendlyName
+        
+                    firstName = XSStringAttributeValue()
+                    firstName.value = self.firstName
+                    fnAttribute.attributeValues.append(firstName)
+        
+                    assertion.attributeStatements[0].attributes.append(
+                                                                    fnAttribute)
+                
+                elif attribute.name == self.__class__.LASTNAME_ATTRNAME:
+                    lnAttribute = Attribute()
+                    lnAttribute.name = attribute.name
+                    lnAttribute.nameFormat = attribute.nameFormat
+                    lnAttribute.friendlyName = attribute.friendlyName
+        
+                    lastName = XSStringAttributeValue()
+                    lastName.value = self.lastName
+                    lnAttribute.attributeValues.append(lastName)
+        
+                    assertion.attributeStatements[0].attributes.append(
+                                                                    lnAttribute)
+                   
+                elif (attribute.name == self.__class__.EMAILADDRESS_ATTRNAME and
+                      query.issuer.value == 
+                                        self.__class__.VALID_QUERY_ISSUERS[0]):
+                    emailAddressAttribute = Attribute()
+                    emailAddressAttribute.name = attribute.name
+                    emailAddressAttribute.nameFormat = attribute.nameFormat
+                    emailAddressAttribute.friendlyName = attribute.friendlyName
+        
+                    emailAddress = XSStringAttributeValue()
+                    emailAddress.value = self.emailAddress
+                    emailAddressAttribute.attributeValues.append(emailAddress)
+        
+                    assertion.attributeStatements[0].attributes.append(
+                                                        emailAddressAttribute)
+                else:
+                    response.status.statusCode.value = \
+                                        StatusCode.INVALID_ATTR_NAME_VALUE_URI
+                    return response
+                                    
+            
+            response.assertions.append(assertion)
+            response.status.statusCode.value = StatusCode.SUCCESS_URI        
+    
+            return response
+        
+        return attributeQuery
 
 
 class SOAPAttributeInterfaceMiddlewareTestCase(
                                         SoapSamlInterfaceMiddlewareTestCase):
     CONFIG_FILENAME = 'attribute-interface.ini'
+    SERVICE_URI = '/attributeauthority'
     
     def _createAttributeQuery(self, 
                         issuer="/O=Site A/CN=Authorisation Service",
@@ -43,13 +178,13 @@ class SOAPAttributeInterfaceMiddlewareTestCase(
                         
         attributeQuery.subject = Subject()  
         attributeQuery.subject.nameID = NameID()
-        attributeQuery.subject.nameID.format = EsgSamlNamespaces.NAMEID_FORMAT
+        attributeQuery.subject.nameID.format = "urn:ndg:saml:test:openid"
         attributeQuery.subject.nameID.value = subject
                                     
         
         # special case handling for 'FirstName' attribute
         fnAttribute = Attribute()
-        fnAttribute.name = EsgSamlNamespaces.FIRSTNAME_ATTRNAME
+        fnAttribute.name = TestAttributeServiceMiddleware.FIRSTNAME_ATTRNAME
         fnAttribute.nameFormat = "http://www.w3.org/2001/XMLSchema#string"
         fnAttribute.friendlyName = "FirstName"
 
@@ -57,7 +192,7 @@ class SOAPAttributeInterfaceMiddlewareTestCase(
     
         # special case handling for 'LastName' attribute
         lnAttribute = Attribute()
-        lnAttribute.name = EsgSamlNamespaces.LASTNAME_ATTRNAME
+        lnAttribute.name = TestAttributeServiceMiddleware.LASTNAME_ATTRNAME
         lnAttribute.nameFormat = "http://www.w3.org/2001/XMLSchema#string"
         lnAttribute.friendlyName = "LastName"
 
@@ -65,7 +200,8 @@ class SOAPAttributeInterfaceMiddlewareTestCase(
     
         # special case handling for 'LastName' attribute
         emailAddressAttribute = Attribute()
-        emailAddressAttribute.name = EsgSamlNamespaces.EMAILADDRESS_ATTRNAME
+        emailAddressAttribute.name = \
+                            TestAttributeServiceMiddleware.EMAILADDRESS_ATTRNAME
         emailAddressAttribute.nameFormat = XMLConstants.XSD_NS+"#"+\
                                     XSStringAttributeValue.TYPE_LOCAL_NAME
         emailAddressAttribute.friendlyName = "emailAddress"
@@ -116,7 +252,7 @@ class SOAPAttributeInterfaceMiddlewareTestCase(
             'Content-length': str(len(request)),
             'Content-type': 'text/xml'
         }
-        response = self.app.post('/attributeauthority/saml', 
+        response = self.app.post(self.__class__.SERVICE_URI, 
                                  params=request, 
                                  headers=header, 
                                  status=200)
@@ -138,7 +274,7 @@ class SOAPAttributeInterfaceMiddlewareTestCase(
             'Content-type': 'text/xml'
         }
         
-        response = self.app.post('/attributeauthority/saml', 
+        response = self.app.post(self.__class__.SERVICE_URI, 
                                  params=request, 
                                  headers=header, 
                                  status=200)
@@ -169,7 +305,7 @@ class SOAPAttributeInterfaceMiddlewareTestCase(
             'Content-type': 'text/xml'
         }
        
-        response = self.app.post('/attributeauthority/saml', 
+        response = self.app.post(self.__class__.SERVICE_URI, 
                                  params=request, 
                                  headers=header, 
                                  status=200)
@@ -190,7 +326,7 @@ class SOAPAttributeInterfaceMiddlewareTestCase(
             'Content-type': 'text/xml'
         }
        
-        response = self.app.post('/attributeauthority/saml', 
+        response = self.app.post(self.__class__.SERVICE_URI, 
                                  params=request, 
                                  headers=header, 
                                  status=200)
@@ -211,7 +347,7 @@ class SOAPAttributeInterfaceMiddlewareTestCase(
             'Content-type': 'text/xml'
         }
         
-        response = self.app.post('/attributeauthority/saml', 
+        response = self.app.post(self.__class__.SERVICE_URI, 
                                  params=request, 
                                  headers=header, 
                                  status=200)

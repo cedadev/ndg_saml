@@ -403,11 +403,17 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
                                             StatusCode.UNKNOWN_ATTR_PROFILE_URI
         else:   
             # Check for Query Interface in environ
-            queryInterface = environ.get(self.queryInterfaceKeyName)
-            if queryInterface is None:
+            queryInterface = environ.get(self.queryInterfaceKeyName,
+                                         NotImplemented)
+            if queryInterface == NotImplemented:
                 raise SOAPQueryInterfaceMiddlewareConfigError(
-                                'No query interface "%s" key found in environ' %
+                                'No query interface %r key found in environ' %
                                 self.queryInterfaceKeyName)
+                
+            elif not callable(queryInterface):
+                raise SOAPQueryInterfaceMiddlewareConfigError(
+                    'Query interface %r set in %r environ key is not callable' %
+                    (queryInterface, self.queryInterfaceKeyName))
             
             # Basic validation
             self._validateQuery(samlQuery, samlResponse)

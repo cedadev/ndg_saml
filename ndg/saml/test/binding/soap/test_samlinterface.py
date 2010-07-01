@@ -34,11 +34,6 @@ from ndg.saml.saml2.binding.soap.subjectquery import (
 from ndg.soap.client import (UrlLib2SOAPClient, UrlLib2SOAPRequest)
 from ndg.soap.etree import SOAPEnvelope
 from ndg.soap.utils.etree import QName, prettyPrint
-    
-from ndg.security.common.saml_utils.esg import (EsgSamlNamespaces, 
-                                          XSGroupRoleAttributeValue)
-from ndg.security.common.saml_utils.esg.xml.etree import (
-                                        XSGroupRoleAttributeValueElementTree)
 
 
 class SamlSoapBindingApp(object):
