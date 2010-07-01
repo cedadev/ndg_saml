@@ -22,7 +22,7 @@ from ndg.saml.saml2.core import (Assertion, Attribute, AttributeStatement,
                                  Conditions, Status, StatusCode)
 from ndg.saml.xml import XMLConstants
 from ndg.saml.xml.etree import AttributeQueryElementTree, ResponseElementTree
-from ndg.saml.test.binding.soap import SoapSamlInterfaceMiddlewareTestCase
+from ndg.saml.test.binding.soap import WithPasteFixtureBaseTestCase
 
 
 class TestAttributeServiceMiddleware(object):
@@ -160,7 +160,7 @@ class TestAttributeServiceMiddleware(object):
 
 
 class SOAPAttributeInterfaceMiddlewareTestCase(
-                                        SoapSamlInterfaceMiddlewareTestCase):
+                                        WithPasteFixtureBaseTestCase):
     CONFIG_FILENAME = 'attribute-interface.ini'
     SERVICE_URI = '/attributeauthority'
     

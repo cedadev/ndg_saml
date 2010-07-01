@@ -22,7 +22,7 @@ from ndg.saml.saml2.core import (SAMLVersion, Subject, NameID, Issuer,
                                  DecisionType, Action, Conditions, Assertion)
 from ndg.saml.xml.etree import (AuthzDecisionQueryElementTree, 
                                 ResponseElementTree)
-from ndg.saml.test.binding.soap import SoapSamlInterfaceMiddlewareTestCase
+from ndg.saml.test.binding.soap import WithPasteFixtureBaseTestCase
 
 
 class TestAuthorisationServiceMiddleware(object):
@@ -109,7 +109,7 @@ class TestAuthorisationServiceMiddleware(object):
     
     
 class SOAPAuthzDecisionInterfaceMiddlewareTestCase(
-                                        SoapSamlInterfaceMiddlewareTestCase):
+                                        WithPasteFixtureBaseTestCase):
     CONFIG_FILENAME = 'authz-decision-interface.ini'
     RESOURCE_URI = TestAuthorisationServiceMiddleware.RESOURCE_URI
     

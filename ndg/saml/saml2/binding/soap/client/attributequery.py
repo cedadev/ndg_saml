@@ -120,7 +120,7 @@ class AttributeQuerySslSOAPBinding(AttributeQuerySOAPBinding):
     
     def __init__(self, **kw):
         if not AttributeQuerySslSOAPBinding.SSL_CONTEXT_PROXY_SUPPORT:
-            raise ImportError("ndg.security.common.utils.m2crypto import "
+            raise ImportError("ndg.saml.utils.m2crypto import "
                               "failed - missing M2Crypto package?")
         
         # Miss out default HTTPSHandler and set in send() instead

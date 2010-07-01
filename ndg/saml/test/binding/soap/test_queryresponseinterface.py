@@ -1,4 +1,4 @@
-"""SAML Generic SOAP Binding Query/Response Interface unit test package
+"""SAML Generic SOAP Binding Query/Response Interface unit test module
 
 NERC DataGrid Project
 """
@@ -286,88 +286,6 @@ class SamlAttributeQueryTestCase(unittest.TestCase):
         self.assert_(response.inResponseTo == attributeQuery.id)
         self.assert_(response.assertions[0].subject.nameID.value == \
                      attributeQuery.subject.nameID.value)
-      
-    def test02AttributeQueryWithSOAPClient(self):
-            
-        # Thread a separate attribute authority instance
-        self.startSiteAAttributeAuthority()
-          
-        client = UrlLib2SOAPClient()
-        
-        # ElementTree based envelope class
-        client.responseEnvelopeClass = SOAPEnvelope
-        
-        request = UrlLib2SOAPRequest()
-        request.url = 'http://localhost:5000/AttributeAuthority'
-        request.envelope = SOAPEnvelope()
-        request.envelope.create()
-        
-        # Make an attribute query
-        attributeQuery = AttributeQuery()
-        attributeQuery.version = SAMLVersion(SAMLVersion.VERSION_20)
-        attributeQuery.id = str(uuid4())
-        attributeQuery.issueInstant = datetime.utcnow()
-        
-        attributeQuery.issuer = Issuer()
-        attributeQuery.issuer.format = Issuer.X509_SUBJECT
-        attributeQuery.issuer.value = \
-                        "/O=NDG/OU=BADC/CN=attributeauthority.badc.rl.ac.uk"
-
-        attributeQuery.subject = Subject()  
-        attributeQuery.subject.nameID = NameID()
-        attributeQuery.subject.nameID.format = SamlSoapBindingApp.NAMEID_FORMAT
-        attributeQuery.subject.nameID.value = \
-                            "https://esg.prototype.ucar.edu/myopenid/testUser"
-        
-        # special case handling for 'FirstName' attribute
-        fnAttribute = Attribute()
-        fnAttribute.name = SamlSoapBindingApp.FIRSTNAME_ATTRNAME
-        fnAttribute.nameFormat = "http://www.w3.org/2001/XMLSchema#string"
-        fnAttribute.friendlyName = "FirstName"
-
-        attributeQuery.attributes.append(fnAttribute)
-    
-        # special case handling for 'LastName' attribute
-        lnAttribute = Attribute()
-        lnAttribute.name = SamlSoapBindingApp.LASTNAME_ATTRNAME
-        lnAttribute.nameFormat = "http://www.w3.org/2001/XMLSchema#string"
-        lnAttribute.friendlyName = "LastName"
-
-        attributeQuery.attributes.append(lnAttribute)
-    
-        # special case handling for 'LastName' attribute
-        emailAddressAttribute = Attribute()
-        emailAddressAttribute.name = SamlSoapBindingApp.EMAILADDRESS_ATTRNAME
-        emailAddressAttribute.nameFormat = XMLConstants.XSD_NS+"#"+\
-                                    XSStringAttributeValue.TYPE_LOCAL_NAME
-        emailAddressAttribute.friendlyName = "emailAddress"
-
-        attributeQuery.attributes.append(emailAddressAttribute)                                   
-        
-        attributeQueryElem = AttributeQueryElementTree.toXML(attributeQuery)
-
-        # Attach query to SOAP body
-        request.envelope.body.elem.append(attributeQueryElem)
-        
-        from M2Crypto.m2urllib2 import HTTPSHandler
-        from urllib2 import URLError
-
-        client.openerDirector.add_handler(HTTPSHandler())
-        try:
-            response = client.send(request)
-        except URLError, e:
-            self.fail("Error calling Attribute Service")
-        
-        print("Response from server:\n\n%s" % response.envelope.serialize())
-        
-        if len(response.envelope.body.elem) != 1:
-            self.fail("Expecting single child element is SOAP body")
-            
-        if QName.getLocalPart(response.envelope.body.elem[0].tag)!='Response':
-            self.fail('Expecting "Response" element in SOAP body')
-            
-        response = ResponseElementTree.fromXML(response.envelope.body.elem[0])
-        self.assert_(response)
 
     def _parseResponse(self, responseStr):
         """Helper to parse a response from a string"""
