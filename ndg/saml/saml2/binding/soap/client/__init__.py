@@ -198,9 +198,9 @@ class SOAPBinding(object):
     @classmethod
     def fromConfig(cls, cfg, **kw):
         '''Alternative constructor makes object from config file settings
-        @type cfg: basestring /ConfigParser derived type
+        @type cfg: basestring / ConfigParser derived type
         @param cfg: configuration file path or ConfigParser type object
-        @rtype: ndg.security.common.saml_utils.binding.soap.SOAPBinding
+        @rtype: ndg.saml.saml2.binding.soap.client.SOAPBinding or derived type
         @return: new instance of this class
         '''
         obj = cls()
@@ -231,8 +231,27 @@ class SOAPBinding(object):
             raise AttributeError('Expecting basestring or ConfigParser type '
                                  'for "cfg" attribute; got %r type' % type(cfg))
         
+        # Get items for this section as a dictionary so that parseKeywords can
+        # used to update the object
+        kw = dict(_cfg.items(section))
+        if 'prefix' not in kw and prefix:
+            kw['prefix'] = prefix
+            
+        self.parseKeywords(**kw)
+        
+    def parseKeywords(self, prefix='', **kw):
+        """Update object from input keywords
+        
+        @type prefix: basestring
+        @param prefix: if a prefix is given, only update self from kw items 
+        where keyword starts with this prefix
+        @type kw: dict
+        @param kw: items corresponding to class instance variables to 
+        update.  Keyword names must match their equivalent class instance 
+        variable names.  However, they may prefixed with <prefix>
+        """
         prefixLen = len(prefix)
-        for optName, val in _cfg.items(section):
+        for optName, val in kw.items():
             if prefix:
                 # Filter attributes based on prefix
                 if optName.startswith(prefix):
@@ -241,6 +260,25 @@ class SOAPBinding(object):
                 # No prefix set - attempt to set all attributes   
                 setattr(self, optName, val)
                 
+    @classmethod
+    def fromKeywords(cls, prefix='', **kw):
+        """Create a new instance initialising instance variables from the 
+        keyword inputs
+        @type prefix: basestring
+        @param prefix: if a prefix is given, only update self from kw items 
+        where keyword starts with this prefix
+        @type kw: dict
+        @param kw: items corresponding to class instance variables to 
+        update.  Keyword names must match their equivalent class instance 
+        variable names.  However, they may prefixed with <prefix>
+        @return: new instance of this class
+        @rtype: ndg.saml.saml2.binding.soap.client.SOAPBinding or derived type
+        """
+        obj = cls()
+        obj.fromKeywords(prefix=prefix, **kw)
+        
+        return obj
+        
     def __setattr__(self, name, value):
         """Enable setting of SOAPBinding.client.responseEnvelopeClass as if it
         were an attribute of self

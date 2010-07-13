@@ -7,7 +7,7 @@ __date__ = "02/07/07"
 __copyright__ = "(C) 2009 Science and Technology Facilities Council"
 __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
-__revision__ = '$Id:$'
+__revision__ = '$Id$'
 import logging
 log = logging.getLogger(__name__)
 
@@ -1312,6 +1312,8 @@ class SSLContextProxy(object):
                 log.debug("verifyCallback: dn = %r", dn)
                 
             # No match found so return fail status
+            log.debug("No match for peer certificate %s in DN whitelist %r",
+                      x509Cert.dn, self.sslValidDNs)
             return SSLContextProxy.PRE_VERIFY_FAIL
         
         return _verifySSLPeerCertCallback
