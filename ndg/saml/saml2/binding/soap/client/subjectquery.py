@@ -221,18 +221,23 @@ class SubjectQuerySOAPBinding(SOAPBinding):
     def _validateQueryParameters(self):
         """Perform sanity check immediately before creating the query and 
         sending it"""
+        errors = []
+        
         if self.issuerName is None:
-            raise AttributeError('No issuer name has been set for SAML Query')
+            errors.append('issuer name')
 
         if self.issuerFormat is None:
-            raise AttributeError('No issuer format has been set for SAML Query')
+            errors.append('issuer format')
         
         if self.subjectID is None:
-            raise AttributeError('No subject has been set for SAML Query')
+            errors.append('subject')
         
         if self.subjectIdFormat is None:
-            raise AttributeError('No subject format has been set for SAML '
-                                 'Query')
+            errors.append('subject format')
+        
+        if errors:
+            raise AttributeError('Missing attribute(s) for SAML Query: %s' %
+                                 ', '.join(errors))
 
     def _initSend(self):
         """Perform any final initialisation prior to sending the query - derived

@@ -220,7 +220,8 @@ class SOAPBinding(object):
         '''  
         if isinstance(cfg, basestring):
             cfgFilePath = path.expandvars(cfg)
-            _cfg = SafeConfigParser()
+            hereDir = path.dirname(cfgFilePath)
+            _cfg = SafeConfigParser(defaults=dict(here=hereDir))
             _cfg.optionxform = str
 
             _cfg.read(cfgFilePath)

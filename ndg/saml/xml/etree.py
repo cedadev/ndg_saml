@@ -1140,7 +1140,10 @@ class NameIdElementTree(NameID):
                                      cls.DEFAULT_ELEMENT_LOCAL_NAME))
         nameID = NameID()
         nameID.format = format
-        nameID.value = elem.text.strip() 
+        if elem.text is None:
+            nameID.value = ''
+        else:
+            nameID.value = elem.text.strip() 
         
         return nameID
 
