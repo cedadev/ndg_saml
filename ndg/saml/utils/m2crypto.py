@@ -47,10 +47,13 @@ class X500DN(dict):
         'domainComponent':          'DC',
         'userid':                   'UID'
     }
-    PARSER_RE_STR = '/(%s)=' % '|'.join(__shortNameLUT.keys() + 
-                                        __shortNameLUT.values())
-    
-    PARSER_RE = re.compile(PARSER_RE_STR)
+    SLASH_PARSER_RE_STR = '/(%s)=' % '|'.join(__shortNameLUT.keys() + 
+                                              __shortNameLUT.values())    
+    SLASH_PARSER_RE = re.compile(SLASH_PARSER_RE_STR)
+
+    COMMA_PARSER_RE_STR = '[,]?\s*(%s)=' % '|'.join(__shortNameLUT.keys() + 
+                                                    __shortNameLUT.values())    
+    COMMA_PARSER_RE = re.compile(COMMA_PARSER_RE_STR)
     
     def __init__(self, dn=None, m2CryptoX509Name=None, separator=None):
 
@@ -248,8 +251,17 @@ class X500DN(dict):
         if self.__separator is None:
             self.__separator = self.parseSeparator(dn)
 
+        if self.__separator == '/':
+            parserRe = self.__class__.SLASH_PARSER_RE
+            
+        elif self.__separator == ',':
+            parserRe = self.__class__.COMMA_PARSER_RE
+        else:
+            raise X500DNError("DN field separator %r not recognised" % 
+                              self.__separator)
+            
         try:
-            dnFields = X500DN.PARSER_RE.split(dn)
+            dnFields = parserRe.split(dn)
             if len(dnFields) < 2:
                 raise X500DNError("Error parsing DN string: \"%s\"" % dn)
 

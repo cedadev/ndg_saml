@@ -137,14 +137,21 @@ class AttributeQuerySslSOAPBinding(AttributeQuerySOAPBinding):
         httpsHandler = HTTPSHandler(ssl_context=self.sslCtxProxy.createCtx())
         self.client.openerDirector.add_handler(httpsHandler)
         return super(AttributeQuerySslSOAPBinding, self).send(**kw)
-        
-    @property
-    def sslCtxProxy(self):
-        """SSL Context Proxy object used for setting up an SSL Context for
-        queries
-        """
-        return self.__sslCtxProxy
             
+    def _getSslCtxProxy(self):
+        return self.__sslCtxProxy
+    
+    def _setSslCtxProxy(self, value):
+        if not isinstance(value, SSLContextProxy):
+            raise TypeError('Expecting %r type for "sslCtxProxy attribute; got '
+                            '%r' % type(value))
+            
+        self.__sslCtxProxy = value
+            
+    sslCtxProxy = property(fget=_getSslCtxProxy, fset=_setSslCtxProxy,
+                           doc="SSL Context Proxy object used for setting up "
+                               "an SSL Context for queries")
+    
     def __setattr__(self, name, value):
         """Enable setting of SSLContextProxy attributes as if they were 
         attributes of this class.  This is intended as a convenience for 

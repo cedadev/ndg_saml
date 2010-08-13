@@ -77,7 +77,7 @@ class SubjectQuerySOAPBinding(SOAPBinding):
     QUERY_TYPE = SubjectQuery
     
     def __init__(self, **kw):
-        '''Create SOAP Client for SAML Subject Query'''       
+        '''Create SOAP Client for a SAML Subject Query'''       
         self.__clockSkewTolerance = timedelta(seconds=0.)
         self.__verifyTimeConditions = True
         
@@ -89,7 +89,6 @@ class SubjectQuerySOAPBinding(SOAPBinding):
         """Initialise query settings"""
         self.__query = self.__class__.QUERY_TYPE()
         self.__query.version = SAMLVersion(SAMLVersion.VERSION_20)
-        self.__query.id = str(uuid4())
         
         # These properties access the __query instance
         self.issuerFormat = Issuer.X509_SUBJECT
@@ -243,6 +242,9 @@ class SubjectQuerySOAPBinding(SOAPBinding):
         """Perform any final initialisation prior to sending the query - derived
         classes may overload to specify as required"""
         self.__query.issueInstant = datetime.utcnow()
+        
+        # Set ID here to ensure it's unique for each new call
+        self.__query.id = str(uuid4())
 
     def _verifyTimeConditions(self, response):
         """Verify time conditions set in a response
