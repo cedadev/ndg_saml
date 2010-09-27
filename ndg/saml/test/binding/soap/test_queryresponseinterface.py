@@ -139,8 +139,7 @@ class SamlSoapBindingApp(object):
         
         # Convert to ElementTree representation to enable attachment to SOAP
         # response body
-        samlResponseElem = ResponseElementTree.toXML(samlResponse,
-                                            customToXMLTypeMap=toXMLTypeMap)
+        samlResponseElem = ResponseElementTree.toXML(samlResponse)
         xml = ElementTree.tostring(samlResponseElem)
         log.debug('Sending response to query:\n%s', xml)
         
@@ -161,17 +160,17 @@ class SamlAttributeQueryTestCase(unittest.TestCase):
     """Test the SAML SOAP binding using an Attribute Query as an example"""
     thisDir = os.path.dirname(os.path.abspath(__file__))
     RESPONSE = '''\
-<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
-   <SOAP-ENV:Body>
+<soap11:Envelope xmlns:soap11="http://schemas.xmlsoap.org/soap/envelope/">
+   <soap11:Body>
       <samlp:Response ID="05680cb2-4973-443d-9d31-7bc99bea87c1" InResponseTo="e3183380-ae82-4285-8827-8c40613842de" IssueInstant="%(issueInstant)s" Version="2.0" xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol">
-         <saml:Issuer Format="urn:esg:issuer" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">ESG-NCAR</saml:Issuer>
+         <saml:Issuer Format="urn:esg:issuer" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">Somewhere</saml:Issuer>
          <samlp:Status>
             <samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success" />
          </samlp:Status>
          <saml:Assertion ID="192c67d9-f9cd-457a-9242-999e7b943166" IssueInstant="%(assertionIssueInstant)s" Version="2.0" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">
-            <saml:Issuer Format="urn:esg:issuer">ESG-NCAR</saml:Issuer>
+            <saml:Issuer Format="urn:esg:issuer">Somewhere</saml:Issuer>
             <saml:Subject>
-               <saml:NameID Format="urn:esg:openid">https://esg.prototype.ucar.edu/myopenid/testUser</saml:NameID>
+               <saml:NameID Format="urn:esg:openid">https://somewhere.edu/myopenid/testUser</saml:NameID>
             </saml:Subject>
             <saml:Conditions NotBefore="%(notBefore)s" NotOnOrAfter="%(notOnOrAfter)s" />
             <saml:AttributeStatement>
@@ -182,24 +181,13 @@ class SamlAttributeQueryTestCase(unittest.TestCase):
                   <saml:AttributeValue xsi:type="xs:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">User</saml:AttributeValue>
                </saml:Attribute>
                <saml:Attribute FriendlyName="EmailAddress" Name="urn:esg:first:email:address" NameFormat="http://www.w3.org/2001/XMLSchema#string">
-                  <saml:AttributeValue xsi:type="xs:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">ejn@ucar.edu</saml:AttributeValue>
-               </saml:Attribute>
-               <saml:Attribute FriendlyName="GroupRole" Name="urn:esg:group:role" NameFormat="groupRole">
-                  <saml:AttributeValue>
-                     <esg:groupRole group="CCSM" role="default" xmlns:esg="http://www.esg.org" />
-                  </saml:AttributeValue>
-                  <saml:AttributeValue>
-                     <esg:groupRole group="Dynamical Core" role="default" xmlns:esg="http://www.esg.org" />
-                  </saml:AttributeValue>
-                  <saml:AttributeValue>
-                     <esg:groupRole group="NARCCAP" role="default" xmlns:esg="http://www.esg.org" />
-                  </saml:AttributeValue>
+                  <saml:AttributeValue xsi:type="xs:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">someone@somewhere.edu</saml:AttributeValue>
                </saml:Attribute>
             </saml:AttributeStatement>
          </saml:Assertion>
       </samlp:Response>
-   </SOAP-ENV:Body>
-</SOAP-ENV:Envelope>
+   </soap11:Body>
+</soap11:Envelope>
 '''
 
     def __init__(self, *args, **kwargs):

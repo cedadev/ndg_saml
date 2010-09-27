@@ -1217,7 +1217,7 @@ class AbstractNameIDType(SAMLObject):
     EMAIL = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
 
     # URI for X509 subject name format.
-    X509_SUBJECT = "urn:oasis:names:tc:SAML:1.1:nameid-format:x509SubjectName"
+    X509_SUBJECT = "urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName"
 
     # URI for windows domain qualified name name format.
     WIN_DOMAIN_QUALIFIED = \

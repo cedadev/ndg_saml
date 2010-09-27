@@ -378,6 +378,11 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
                                                     'environ')
 
         contentLength = int(contentLength)
+        if contentLength <= 0:
+            raise SOAPQueryInterfaceMiddlewareError('"CONTENT_LENGTH" in '
+                                                    'environ is %d' %
+                                                    contentLength)
+            
         soapRequestTxt = soapRequestStream.read(contentLength)
         
         # Parse into a SOAP envelope object
