@@ -42,9 +42,8 @@ class SamlSslSoapBindingTestCase(WithPasterBaseTestCase):
     ]
     
     def __init__(self, *arg, **kw):
-        super(SamlSslSoapBindingTestCase, self).__init__(*arg, 
-                                                         withSSL=True, 
-                                                         **kw)
+        kw['withSSL'] = True
+        super(SamlSslSoapBindingTestCase, self).__init__(*arg, **kw)
                 
     def test01M2CryptoInstalled(self):
         # Force error for M2Crypto not present

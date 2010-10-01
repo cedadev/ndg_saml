@@ -58,6 +58,11 @@ setup(
     license =               'http://www.apache.org/licenses/LICENSE-2.0',
     packages =			    find_packages(),
     namespace_packages =	['ndg'],
+    extras_require = {
+        'soap_binding':  ["M2Crypto", "PyOpenSSL", "Paste", "PasteDeploy", 
+                          "PasteScript"],
+        'zsi_soap_middleware': ['ZSI'],
+    },
     include_package_data =  True,
     classifiers = [
         'Development Status :: 4 - Beta',
