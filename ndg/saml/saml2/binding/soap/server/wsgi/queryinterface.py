@@ -390,7 +390,7 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         soapRequest.parse(StringIO(soapRequestTxt))
         
         log.debug("SOAPQueryInterfaceMiddleware.__call__: received SAML "
-                  "SOAP SQuery ...")
+                  "SOAP Query: %s", soapRequestTxt)
        
         queryElem = soapRequest.body.elem[0]
         

@@ -31,4 +31,4 @@ zip:
 	${ZIP} ${ZIP_OUTFILE} ${ZIP_INFILES}
 
 clean:
-	rm -f *.txt *.html *.gif
+	rm -f *.txt *.html *.gif *.png *.zip *.css *.js *.log

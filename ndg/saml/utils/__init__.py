@@ -80,10 +80,20 @@ class SAMLDateTime(object):
         
         # Workaround for seconds fraction as strptime doesn't seem able to deal
         # with this 
-        strDateTimeFraction, strSecondsFraction = strDateTime.split('.')
+        dateTimeTuple = strDateTime.split('.')
+        
+        # Seconds fraction may not be present - see
+        # http://www.w3.org/TR/xmlschema-2/#dateTime - explicitly test for ...
+        if len(dateTimeTuple) == 2:
+            strDateTimeFraction, strSecondsFraction = dateTimeTuple
+            secondsFraction = float("0." + strSecondsFraction.replace('Z', ''))
+        else:
+            strDateTimeFraction = dateTimeTuple[0].replace('Z', '')
+            secondsFraction = 0.
+            
         dtValue = datetime.strptime(strDateTimeFraction, cls.DATETIME_FORMAT)
-        secondsFraction = float("0." + strSecondsFraction.replace('Z', ''))
         dtValue += timedelta(seconds=secondsFraction)
+        
         return dtValue
 
 

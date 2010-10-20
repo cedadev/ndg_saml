@@ -38,6 +38,7 @@ import pickle
 from xml.etree.ElementTree import iselement
 from xml.etree import ElementTree
 
+from ndg.saml.utils import SAMLDateTime
 from ndg.saml.saml2.core import (SAMLVersion, Attribute, AttributeStatement, 
                                  AuthzDecisionStatement, Assertion, 
                                  AttributeQuery, Response, Issuer, Subject, 
@@ -740,6 +741,17 @@ class SAMLTestCase(unittest.TestCase):
 
         self.assert_(response2.assertions[0].authzDecisionStatements[0
                         ].decision == DecisionType.PERMIT)        
+        
+    def test17SAMLDatetime(self):
+        # Test parsing of Datetimes following 
+        # http://www.w3.org/TR/xmlschema-2/#dateTime 
+        
+        # No seconds fraction
+        self.assert_(SAMLDateTime.fromString('2010-10-20T14:49:50Z'))
+        
+        self.assertRaises(TypeError, SAMLDateTime.fromString, 
+                          None)
+        
         
 if __name__ == "__main__":
     unittest.main()        

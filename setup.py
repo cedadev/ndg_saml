@@ -49,7 +49,7 @@ Response).  Where possible, stubs have been provided for other classes.
 
 setup(
     name =           		'ndg_saml',
-    version =        		'0.5',
+    version =        		'0.5.1',
     description =    		('SAML 2.0 implementation for the NERC DataGrid '
                              'based on the Java OpenSAML library'),
     long_description =		_longDescription,

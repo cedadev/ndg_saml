@@ -14,10 +14,9 @@ log = logging.getLogger(__name__)
 from datetime import datetime, timedelta
 from uuid import uuid4
 
-from ndg.saml.common import SAMLObject
 from ndg.saml.utils import SAMLDateTime
-from ndg.saml.saml2.core import (SubjectQuery, StatusCode, Response,
-                             Issuer, Subject, SAMLVersion, NameID)
+from ndg.saml.saml2.core import (SubjectQuery, StatusCode, Issuer, Subject, 
+                                 SAMLVersion, NameID)
 
 from ndg.saml.utils import str2Bool
 from ndg.saml.saml2.binding.soap.client import (SOAPBinding,
@@ -341,7 +340,7 @@ class SubjectQuerySOAPBinding(SOAPBinding):
         # Check Query ID matches the query ID the service received
         if response.inResponseTo != self.query.id:
             msg = ('Response in-response-to ID %r, doesn\'t match the original '
-                   'query ID, %r' % (response.inResponseTo, query.id))
+                   'query ID, %r' % (response.inResponseTo, self.query.id))
             
             samlRespError = SubjectQueryResponseError(msg)
             samlRespError.response = response
