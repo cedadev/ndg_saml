@@ -42,6 +42,9 @@ ElementTree but it can easily be extended to use other Python XML parsers.
 Version 0.5 adds WSGI middleware and clients for SAML SOAP binding and assertion
 query/request profile.
 
+0.5.1 - fix for date time parsing where no seconds fraction is present, fixed
+error message for InResponseTo ID check for Subject Query.
+
 It is not a complete implementation of SAML 2.0.  Only those components required
 for the NERC DataGrid have been provided (Attribute and AuthZ Decision Query/
 Response).  Where possible, stubs have been provided for other classes.
