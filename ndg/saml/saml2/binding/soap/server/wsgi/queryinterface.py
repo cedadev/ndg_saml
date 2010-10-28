@@ -92,8 +92,7 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         # Set defaults
         cls = SOAPQueryInterfaceMiddleware
         self.__queryInterfaceKeyName = cls.DEFAULT_QUERY_INTERFACE_KEYNAME
-        self.__mountPath = None
-        self.mountPath = '/'
+        self.__mountPath = '/'
         self.__requestEnvelopeClass = None
         self.__responseEnvelopeClass = None
         self.__serialise = None
@@ -496,20 +495,17 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
             return
         
         if query.version < self.samlVersion:
-            msg = ("Query SAML version %r is lower than the supported "
-                   "value %r"
-                   % (query.version, self.samlVersion))
+            log.debug("Query SAML version %r is lower than the supported "
+                      "value %r", query.version, self.samlVersion)
             response.status.statusCode.value = \
                                         StatusCode.REQUEST_VERSION_TOO_LOW_URI
-            return
         
         elif query.version > self.samlVersion:
-            msg = ("Query SAML version %r is higher than the supported "
-                   "value %r"
-                   % (query.version, self.samlVersion))
+            log.debug("Query SAML version %r is higher than the supported "
+                      "value %r", query.version, self.samlVersion)
             response.status.statusCode.value = \
                                         StatusCode.REQUEST_VERSION_TOO_HIGH_URI
-            return            
+            
         
     def _initResponse(self):
         """Create a SAML Response object with basic settings if any have been

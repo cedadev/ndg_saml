@@ -178,7 +178,6 @@ class X500DN(dict):
         raise X500DNError("Data cannot be cleared from X500DN")
 
     def copy(self):
-
         import copy
         return copy.copy(self)
 
@@ -830,8 +829,8 @@ class X509Stack(object):
             return self.__m2X509Stack.push(x509Cert.m2CryptoX509)
         
         elif isinstance(x509Cert, basestring):
-            return self.__m2X509Stack.push(\
-                                       X509Cert.Parse(x509Cert).m2CryptoX509)            
+            return self.__m2X509Stack.push(
+                                       X509Cert.Parse(x509Cert).m2CryptoX509)  
         else:
             raise X509StackError("Expecting M2Crypto.X509.X509, ndg.security."
                                  "common.X509.X509Cert or string type")
@@ -853,7 +852,7 @@ class X509Stack(object):
 
     def verifyCertChain(self, 
                         x509Cert2Verify=None, 
-                        caX509Stack=[],
+                        caX509Stack=None,
                         rejectSelfSignedCert=True):
         """Treat stack as a list of certificates in a chain of
         trust.  Validate the signatures through to a single root issuer.  
@@ -871,6 +870,9 @@ class X509Stack(object):
         self-signed.  
         @type rejectSelfSignedCert: bool"""
         
+        if caX509Stack is None:
+            caX509Stack = []
+            
         n2Validate = len(self)
         if x509Cert2Verify:
             # One more to validate in addition to stack content
@@ -975,9 +977,9 @@ class HostCheck(SSL.Checker.Checker, object):
     def __init__(self, 
                  peerCertDN=None, 
                  peerCertCN=None,
-                 acceptedDNs=[], 
-                 caCertList=[],
-                 caCertFilePathList=[], 
+                 acceptedDNs=None, 
+                 caCertList=None,
+                 caCertFilePathList=None, 
                  **kw):
         """Override parent class __init__ to enable setting of myProxyServerDN
         setting
@@ -1002,6 +1004,15 @@ class HostCheck(SSL.Checker.Checker, object):
         @type caCertFilePathList: list string types
         @param caCertFilePathList: same as caCertList except input as list
         of CA cert file paths"""
+        
+        if acceptedDNs is None:
+            acceptedDNs = []
+             
+        if caCertList is None:
+            caCertList = []
+            
+        if caCertFilePathList is None:
+            caCertFilePathList = []
         
         SSL.Checker.Checker.__init__(self, **kw)
         
@@ -1041,16 +1052,16 @@ class HostCheck(SSL.Checker.Checker, object):
         peerCertX500DN = X500DN(dn=peerCertDN)
         
         if self.acceptedDNs:
-           matchFound = False
-           for dn in self.acceptedDNs:
-               x500dn = X500DN(dn=dn)
-               if x500dn == peerCertX500DN:
-                   matchFound = True
-                   break
-               
-           if not matchFound:
-               raise InvalidCertDN('Peer cert DN "%s" doesn\'t match '
-                                   'verification list' % peerCertDN)
+            matchFound = False
+            for dn in self.acceptedDNs:
+                x500dn = X500DN(dn=dn)
+                if x500dn == peerCertX500DN:
+                    matchFound = True
+                    break
+                
+            if not matchFound:
+                raise InvalidCertDN('Peer cert DN "%s" doesn\'t match '
+                                    'verification list' % peerCertDN)
 
         if len(self.__caCertStack) > 0:
             try:
@@ -1235,15 +1246,17 @@ class SSLContextProxy(object):
             # Set CA certificates in order to verify peer
             ctx.load_verify_locations(self.sslCACertFilePath, 
                                       self.sslCACertDir)
-            mode = SSL.verify_peer|SSL.verify_fail_if_no_peer_cert
+            mode = SSL.verify_peer
         else:
-            mode = SSL.verify_fail_if_no_peer_cert
+            mode = SSL.verify_none
             log.warning('No CA certificate files set: mode set to '
-                        '"verify_fail_if_no_peer_cert" only')
+                        '"verify_none"!  No verification of the server '
+                        'certificate will be enforced')
             
         if len(self.sslValidDNs) > 0:
             # Set custom callback in order to verify peer certificate DN 
             # against whitelist
+            mode = SSL.verify_peer
             callback = self.createVerifySSLPeerCertCallback()
             log.debug('Set peer certificate Distinguished Name check set in '
                       'SSL Context')
@@ -1252,7 +1265,7 @@ class SSLContextProxy(object):
             log.warning('No peer certificate Distinguished Name check set in '
                         'SSL Context')
             
-        ctx.set_verify(mode, depth, callback=callback)
+        ctx.set_verify(mode, 9, callback=callback)  
            
         return ctx
  
