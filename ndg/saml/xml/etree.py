@@ -940,7 +940,7 @@ class AttributeValueElementTreeFactory(object):
     toSAMLTypeMap = [xsstringMatch]
     xsstringMatch = staticmethod(toSAMLTypeMap[0])
    
-    def __init__(self, customToXMLTypeMap={}, customToSAMLTypeMap=[]): 
+    def __init__(self, customToXMLTypeMap=None, customToSAMLTypeMap=None): 
         """Set-up a SAML class to ElementTree mapping
         
         @type customToXMLTypeMap: dict
@@ -953,6 +953,12 @@ class AttributeValueElementTreeFactory(object):
         representations.  As with customToXMLTypeMap, this appends to
         to the respective self.__toSAMLTypeMap
         """
+        if customToXMLTypeMap is None:
+            customToXMLTypeMap = {}
+            
+        if customToSAMLTypeMap is None:
+            customToSAMLTypeMap = []
+            
         self.__toXMLTypeMap = AttributeValueElementTreeFactory.toXMLTypeMap
         if not isinstance(customToXMLTypeMap, dict):
             raise TypeError('Expecting dict type for "customToXMLTypeMap"')
