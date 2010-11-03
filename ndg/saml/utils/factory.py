@@ -38,12 +38,11 @@ def importModuleObject(moduleName, objectName=None, objectType=None):
             except ValueError:
                 raise ValueError('Invalid module name %r set for import: %s' %
                                  (moduleName, traceback.format_exc()))
-                
-            objectName = [objectName]
     else:
         _moduleName = moduleName
-        if isinstance(objectName, basestring):
-            objectName = [objectName]
+        
+    if isinstance(objectName, basestring):
+        objectName = [objectName]
     
     log.debug("Importing %r ..." % objectName) 
       
@@ -52,7 +51,7 @@ def importModuleObject(moduleName, objectName=None, objectType=None):
     try:
         for component in components[1:]:
             module = getattr(module, component)
-    except AttributeError, e:
+    except AttributeError:
         raise AttributeError("Error importing %r: %s" %
                              (objectName, traceback.format_exc()))
 
