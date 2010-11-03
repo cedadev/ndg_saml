@@ -300,8 +300,7 @@ class SamlAttributeQueryTestCase(unittest.TestCase):
             'notOnOrAfter': SAMLDateTime.toString(utcNow + timedelta(
                                                             seconds=60*60*8))
         }
-        responseStr = self.__class__.RESPONSE % \
-                                                                        respDict
+        responseStr = self.__class__.RESPONSE % respDict
         response = self._parseResponse(responseStr)
         self.assert_(response)
 
@@ -316,8 +315,7 @@ class SamlAttributeQueryTestCase(unittest.TestCase):
             'notOnOrAfter': SAMLDateTime.toString(issueInstant + timedelta(
                                                             seconds=60*60*8))
         }
-        responseStr = self.__class__.RESPONSE % \
-                                                                    respDict
+        responseStr = self.__class__.RESPONSE % respDict
         response = self._parseResponse(responseStr)
         binding = SubjectQuerySOAPBinding()
         try:
@@ -336,8 +334,7 @@ class SamlAttributeQueryTestCase(unittest.TestCase):
             'notOnOrAfter': SAMLDateTime.toString(utcNow + timedelta(
                                                             seconds=60*60*8))
         }
-        responseStr = self.__class__.RESPONSE % \
-                                                                    respDict
+        responseStr = self.__class__.RESPONSE % respDict
         response = self._parseResponse(responseStr)
         binding = SubjectQuerySOAPBinding()
         try:
@@ -355,8 +352,7 @@ class SamlAttributeQueryTestCase(unittest.TestCase):
             'notOnOrAfter': SAMLDateTime.toString(utcNow + timedelta(
                                                             seconds=60*60*8))
         }
-        responseStr = self.__class__.RESPONSE % \
-                                                                    respDict
+        responseStr = self.__class__.RESPONSE % respDict
         response = self._parseResponse(responseStr)
         binding = SubjectQuerySOAPBinding()
         try:
@@ -375,8 +371,7 @@ class SamlAttributeQueryTestCase(unittest.TestCase):
             'notOnOrAfter': SAMLDateTime.toString(utcNow + timedelta(
                                                             seconds=60*60*8))
         }
-        responseStr = self.__class__.RESPONSE % \
-                                                                    respDict
+        responseStr = self.__class__.RESPONSE % respDict
         response = self._parseResponse(responseStr)
         binding = SubjectQuerySOAPBinding()
         try:
@@ -395,8 +390,7 @@ class SamlAttributeQueryTestCase(unittest.TestCase):
             'notOnOrAfter': SAMLDateTime.toString(utcNow + timedelta(
                                                             seconds=60*60*8))
         }
-        responseStr = self.__class__.RESPONSE % \
-                                                                    respDict
+        responseStr = self.__class__.RESPONSE % respDict
         response = self._parseResponse(responseStr)
         binding = SubjectQuerySOAPBinding()
         

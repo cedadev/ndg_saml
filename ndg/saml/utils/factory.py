@@ -70,7 +70,7 @@ def importModuleObject(moduleName, objectName=None, objectType=None):
 
 
 def callModuleObject(moduleName, objectName=None, moduleFilePath=None, 
-                     objectType=None, objectArgs=(), objectProperties={}):
+                     objectType=None, objectArgs=None, objectProperties=None):
     '''
     Create and return an instance of the specified class or invoke callable
     @param moduleName: Name of module containing the class
@@ -90,12 +90,14 @@ def callModuleObject(moduleName, objectName=None, moduleFilePath=None,
     @return: object - instance of the class specified 
     '''
 
-    
     # ensure that properties is a dict - NB, it may be passed in as a null
     # value which can override the default val
     if not objectProperties:
         objectProperties = {}
 
+    if not objectArgs:
+        objectArgs = ()
+        
     # variable to store original state of the system path
     sysPathBak = None
     try:

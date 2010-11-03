@@ -67,6 +67,7 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
     SAML_VERSION_OPTNAME = 'samlVersion'
     ISSUER_NAME_OPTNAME = 'issuerName'
     ISSUER_FORMAT_OPTNAME = 'issuerFormat'
+    CLOCK_SKEW_TOLERANCE_OPTNAME = 'clockSkewTolerance'
     
     CONFIG_FILE_OPTNAMES = (
         PATH_OPTNAME,
@@ -78,7 +79,8 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         DESERIALISE_OPTNAME,
         SAML_VERSION_OPTNAME,
         ISSUER_NAME_OPTNAME,
-        ISSUER_FORMAT_OPTNAME
+        ISSUER_FORMAT_OPTNAME,
+        CLOCK_SKEW_TOLERANCE_OPTNAME
     )
     
     def __init__(self, app):

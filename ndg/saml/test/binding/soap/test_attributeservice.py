@@ -165,9 +165,10 @@ class SOAPAttributeInterfaceMiddlewareTestCase(WithPasteFixtureBaseTestCase):
     CONFIG_FILENAME = 'attribute-interface.ini'
     SERVICE_URI = '/attributeauthority'
     
-    def _createAttributeQuery(self, 
-                        issuer="/O=Site A/CN=Authorisation Service",
+    @staticmethod
+    def _createAttributeQuery(issuer="/O=Site A/CN=Authorisation Service",
                         subject="https://openid.localhost/philip.kershaw"):
+        """Helper to create a query"""
         attributeQuery = AttributeQuery()
         attributeQuery.version = SAMLVersion(SAMLVersion.VERSION_20)
         attributeQuery.id = str(uuid4())
@@ -211,11 +212,12 @@ class SOAPAttributeInterfaceMiddlewareTestCase(WithPasteFixtureBaseTestCase):
 
         return attributeQuery
     
-    def _makeRequest(self, attributeQuery=None, **kw):
+    @classmethod
+    def _makeRequest(cls, attributeQuery=None, **kw):
         """Convenience method to construct queries for tests"""
         
         if attributeQuery is None:
-            attributeQuery = self._createAttributeQuery(**kw)
+            attributeQuery = cls._createAttributeQuery(**kw)
             
         elem = AttributeQueryElementTree.toXML(attributeQuery)
         soapRequest = SOAPEnvelope()
@@ -226,7 +228,8 @@ class SOAPAttributeInterfaceMiddlewareTestCase(WithPasteFixtureBaseTestCase):
         
         return request
     
-    def _getSAMLResponse(self, responseBody):
+    @staticmethod
+    def _getSAMLResponse(responseBody):
         """Deserialise response string into ElementTree element"""
         soapResponse = SOAPEnvelope()
         
