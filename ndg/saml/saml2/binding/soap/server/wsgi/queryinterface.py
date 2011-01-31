@@ -359,8 +359,7 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         """
     
         # Ignore non-matching path
-        if environ['PATH_INFO'] not in (self.mountPath, 
-                                        self.mountPath + '/'):
+        if environ['PATH_INFO'] not in (self.mountPath, self.mountPath + '/'):
             return self._app(environ, start_response)
           
         # Ignore non-POST requests

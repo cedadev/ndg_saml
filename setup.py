@@ -39,6 +39,7 @@ Project Attribute and Authorisation Query interfaces.  The implementation is
 based on the Java OpenSAML libraries.  An implementation is provided with  
 ElementTree but it can easily be extended to use other Python XML parsers.
 
+0.5.3 - fix for ndg.soap.utils.etree.prettyPrint for undeclared Nss.
 0.5.2 - fix for applying clock skew property in queryinterface WSGI middleware,
 and various minor fixes for classfactory module and m2crytpo utilities.
 
@@ -55,7 +56,7 @@ Response).  Where possible, stubs have been provided for other classes.
 
 setup(
     name =           		'ndg_saml',
-    version =        		'0.5.2',
+    version =        		'0.5.3',
     description =    		('SAML 2.0 implementation for the NERC DataGrid '
                              'based on the Java OpenSAML library'),
     long_description =		_longDescription,

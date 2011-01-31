@@ -250,7 +250,8 @@ class UrlLib2SOAPClient(SOAPClientBase):
             
         soapRequestStr = soapRequest.envelope.serialize()
 
-        if log.getEffectiveLevel() <= logging.DEBUG:
+        logLevel = log.getEffectiveLevel()
+        if logLevel <= logging.DEBUG:
             from ndg.soap.utils.etree import prettyPrint
             log.debug("SOAP Request:")
             log.debug("_"*80)
@@ -292,5 +293,11 @@ class UrlLib2SOAPClient(SOAPClientBase):
             raise SOAPParseError("%r type error raised parsing response for "
                                  "request to [%s]: %s"
                                  % (type(e), soapRequest.url, e))
+        
+        if logLevel <= logging.DEBUG:
+            from ndg.soap.utils.etree import prettyPrint
+            log.debug("SOAP Response:")
+            log.debug("_"*80)
+            log.debug(prettyPrint(soapResponse.envelope.elem))
             
         return soapResponse

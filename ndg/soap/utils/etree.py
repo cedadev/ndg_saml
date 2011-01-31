@@ -110,6 +110,7 @@ def prettyPrint(*arg, **kw):
 
 
 class _PrettyPrint(object):
+    MAX_NS_TRIES = 256
     def __init__(self, declaredNss):
         self.declaredNss = declaredNss
     
@@ -123,6 +124,27 @@ class _PrettyPrint(object):
             # wrapper it as a string
             return str(elem).strip()
         
+    def _allocNsPrefix(self, nsURI):
+        """Allocate a namespace prefix if one is not already set for the given
+        Namespace URI
+        """
+        nsPrefix = ElementTree._namespace_map.get(nsURI)
+        if nsPrefix is not None:
+            return nsPrefix
+        
+        for i in range(self.__class__.MAX_NS_TRIES):
+            nsPrefix = "ns%d" % i
+            if nsPrefix not in self.declaredNss:
+                ElementTree._namespace_map[nsURI] = nsPrefix
+                break
+            
+        if nsURI not in ElementTree._namespace_map:                            
+            raise KeyError('prettyPrint: error adding namespace '
+                           '"%s" to ElementTree._namespace_map' % 
+                           nsURI)   
+        
+        return nsPrefix
+                 
     def __call__(self, elem, indent='', html=0, space=' '*4):
         '''Most of the work done in this wrapped function - wrapped so that
         state can be maintained for declared namespace declarations during
@@ -133,10 +155,8 @@ class _PrettyPrint(object):
             
             attrNamespace = QName.getNs(attr)
             if attrNamespace:
-                nsPrefix = ElementTree._namespace_map.get(attrNamespace)
-                if nsPrefix is None:
-                    raise KeyError('prettyPrint: missing namespace "%s" for ' 
-                                   'ElementTree._namespace_map'%attrNamespace)
+                # Allocate a prefix
+                nsPrefix= self._allocNsPrefix(attrNamespace)
                 
                 attr = "%s:%s" % (nsPrefix, QName.getLocalPart(attr))
                 
@@ -149,10 +169,7 @@ class _PrettyPrint(object):
         strAttrib = ''.join(strAttribs)
         
         namespace = QName.getNs(elem.tag)
-        nsPrefix = ElementTree._namespace_map.get(namespace)
-        if nsPrefix is None:
-            raise KeyError('prettyPrint: missing namespace "%s" for ' 
-                           'ElementTree._namespace_map' % namespace)
+        nsPrefix = self._allocNsPrefix(namespace)
             
         tag = "%s:%s" % (nsPrefix, QName.getLocalPart(elem.tag))
         

@@ -1600,9 +1600,9 @@ class ResponseElementTree(Response):
             attributeValue = elem.attrib.get(attributeName)
             if attributeValue is None:
                 raise XMLTypeParseError('No "%s" attribute found in "%s" '
-                                          'element' %
-                                         (attributeName,
-                                          Response.DEFAULT_ELEMENT_LOCAL_NAME))
+                                        'element' %
+                                        (attributeName,
+                                         Response.DEFAULT_ELEMENT_LOCAL_NAME))
                 
             attributeValues.append(attributeValue)
         
