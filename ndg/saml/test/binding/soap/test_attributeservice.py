@@ -65,14 +65,7 @@ class TestAttributeServiceMiddleware(object):
             (ndg.saml.saml2.binding.soap.server.wsgi.queryinterface.SOAPQueryInterfaceMiddleware)
             """
             response.issueInstant = datetime.utcnow()
-            response.id = str(uuid4())
-            response.issuer = Issuer()
-            
-            # SAML 2.0 spec says format must be omitted
-            #response.issuer.format = Issuer.X509_SUBJECT
-            response.issuer.value = \
-                            "/O=NDG/OU=BADC/CN=attributeauthority.badc.rl.ac.uk"
-            
+            response.id = str(uuid4())            
             response.inResponseTo = query.id
 
             if query.issuer.value not in self.__class__.VALID_QUERY_ISSUERS:

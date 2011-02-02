@@ -188,7 +188,7 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         if self.__issuerProxy is None:
             return None
         else:
-            return self.__issuerProxy.value
+            return self.__issuerProxy.format
 
     def _setIssuerFormat(self, value):
         if self.__issuerProxy is None:
