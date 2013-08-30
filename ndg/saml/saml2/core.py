@@ -114,6 +114,7 @@ class Attribute(SAMLObject):
     
     def __init__(self, **kw):
         """Initialise Attribute Class attributes
+
         @param kw: keywords SAMLObject parent instantiation
         @type kw: dict
         """
