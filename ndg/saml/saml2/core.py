@@ -151,6 +151,7 @@ class Attribute(SAMLObject):
     
     def _set_name(self, name):
         """Set name
+
         @param name: name
         @type name: basestring
         @raise TypeError: invalid input value type
