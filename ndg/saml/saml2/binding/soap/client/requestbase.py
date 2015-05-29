@@ -21,7 +21,7 @@ from ndg.saml.saml2.core import (RequestAbstractType, StatusCode, Issuer,
 
 from ndg.saml.utils import str2Bool
 from ndg.saml.saml2.binding.soap.client import (SOAPBinding,
-    SOAPBindingInvalidResponse)
+                                                SOAPBindingInvalidResponse)
 
 
 class RequestResponseError(SOAPBindingInvalidResponse):
@@ -179,10 +179,10 @@ class RequestBaseSOAPBinding(SOAPBinding):
         sending it"""
         errors = []
         
-        if query.issuer.value is None:
+        if query.issuer is None or query.issuer.value is None:
             errors.append('issuer name')
 
-        if query.issuer.format is None:
+        if query.issuer is None or query.issuer.format is None:
             errors.append('issuer format')
         
         if errors:

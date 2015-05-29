@@ -12,7 +12,11 @@ import re
 import logging
 log = logging.getLogger(__name__)
 
-from M2Crypto.m2urllib2 import HTTPSHandler
+try:
+    from ndg.httpsclient.https import HTTPSContextHandler as HTTPSHandler_
+    
+except ImportError:
+    from M2Crypto.m2urllib2 import HTTPSHandler_
 
 from ndg.saml.saml2.core import Attribute, AttributeQuery
 
@@ -24,11 +28,16 @@ from ndg.saml.saml2.binding.soap.client.subjectquery import (
 # Prevent whole module breaking if this is not available - it's only needed for
 # AttributeQuerySslSOAPBinding
 try:
-    from ndg.saml.utils.m2crypto import SSLContextProxy
+    from ndg.saml.utils.pyopenssl import SSLContextProxy as SSLContextProxy_
     _sslContextProxySupport = True
     
 except ImportError:
-    _sslContextProxySupport = False
+    try:
+        from ndg.saml.utils.m2crypto import SSLContextProxy as SSLContextProxy_
+        _sslContextProxySupport = True
+        
+    except ImportError:
+        _sslContextProxySupport = False
 
 
 class AttributeQueryResponseError(SubjectQueryResponseError):
@@ -140,12 +149,12 @@ class AttributeQuerySslSOAPBinding(AttributeQuerySOAPBinding):
                             "'handlers'")
             
         super(AttributeQuerySslSOAPBinding, self).__init__(handlers=(), **kw)
-        self.__sslCtxProxy = SSLContextProxy()
+        self.__sslCtxProxy = SSLContextProxy_()
 
     def send(self, query, **kw):
         """Override base class implementation to pass explicit SSL Context
         """
-        httpsHandler = HTTPSHandler(ssl_context=self.sslCtxProxy.createCtx())
+        httpsHandler = HTTPSHandler_(ssl_context=self.sslCtxProxy())
         self.client.openerDirector.add_handler(httpsHandler)
         return super(AttributeQuerySslSOAPBinding, self).send(query, **kw)
             
@@ -153,7 +162,7 @@ class AttributeQuerySslSOAPBinding(AttributeQuerySOAPBinding):
         return self.__sslCtxProxy
     
     def _setSslCtxProxy(self, value):
-        if not isinstance(value, SSLContextProxy):
+        if not isinstance(value, SSLContextProxy_):
             raise TypeError('Expecting %r type for "sslCtxProxy attribute; got '
                             '%r' % type(value))
             
@@ -175,5 +184,5 @@ class AttributeQuerySslSOAPBinding(AttributeQuerySOAPBinding):
             # Coerce into setting SSL Context Proxy attributes
             try:
                 setattr(self.sslCtxProxy, name, value)
-            except:
+            except Exception:
                 raise e

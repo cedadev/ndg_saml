@@ -79,9 +79,10 @@ class XACMLAuthzDecisionQuerySslSOAPBinding(XACMLAuthzDecisionQuerySOAPBinding):
     def send(self, query, **kw):
         """Override base class implementation to pass explicit SSL Context
         """
-        httpsHandler = HTTPSHandler(ssl_context=self.sslCtxProxy.createCtx())
+        httpsHandler = HTTPSHandler(ssl_context=self.sslCtxProxy())
         self.client.openerDirector.add_handler(httpsHandler)
-        return super(XACMLAuthzDecisionQuerySslSOAPBinding, self).send(query, **kw)
+        return super(XACMLAuthzDecisionQuerySslSOAPBinding, self).send(query, 
+                                                                       **kw)
         
     @property
     def sslCtxProxy(self):

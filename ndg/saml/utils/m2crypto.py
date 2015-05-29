@@ -12,8 +12,6 @@ import logging
 log = logging.getLogger(__name__)
 
 from warnings import warn # warn of impending certificate expiry
-
-import os
 import re
 
 # Handle not before and not after strings
@@ -23,6 +21,8 @@ from datetime import datetime
 import M2Crypto
 from M2Crypto import SSL, X509
 from M2Crypto.httpslib import HTTPSConnection as _HTTPSConnection
+
+from ndg.saml.utils.ssl_context import SSLContextProxyInterface
 
 
 class X500DNError(Exception):
@@ -1188,40 +1188,15 @@ class HTTPSConnection(_HTTPSConnection):
         _HTTPSConnection.putrequest(self, method, url, **kw) 
          
               
-class SSLContextProxy(object):
-    """Holder for M2Crypto.SSL.Context parameters"""
+class SSLContextProxy(SSLContextProxyInterface):
+    """Holder for M2Crypto.SSL.Context parameters implements SSL Context
+    proxy interface
+    """
     PRE_VERIFY_FAIL, PRE_VERIFY_OK = range(2)
+    M2_SSL_PROTOCOL_METHOD = 'tlsv1'
+    M2_SSL_VERIFY_DEPTH = 9
     
-    SSL_CERT_FILEPATH_OPTNAME = "sslCertFilePath"
-    SSL_PRIKEY_FILEPATH_OPTNAME = "sslPriKeyFilePath"
-    SSL_PRIKEY_PWD_OPTNAME = "sslPriKeyPwd"
-    SSL_CACERT_FILEPATH_OPTNAME = "sslCACertFilePath"
-    SSL_CACERT_DIRPATH_OPTNAME = "sslCACertDir"
-    SSL_VALID_DNS_OPTNAME = "sslValidDNs"
-    
-    OPTNAMES = (
-        SSL_CERT_FILEPATH_OPTNAME,
-        SSL_PRIKEY_FILEPATH_OPTNAME,
-        SSL_PRIKEY_PWD_OPTNAME,
-        SSL_CACERT_FILEPATH_OPTNAME,
-        SSL_CACERT_DIRPATH_OPTNAME,
-        SSL_VALID_DNS_OPTNAME
-    )
-    
-    __slots__ = tuple(["__%s" % name for name in OPTNAMES])
-    del name
-    
-    VALID_DNS_PAT = re.compile(',\s*')
-    
-    def __init__(self):
-        self.__sslCertFilePath = None
-        self.__sslPriKeyFilePath = None
-        self.__sslPriKeyPwd = None
-        self.__sslCACertFilePath = None
-        self.__sslCACertDir = None
-        self.__sslValidDNs = []
-
-    def createCtx(self, depth=9, **kw):
+    def __call__(self):
         """Create an M2Crypto SSL Context from this objects properties
         @type depth: int
         @param depth: max. depth of certificate to verify against
@@ -1230,13 +1205,13 @@ class SSLContextProxy(object):
         @rtype: M2Crypto.SSL.Context
         @return M2Crypto SSL context object
         """
-        ctx = SSL.Context(**kw)
+        ctx = SSL.Context(protocol=self.__class__.M2_SSL_PROTOCOL_METHOD)
         
         # Configure context according to this proxy's attributes
         if self.sslCertFilePath and self.sslPriKeyFilePath:
             # Pass client certificate (optionally with chain)
             ctx.load_cert_chain(self.sslCertFilePath, 
-                                self.__sslPriKeyFilePath, 
+                                self._ssl_pri_key_filepath, 
                                 lambda *arg, **kw: self.sslPriKeyPwd)
             log.debug("Set client certificate and key in SSL Context")
         else:
@@ -1253,7 +1228,7 @@ class SSLContextProxy(object):
                         '"verify_none"!  No verification of the server '
                         'certificate will be enforced')
             
-        if len(self.sslValidDNs) > 0:
+        if len(self.ssl_valid_x509_subj_names) > 0:
             # Set custom callback in order to verify peer certificate DN 
             # against whitelist
             mode = SSL.verify_peer
@@ -1265,19 +1240,10 @@ class SSLContextProxy(object):
             log.warning('No peer certificate Distinguished Name check set in '
                         'SSL Context')
             
-        ctx.set_verify(mode, 9, callback=callback)  
+        ctx.set_verify(mode, self.__class__.M2_SSL_VERIFY_DEPTH, 
+                       callback=callback)  
            
         return ctx
- 
-    def copy(self, sslCtxProxy):
-        """Copy settings from another context object
-        """
-        if not isinstance(sslCtxProxy, SSLContextProxy):
-            raise TypeError('Expecting %r for copy method input object; '
-                            'got %r' % (SSLContextProxy, type(sslCtxProxy)))
-        
-        for name in SSLContextProxy.OPTNAMES:
-            setattr(self, name, getattr(sslCtxProxy, name))
             
     def createVerifySSLPeerCertCallback(self):
         """Create a callback function to enable the DN of the peer in an SSL
@@ -1329,7 +1295,7 @@ class SSLContextProxy(object):
             x509CertChain = x509StoreCtx.get1_chain()
             for cert in x509CertChain:
                 x509Cert = X509Cert.fromM2Crypto(cert)
-                if x509Cert.dn in self.sslValidDNs:
+                if x509Cert.dn in self.ssl_valid_x509_subj_names:
                     return preVerifyOK
                 
                 subject = cert.get_subject()
@@ -1338,139 +1304,27 @@ class SSLContextProxy(object):
                 
             # No match found so return fail status
             log.debug("No match for peer certificate %s in DN whitelist %r",
-                      x509Cert.dn, self.sslValidDNs)
+                      x509Cert.dn, self.ssl_valid_x509_subj_names)
             return SSLContextProxy.PRE_VERIFY_FAIL
         
         return _verifySSLPeerCertCallback
 
-    def _getSSLCertFilePath(self):
-        return self.__sslCertFilePath
-    
-    def _setSSLCertFilePath(self, filePath):
-        "Set X.509 cert/cert chian file path property method"
-        
-        if isinstance(filePath, basestring):
-            filePath = os.path.expandvars(filePath)
-            
-        elif filePath is not None:
-            raise TypeError("X.509 cert. file path must be a valid string")
-        
-        self.__sslCertFilePath = filePath
-                
-    sslCertFilePath = property(fset=_setSSLCertFilePath,
-                               fget=_getSSLCertFilePath,
-                               doc="File path to X.509 cert. / cert. chain")
-        
-    def _getSSLCACertFilePath(self):
-        """Get file path for list of CA cert or certs used to validate SSL 
-        connections
-        
-        @rtype sslCACertFilePath: basestring
-        @return sslCACertFilePathList: file path to file containing concatenated
-        PEM encoded CA certificates."""
-        return self.__sslCACertFilePath
-    
-    def _setSSLCACertFilePath(self, value):
-        """Set CA cert file path
-        
-        @type sslCACertFilePath: basestring, list, tuple or None
-        @param sslCACertFilePath: file path to CA certificate file.  If None
-        then the input is quietly ignored."""
-        if isinstance(value, basestring):
-            self.__sslCACertFilePath = os.path.expandvars(value)
-            
-        elif value is None:
-            self.__sslCACertFilePath = value
-            
-        else:
-            raise TypeError("Input CA Certificate file path must be "
-                            "a valid string or None type: %r" % type(value)) 
-        
-        
-    sslCACertFilePath = property(fget=_getSSLCACertFilePath,
-                                 fset=_setSSLCACertFilePath,
-                                 doc="Path to file containing concatenated PEM "
-                                     "encoded CA Certificates - used for "
-                                     "verification of peer certs in SSL "
-                                     "connection")
-       
-    def _getSSLCACertDir(self):
-        """Get file path for list of CA cert or certs used to validate SSL 
-        connections
-        
-        @rtype sslCACertDir: basestring
-        @return sslCACertDirList: directory containing PEM encoded CA 
-        certificates."""
-        return self.__sslCACertDir
-    
-    def _setSSLCACertDir(self, value):
-        """Set CA cert or certs to validate AC signatures, signatures
-        of Attribute Authority SOAP responses and SSL connections where 
-        AA SOAP service is run over SSL.
-        
-        @type sslCACertDir: basestring
-        @param sslCACertDir: directory containing CA certificate files.
-        """
-        if isinstance(value, basestring):
-            self.__sslCACertDir = os.path.expandvars(value)
-        elif value is None:
-            self.__sslCACertDir = value
-        else:
-            raise TypeError("Input CA Certificate directroy must be "
-                            "a valid string or None type: %r" % type(value))      
-        
-    sslCACertDir = property(fget=_getSSLCACertDir,
-                            fset=_setSSLCACertDir,
-                            doc="Path to directory containing PEM encoded CA "
-                                "Certificates used for verification of peer "
-                                "certs in SSL connection.   Files in the "
-                                "directory must be named with the form "
-                                "<hash>.0 where <hash> can be obtained using "
-                                "openssl x509 -in cert -hash -noout or using "
-                                "the c_rehash OpenSSL script")
-    
-    def _getSslValidDNs(self):
-        return self.__sslValidDNs
-
-    def _setSslValidDNs(self, value):
+    @SSLContextProxyInterface.ssl_valid_x509_subj_names.setter
+    def ssl_valid_x509_subj_names(self, value):
         if isinstance(value, basestring):  
             pat = SSLContextProxy.VALID_DNS_PAT
-            self.__sslValidDNs = [X500DN.fromString(dn) 
+            self._ssl_valid_dns = [X500DN.fromString(dn) 
                                   for dn in pat.split(value)]
             
         elif isinstance(value, (tuple, list)):
-            self.__sslValidDNs = [X500DN.fromString(dn) for dn in value]
+            self._ssl_valid_dns = [X500DN.fromString(dn) for dn in value]
         else:
             raise TypeError('Expecting list/tuple or basestring type for "%s" '
                             'attribute; got %r' %
                             (SSLContextProxy.SSL_VALID_DNS_OPTNAME, 
                              type(value)))
-    
-    sslValidDNs = property(_getSslValidDNs, 
-                           _setSslValidDNs, 
-                           doc="whitelist of acceptable certificate "
-                               "Distinguished Names for peer certificates in "
-                               "SSL requests")
-
-    def _getSSLPriKeyFilePath(self):
-        return self.__sslPriKeyFilePath
-    
-    def _setSSLPriKeyFilePath(self, filePath):
-        "Set ssl private key file path property method"
-        
-        if isinstance(filePath, basestring):
-            filePath = os.path.expandvars(filePath)
-
-        elif filePath is not None:
-            raise TypeError("Private key file path must be a valid "
-                            "string or None type")
-        
-        self.__sslPriKeyFilePath = filePath
-        
-    sslPriKeyFilePath = property(fget=_getSSLPriKeyFilePath,
-                                 fset=_setSSLPriKeyFilePath,
-                                 doc="File path to SSL private key")
  
+    @SSLContextProxyInterface.sslPriKeyPwd.setter
     def _setSSLPriKeyPwd(self, sslPriKeyPwd):
         "Set method for ssl private key file password"
         if not isinstance(sslPriKeyPwd, (type(None), basestring)):
@@ -1479,15 +1333,7 @@ class SSLContextProxy(object):
         
         # Explicitly convert to string as M2Crypto OpenSSL wrapper fails with
         # unicode type
-        self.__sslPriKeyPwd = str(sslPriKeyPwd)
-
-    def _getSSLPriKeyPwd(self):
-        "Get property method for SSL private key"
-        return self.__sslPriKeyPwd
-        
-    sslPriKeyPwd = property(fset=_setSSLPriKeyPwd,
-                             fget=_getSSLPriKeyPwd,
-                             doc="Password protecting SSL private key file")
+        self._ssl_prikey_pwd = str(sslPriKeyPwd)
 
     def __getstate__(self):
         '''Enable pickling for use with beaker.session'''
