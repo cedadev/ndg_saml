@@ -71,4 +71,5 @@ class SubjectQuerySOAPBinding(RequestBaseSOAPBinding):
             query.subject = Subject()
             nameID = NameID()
             nameID.format = self.subjectIdFormat
+            
         query.subject.nameID.value = subjectID

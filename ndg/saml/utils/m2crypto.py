@@ -388,7 +388,7 @@ class X509Cert(object):
 
     def read(self, 
              filePath=None, 
-             format=None, 
+             file_format=None, 
              warningStackLevel=3,
              **isValidTimeKw):
         """Read a certificate from PEM encoded DER format file
@@ -396,15 +396,15 @@ class X509Cert(object):
         @type filePath: basestring
         @param filePath: file path of PEM format file to be read
         
-        @type format: int
-        @param format: format of input file - PEM is the default.  Set to
+        @type file_format: int
+        @param file_format: format of input file - PEM is the default.  Set to
         X509Cert.formatDER for DER format
         
         @type isValidTimeKw: dict
         @param isValidTimeKw: keywords to isValidTime() call"""
 
-        if format is None:
-            format = X509Cert.formatPEM
+        if file_format is None:
+            file_format = X509Cert.formatPEM
         
         # Check for optional input certificate file path
         if filePath is not None:
@@ -416,7 +416,7 @@ class X509Cert(object):
        
         try:
             self.__m2CryptoX509 = M2Crypto.X509.load_cert(self.__filePath,
-                                                          format=format)
+                                                          format=file_format)
         except Exception, e:
             raise X509CertReadError("Error loading certificate \"%s\": %s" %
                                     (self.__filePath, e))
@@ -429,7 +429,7 @@ class X509Cert(object):
 
     def parse(self, 
               certTxt, 
-              format=None, 
+              file_format=None, 
               warningStackLevel=3,
               **isValidTimeKw):
         """Read a certificate input as a string
@@ -437,15 +437,15 @@ class X509Cert(object):
         @type certTxt: basestring
         @param certTxt: PEM encoded certificate to parse 
         
-        @type format: int
-        @param format: format of input file - PEM is the default.  Set to
+        @type file_format: int
+        @param file_format: format of input file - PEM is the default.  Set to
         X509Cert.formatDER for DER format
         
         @type isValidTimeKw: dict
         @param isValidTimeKw: keywords to isValidTime() call"""
 
-        if format is None:
-            format = X509Cert.formatPEM
+        if file_format is None:
+            file_format = X509Cert.formatPEM
             
         try:
             # Create M2Crypto memory buffer and pass to load certificate
@@ -456,7 +456,7 @@ class X509Cert(object):
 #            certBIO = M2Crypto.BIO.MemoryBuffer(str(certTxt))
 #            self.__m2CryptoX509 = M2Crypto.X509.load_cert_bio(certBIO)
             self.__m2CryptoX509 = M2Crypto.X509.load_cert_string(str(certTxt),
-                                                                 format=format)
+                                                                 format=file_format)
         except Exception, e:
             raise X509CertParseError("Error loading certificate: %s" % e)
 

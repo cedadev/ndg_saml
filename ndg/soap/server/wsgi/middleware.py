@@ -37,7 +37,7 @@ class SOAPMiddleware(object):
     SOAP_FAULT_SET_KEYNAME = 'ndg.security.server.wsgi.soap.soapFault'
     SOAP_ACTION_ENVIRON_KEYNAME = 'HTTP_SOAPACTION'
     
-    _str2Bool = lambda str: str.lower() in ["yes", "true", "t", "1"]
+    _str2Bool = lambda str_: str_.lower() in ["yes", "true", "t", "1"]
     str2Bool = staticmethod(_str2Bool)
         
     @classmethod

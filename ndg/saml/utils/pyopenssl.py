@@ -34,8 +34,6 @@ class SSLContextProxy(SSLContextProxyInterface):
         """
         ctx = SSL.Context(self.__class__.SSL_PROTOCOL_METHOD)
         
-        self.ssl_valid_x509_subj_names = '/C=GB/O=Science and Technology Facilities Council/OU=RAL-SPBU/CN=sandstorm1.jc.rl.ac.uk'
-        
         # Configure context according to this proxy's attributes
         if self.sslCertFilePath and self.sslPriKeyFilePath:
             # Pass client certificate (optionally with chain)
@@ -70,15 +68,22 @@ class SSLContextProxy(SSLContextProxyInterface):
                         '"verify_none"!  No verification of the server '
                         'certificate will be enforced')
             
-        if len(self.ssl_valid_x509_subj_names) > 0:
+        n_ssl_valid_x509_subj_names = len(self.ssl_valid_x509_subj_names)
+        if n_ssl_valid_x509_subj_names > 0 or self.ssl_valid_hostname:
             # Set custom callback in order to verify peer certificate DN 
             # against whitelist
             mode = SSL.VERIFY_PEER
             
+            if n_ssl_valid_x509_subj_names == 0:
+                cert_dn = None
+            else:
+                cert_dn = self.ssl_valid_x509_subj_names[0]
+                
             # Nb. limit - this verification callback can only validate against
             # a single DN not multiples as allowed by the interface class
             ssl_cert_verification = ServerSSLCertVerification(
-                                    certDN=self.ssl_valid_x509_subj_names[0])
+                                    hostname=self.ssl_valid_hostname,
+                                    certDN=cert_dn)
             
             verify_cb = ssl_cert_verification.get_verify_server_cert_func()
             

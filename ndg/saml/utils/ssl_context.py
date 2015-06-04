@@ -16,12 +16,13 @@ class SSLContextProxyInterface(object):
     M2Crypto HTTPS libraries"""
     __metaclass__ = ABCMeta
     
-    SSL_CERT_FILEPATH_OPTNAME = "ssl_cert_filepath"
-    SSL_PRIKEY_FILEPATH_OPTNAME = "ssl_prikey_filepath"
-    SSL_PRIKEY_PWD_OPTNAME = "ssl_prikey_pwd"
-    SSL_CACERT_FILEPATH_OPTNAME = "ssl_cacert_filepath"
-    SSL_CACERT_DIRPATH_OPTNAME = "ssl_ca_cert_dir"
+    SSL_CERT_FILEPATH_OPTNAME = "sslCertFilePath"
+    SSL_PRIKEY_FILEPATH_OPTNAME = "sslPrikeyFilePath"
+    SSL_PRIKEY_PWD_OPTNAME = "sslPrikeyPwd"
+    SSL_CACERT_FILEPATH_OPTNAME = "sslCACertFilePath"
+    SSL_CACERT_DIRPATH_OPTNAME = "sslCACertDir"
     SSL_VALID_X509_SUBJ_NAMES_OPTNAME = "ssl_valid_x509_subj_names"
+    SSL_VALID_HOST_NAME_OPTNAME = "ssl_valid_x509_subj_names"
     
     OPTNAMES = (
         SSL_CERT_FILEPATH_OPTNAME,
@@ -38,6 +39,7 @@ class SSLContextProxyInterface(object):
         "_ssl_prikey_pwd",
         "_ssl_cacert_filepath",
         "_ssl_ca_cert_dir",
+        "_ssl_valid_hostname",
         "_ssl_valid_x509_subj_names"
     )
             
@@ -49,6 +51,7 @@ class SSLContextProxyInterface(object):
         self._ssl_prikey_pwd = None
         self._ssl_cacert_filepath = None
         self._ssl_ca_cert_dir = None
+        self._ssl_valid_hostname = None
         self._ssl_valid_x509_subj_names = []
         
     @abstractmethod
@@ -155,25 +158,25 @@ class SSLContextProxyInterface(object):
             self._ssl_valid_hostname = value          
         else:
             raise TypeError('Expecting list/tuple or basestring type for "%s" '
-                            'attribute; got %r' %
+                        'attribute; got %r' %
                         (SSLContextProxyInterface.SSL_VALID_HOSTNAME_OPTNAME, 
                          type(value)))
         
     @property
-    def sslValidDNs(self):
+    def ssl_valid_x509_subj_names(self):
         return self._ssl_valid_x509_subj_names
 
-    @sslValidDNs.setter
-    def sslValidDNs(self, value):
+    @ssl_valid_x509_subj_names.setter
+    def ssl_valid_x509_subj_names(self, value):
         if isinstance(value, basestring):  
             pat = SSLContextProxyInterface.VALID_DNS_PAT
             self._ssl_valid_x509_subj_names = pat.split(value)
             
         else:
             raise TypeError('Expecting list/tuple or basestring type for "%s" '
-                            'attribute; got %r' %
-                            (SSLContextProxyInterface.SSL_VALID_X509_SUBJ_NAMES_OPTNAME, 
-                             type(value)))
+                    'attribute; got %r' %
+                    (SSLContextProxyInterface.SSL_VALID_X509_SUBJ_NAMES_OPTNAME, 
+                     type(value)))
 
     @property
     def sslPriKeyFilePath(self):
