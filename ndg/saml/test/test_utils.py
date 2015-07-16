@@ -5,7 +5,7 @@ Created on 16 Jul 2015
 '''
 import unittest
 
-from ndg.saml.utils.config import AttributeQueryFactory
+from ndg.saml.utils.factory import AttributeQueryFactory
 
 
 class FactoryTestCase(unittest.TestCase):
