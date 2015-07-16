@@ -114,8 +114,9 @@ setup(
     namespace_packages =	['ndg'],
     extras_require = {
         # These additional packages are needed if you wish to use the SOAP 
-        # binding
-        'soap_binding':  ["M2Crypto", "PyOpenSSL", "Paste", "PasteDeploy", 
+        # binding, Nb. M2Crypto can be used in place of ndg-httpsclient if
+        # required. ndg-httpsclient provides a urllib2 interface to PyOpenSSL
+        'soap_binding':  ["ndg-httpsclient", "Paste", "PasteDeploy", 
                           "PasteScript"],
         # Required for the SAML profile to XACML - enables richer functionality
         # for expressing authorisation queries and decisions.

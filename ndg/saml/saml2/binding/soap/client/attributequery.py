@@ -16,7 +16,7 @@ try:
     from ndg.httpsclient.https import HTTPSContextHandler as HTTPSHandler_
     
 except ImportError:
-    from M2Crypto.m2urllib2 import HTTPSHandler_
+    from M2Crypto.m2urllib2 import HTTPSHandler as HTTPSHandler_
 
 from ndg.saml.saml2.core import AttributeQuery
 from ndg.saml.saml2.binding.soap.client.subjectquery import (

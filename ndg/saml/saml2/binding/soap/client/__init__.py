@@ -23,7 +23,6 @@ from ndg.soap.client import (UrlLib2SOAPClient, UrlLib2SOAPRequest)
 
 from ndg.saml.saml2.binding.soap import SOAPBindingInvalidResponse
     
-    
 _isIterable = lambda obj: getattr(obj, '__iter__', False) 
    
 

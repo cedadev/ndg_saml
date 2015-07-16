@@ -39,7 +39,7 @@ class SSLContextProxy(SSLContextProxyInterface):
             # Pass client certificate (optionally with chain)
             ctx.use_certificate_chain_file(self.sslCertFilePath)
             
-            with open(self._ssl_pri_key_filepath, 'r') as prikey_file:
+            with open(self.sslPriKeyFilePath, 'r') as prikey_file:
                 prikey_content = prikey_file.read()
             prikey_file.close()
             

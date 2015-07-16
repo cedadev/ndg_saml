@@ -3405,6 +3405,26 @@ class AttributeQuery(SubjectQuery):
                           doc="Attributes")
 
 
+def subject_factory():
+    '''Create a blank subject with name id instantiated
+    '''
+    subject = Subject()
+    subject.nameID = NameID()
+    
+    return subject
+
+
+def attribute_query_factory():
+    '''Create a blank attribute query with all member variables instantiated -
+    issuer, subject etc.
+    '''
+    attribute_query = AttributeQuery()
+    attribute_query.subject = subject_factory()
+    attribute_query.issuer = Issuer()
+    
+    return attribute_query
+
+
 class Evidentiary(SAMLObject):
     """Base class for types set in an evidence object"""
     __slots__ = ()

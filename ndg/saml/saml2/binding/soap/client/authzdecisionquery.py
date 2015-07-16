@@ -9,6 +9,7 @@ __copyright__ = "(C) 2009 Science and Technology Facilities Council"
 __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = '$Id$'
+from urlparse import urlparse
 import logging
 log = logging.getLogger(__name__)
 
@@ -21,9 +22,9 @@ from ndg.saml.saml2.binding.soap.client.subjectquery import (
 # AuthzDecisionQuerySslSOAPBinding
 try:
     from ndg.httpsclient.https import HTTPSContextHandler as HTTPSHandler_
-    
+
 except ImportError:
-    from M2Crypto.m2urllib2 import HTTPSHandler_
+    from M2Crypto.m2urllib2 import HTTPSHandler as HTTPSHandler_
 
 # Prevent whole module breaking if this is not available - it's only needed for
 # AttributeQuerySslSOAPBinding
@@ -94,6 +95,11 @@ class AuthzDecisionQuerySslSOAPBinding(AuthzDecisionQuerySOAPBinding):
     def send(self, query, **kw):
         """Override base class implementation to pass explicit SSL Context
         """
+        if 'uri' in kw:
+            parsed_url = urlparse(kw['uri'])
+            self.sslCtxProxy.ssl_valid_hostname = parsed_url.netloc.split(':'
+                                                                          )[0]
+
         httpsHandler = HTTPSHandler_(ssl_context=self.sslCtxProxy())
         self.client.openerDirector.add_handler(httpsHandler)
         return super(AuthzDecisionQuerySslSOAPBinding, self).send(query, **kw)
