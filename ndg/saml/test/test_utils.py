@@ -5,11 +5,11 @@ Created on 16 Jul 2015
 '''
 import unittest
 
-from ndg.saml.utils.config import AttributeQueryConfig
+from ndg.saml.utils.config import AttributeQueryFactory
 
 
-class AttributeQueryConfigTestCase(unittest.TestCase):
-
+class FactoryTestCase(unittest.TestCase):
+    '''Test factory classes'''
     def setUp(self):
         self.config = {
             'attributeQuery.subject.nameID.format': 'urn:esg:openid',
@@ -20,32 +20,48 @@ class AttributeQueryConfigTestCase(unittest.TestCase):
 'urn:siteA:security:authz:1.0:attr, , http://www.w3.org/2001/XMLSchema#string'  
         }
         
-    def test01(self):
-        config = AttributeQueryConfig(prefix='attributeQuery.')
-        config.parse(**self.config)
+    def test01_create(self):
+        attribute_query = AttributeQueryFactory.create()
+        self.assertIsNotNone(attribute_query.subject, 'query subject is none')
+        self.assertIsNotNone(attribute_query.issuer, 'query issuer is none')
         
-        self.assertEqual(config.attribute_query.subject.nameID.format, 
+    def test02_from_config(self):
+        attribute_query = AttributeQueryFactory.from_config(
+                                                    prefix='attributeQuery.',
+                                                    **self.config)
+        
+        self.assertEqual(attribute_query.subject.nameID.format, 
                          self.config['attributeQuery.subject.nameID.format'], 
                          'Parameter is %r, expected %r' % (
-                          config.attribute_query.subject.nameID.format, 
+                          attribute_query.subject.nameID.format, 
                           self.config['attributeQuery.subject.nameID.format']))
         
-        self.assertEqual(config.attribute_query.issuer.value, 
+        self.assertEqual(attribute_query.issuer.value, 
                          self.config['attributeQuery.issuer.value'], 
                          'Parameter is %r, expected %r' % (
-                         config.attribute_query.issuer.value, 
+                         attribute_query.issuer.value, 
                          self.config['attributeQuery.issuer.value']))
         
-        attr = config.attribute_query.attributes[0]                    
+        self.assertEqual(len(attribute_query.attributes), 2, 
+                        'expecting 2 SAML attributes parsed')
+        
+        attr = None
+        for attr in attribute_query.attributes:
+            if attr.friendlyName == 'FirstName':
+                break
+            
+        self.assertNotEqual(attr, None, 
+                            'Missing expected friendlyName attribute')
+                           
         self.assertIn(attr.nameFormat, 
                       self.config['attributeQuery.attributes.0'], 
-                      'Parameter is %r, expected %r' % (
+                      'Parameter is %r, not found in %r' % (
                           attr.nameFormat, 
                           self.config['attributeQuery.attributes.0']))
 
         self.assertIn(attr.name, 
                       self.config['attributeQuery.attributes.0'], 
-                      'Parameter is %r, expected %r' % (
+                      'Parameter is %r, not found in %r' % (
                           attr.name, 
                           self.config['attributeQuery.attributes.0']))
 
