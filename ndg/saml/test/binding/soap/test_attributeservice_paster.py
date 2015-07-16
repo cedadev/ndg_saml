@@ -34,9 +34,9 @@ class SamlSslSoapBindingTestCase(WithPasterBaseTestCase):
     CONFIG_FILENAME = 'attribute-interface.ini'
     
     CLIENT_CERT_FILEPATH = path.join(WithPasterBaseTestCase.THIS_DIR, 
-                                     'test.crt')
+                                     'localhost.crt')
     CLIENT_PRIKEY_FILEPATH = path.join(WithPasterBaseTestCase.THIS_DIR, 
-                                       'test.key')
+                                       'localhost.key')
     CLIENT_CACERT_DIR = path.join(WithPasterBaseTestCase.THIS_DIR, 'ca')
     VALID_DNS = [
         '/O=NDG/OU=Security/CN=localhost', 
@@ -45,22 +45,7 @@ class SamlSslSoapBindingTestCase(WithPasterBaseTestCase):
     def __init__(self, *arg, **kw):
         kw['withSSL'] = True
         super(SamlSslSoapBindingTestCase, self).__init__(*arg, **kw)
-                
-    def test01M2CryptoInstalled(self):
-        # Force error for M2Crypto not present
-        _support = AttributeQuerySslSOAPBinding.SSL_CONTEXT_PROXY_SUPPORT
-        AttributeQuerySslSOAPBinding.SSL_CONTEXT_PROXY_SUPPORT = False
-        try:
-            self.assertRaises(ImportError, AttributeQuerySslSOAPBinding)
-        finally:
-            AttributeQuerySslSOAPBinding.SSL_CONTEXT_PROXY_SUPPORT = _support
-        
-        # Try again to really test all is well
-        try:
-            AttributeQuerySslSOAPBinding()
-        except ImportError, e:
-            self.fail('Import error with AttributeQuerySslSoapBinding: %s' % e)
-     
+                    
     def test02SendQuery(self):
         attributeQuery = AttributeQuerySslSOAPBinding()
         
