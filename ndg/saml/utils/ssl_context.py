@@ -1,8 +1,13 @@
-'''
-Created on 29 May 2015
+"""SAML 2.0 Utilities module for M2Crypto SSL functionality 
 
-@author: philipkershaw
-'''
+NDG SAML
+"""
+__author__ = "P J Kershaw"
+__date__ = "29/05/15"
+__copyright__ = "(C) 2009 Science and Technology Facilities Council"
+__license__ = "http://www.apache.org/licenses/LICENSE-2.0"
+__contact__ = "Philip.Kershaw@stfc.ac.uk"
+__revision__ = '$Id$'
 import os
 import re
 from abc import ABCMeta, abstractmethod
@@ -57,11 +62,11 @@ class SSLContextProxyInterface(object):
     @abstractmethod
     def __call__(self):
         """Create an SSL Context from this objects properties
-        @type depth: int
-        @param depth: max. depth of certificate to verify against
-        @type kw: dict
-        @param kw: SSL Context keyword arguments
-        @rtype: SSL Context of wrapped class e.g. M2Crpyto.SSL.Context or
+        :type depth: int
+        :param depth: max. depth of certificate to verify against
+        :type kw: dict
+        :param kw: SSL Context keyword arguments
+        :rtype: SSL Context of wrapped class e.g. M2Crpyto.SSL.Context or
         OpenSSL.SSL.Context depending on the SSL library used in the implemented
         class
         @return SSL context object
@@ -99,8 +104,8 @@ class SSLContextProxyInterface(object):
         """Get file path for list of CA cert or certs used to validate SSL 
         connections
         
-        @rtype sslCACertFilePath: basestring
-        @return sslCACertFilePathList: file path to file containing concatenated
+        :rtype sslCACertFilePath: basestring
+        :return sslCACertFilePathList: file path to file containing concatenated
         PEM encoded CA certificates."""
         return self._ssl_cacert_filepath
     
@@ -108,8 +113,8 @@ class SSLContextProxyInterface(object):
     def sslCACertFilePath(self, value):
         """Set CA cert file path
         
-        @type sslCACertFilePath: basestring, list, tuple or None
-        @param sslCACertFilePath: file path to CA certificate file.  If None
+        :type sslCACertFilePath: basestring, list, tuple or None
+        :param sslCACertFilePath: file path to CA certificate file.  If None
         then the input is quietly ignored."""
         if isinstance(value, basestring):
             self._ssl_cacert_filepath = os.path.expandvars(value)
@@ -126,8 +131,8 @@ class SSLContextProxyInterface(object):
         """Get file path for list of CA cert or certs used to validate SSL 
         connections
         
-        @rtype sslCACertDir: basestring
-        @return sslCACertDirList: directory containing PEM encoded CA 
+        :rtype sslCACertDir: basestring
+        :return sslCACertDirList: directory containing PEM encoded CA 
         certificates."""
         return self._ssl_ca_cert_dir
     
@@ -137,8 +142,8 @@ class SSLContextProxyInterface(object):
         of Attribute Authority SOAP responses and SSL connections where 
         AA SOAP service is run over SSL.
         
-        @type sslCACertDir: basestring
-        @param sslCACertDir: directory containing CA certificate files.
+        :type sslCACertDir: basestring
+        :param sslCACertDir: directory containing CA certificate files.
         """
         if isinstance(value, basestring):
             self._ssl_ca_cert_dir = os.path.expandvars(value)

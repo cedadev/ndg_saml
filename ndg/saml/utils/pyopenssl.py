@@ -2,7 +2,6 @@
 
 NDG SAML
 """
-from OpenSSL.test.test_ssl import verify_cb
 __author__ = "P J Kershaw"
 __date__ = "29/05/15"
 __copyright__ = "(C) 2009 Science and Technology Facilities Council"
@@ -11,6 +10,7 @@ __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = '$Id$'
 import logging
 from OpenSSL import SSL, crypto
+from OpenSSL.test.test_ssl import verify_cb
 
 from ndg.httpsclient.ssl_peer_verification import ServerSSLCertVerification
 
@@ -25,12 +25,12 @@ class SSLContextProxy(SSLContextProxyInterface):
 
     def __call__(self):
         """Create an M2Crypto SSL Context from this objects properties
-        @type depth: int
-        @param depth: max. depth of certificate to verify against
-        @type kw: dict
-        @param kw: OpenSSL.SSL.Context keyword arguments
-        @rtype: OpenSSL.SSL.Context
-        @return M2Crypto SSL context object
+        :type depth: int
+        :param depth: max. depth of certificate to verify against
+        :type kw: dict
+        :param kw: OpenSSL.SSL.Context keyword arguments
+        :rtype: OpenSSL.SSL.Context
+        :return: M2Crypto SSL context object
         """
         ctx = SSL.Context(self.__class__.SSL_PROTOCOL_METHOD)
         

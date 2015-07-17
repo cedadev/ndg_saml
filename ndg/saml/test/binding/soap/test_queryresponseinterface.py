@@ -16,7 +16,12 @@ import unittest
 from datetime import datetime, timedelta
 import os
 from uuid import uuid4
-import paste.fixture
+try:
+    import paste.fixture
+    paste_installed = True
+except ImportError:
+    paste_installed = False
+    
 from cStringIO import StringIO
 
 from ndg.saml import importElementTree
@@ -189,6 +194,9 @@ class SamlAttributeQueryTestCase(unittest.TestCase):
    </soap11:Body>
 </soap11:Envelope>
 '''
+    
+    @unittest.skipIf(not paste_installed, 'Need Paste to run '
+                     'SamlAttributeQueryTestCase')
 
     def __init__(self, *args, **kwargs):
         wsgiApp = SamlSoapBindingApp()
@@ -428,5 +436,5 @@ class SamlAttributeQueryTestCase(unittest.TestCase):
             
             
 if __name__ == "__main__":
-    unittest.main()        
+    unittest.main()
 

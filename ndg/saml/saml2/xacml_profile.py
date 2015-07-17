@@ -19,23 +19,23 @@ from ndg.xacml.core.context.response import Response
 class XACMLAuthzDecisionQuery(RequestAbstractType):
     '''SAML 2.0 XACML Profile XACMLAuthzDecisionQuery
     
-    @cvar DEFAULT_ELEMENT_LOCAL_NAME: Element local name.
-    @type DEFAULT_ELEMENT_LOCAL_NAME: string
-    @cvar DEFAULT_ELEMENT_NAME: Default element name.
-    @type DEFAULT_ELEMENT_NAME: string
-    @cvar TYPE_LOCAL_NAME: Local name of the XSI type.
-    @type TYPE_LOCAL_NAME: string
-    @cvar TYPE_NAME: QName of the XSI type.
-    @type TYPE_NAME: string
-    @cvar RETURN_CONTEXT_ATTRIB_NAME: ReturnContext attribute name.
-    @type RETURN_CONTEXT_ATTRIB_NAME: string
+    :cvar DEFAULT_ELEMENT_LOCAL_NAME: Element local name.
+    :type DEFAULT_ELEMENT_LOCAL_NAME: string
+    :cvar DEFAULT_ELEMENT_NAME: Default element name.
+    :type DEFAULT_ELEMENT_NAME: string
+    :cvar TYPE_LOCAL_NAME: Local name of the XSI type.
+    :type TYPE_LOCAL_NAME: string
+    :cvar TYPE_NAME: QName of the XSI type.
+    :type TYPE_NAME: string
+    :cvar RETURN_CONTEXT_ATTRIB_NAME: ReturnContext attribute name.
+    :type RETURN_CONTEXT_ATTRIB_NAME: string
    
-    @ivar inputContextOnly: InputContextOnly attribute value.
-    @type inputContextOnly: bool
-    @ivar returnContext: ReturnContext attribute value.
-    @type returnContext: bool
-    @ivar xacmlContextRequest: XACML context request
-    @type xacmlContextRequest: ndg.xacml.core.context.request.Request
+    :ivar inputContextOnly: InputContextOnly attribute value.
+    :type inputContextOnly: bool
+    :ivar returnContext: ReturnContext attribute value.
+    :type returnContext: bool
+    :ivar xacmlContextRequest: XACML context request
+    :type xacmlContextRequest: ndg.xacml.core.context.request.Request
     '''
 
     # Element local name.
@@ -83,8 +83,8 @@ class XACMLAuthzDecisionQuery(RequestAbstractType):
     def __getstate__(self):
         '''Enable pickling
         
-        @return: object's attribute dictionary
-        @rtype: dict
+        :return: object's attribute dictionary
+        :rtype: dict
         '''
         _dict = super(XACMLAuthzDecisionQuery, self).__getstate__()
         for attrName in XACMLAuthzDecisionQuery.__slots__:
@@ -100,17 +100,17 @@ class XACMLAuthzDecisionQuery(RequestAbstractType):
     def _getInputContextOnly(self):
         '''Get the InputContextOnly attribute value of this query
 
-        @return: InputContextOnly value
-        @rtype: bool
+        :return: InputContextOnly value
+        :rtype: bool
         '''
         return self.__inputContextOnly
     
     def _setInputContextOnly(self, value):
         '''Sets the InputContextOnly attribute value of this query.
         
-        @param value: the new InputContextOnly attribute value
-        @type value: bool
-        @raise TypeError: if incorrect input type 
+        :param value: the new InputContextOnly attribute value
+        :type value: bool
+        :raise TypeError: if incorrect input type 
         '''
         if not isinstance(value, basestring):
             raise TypeError('Expecting string type for "InputContextOnly" '
@@ -127,17 +127,17 @@ class XACMLAuthzDecisionQuery(RequestAbstractType):
     def _getReturnContext(self):
         '''Get the ReturnContext attribute value of this query
 
-        @return: ReturnContext value
-        @rtype: bool
+        :return: ReturnContext value
+        :rtype: bool
         '''
         return self.__returnContext
     
     def _setReturnContext(self, value):
         '''Sets the ReturnContext attribute value of this query.
         
-        @param value: the new ReturnContext attribute value
-        @type value: bool
-        @raise TypeError: if incorrect input type 
+        :param value: the new ReturnContext attribute value
+        :type value: bool
+        :raise TypeError: if incorrect input type 
         '''
         if not isinstance(value, basestring):
             raise TypeError('Expecting string type for "ReturnContext" '
@@ -154,8 +154,8 @@ class XACMLAuthzDecisionQuery(RequestAbstractType):
         '''
         Gets the XACML context request.
 
-        @rtype: 
-        @return: XACML context request
+        :rtype: 
+        :return: XACML context request
         '''
         return self.__xacmlContextRequest
 
@@ -163,8 +163,8 @@ class XACMLAuthzDecisionQuery(RequestAbstractType):
         '''
         Sets the XacmlContextRequest.
 
-        @param value: XacmlContextRequest
-        @raise TypeError: input value is incorrect type
+        :param value: XacmlContextRequest
+        :raise TypeError: input value is incorrect type
         '''
         if not isinstance(value, Request):
             raise TypeError('Expecting %r type for "decision" attribute; '
@@ -178,8 +178,8 @@ class XACMLAuthzDecisionQuery(RequestAbstractType):
     def getOrderedChildren(self):
         '''Return attributes for this element as a tuple
 
-        @return: attributes for this element
-        @rtype: tuple
+        :return: attributes for this element
+        :rtype: tuple
         '''
         children = []
 
@@ -198,14 +198,14 @@ class XACMLAuthzDecisionQuery(RequestAbstractType):
 class XACMLAuthzDecisionStatement(Statement):
     '''SAML 2.0 XACML Profile XACMLAuthzDecisionQuery
     
-    @cvar DEFAULT_ELEMENT_LOCAL_NAME: Element local name.
-    @type DEFAULT_ELEMENT_LOCAL_NAME: string
-    @cvar DEFAULT_ELEMENT_NAME: Default element name.
-    @type DEFAULT_ELEMENT_NAME: string
-    @cvar TYPE_LOCAL_NAME: Local name of the XSI type.
-    @type TYPE_LOCAL_NAME: string
-    @cvar TYPE_NAME: QName of the XSI type.
-    @type TYPE_NAME: string
+    :cvar DEFAULT_ELEMENT_LOCAL_NAME: Element local name.
+    :type DEFAULT_ELEMENT_LOCAL_NAME: string
+    :cvar DEFAULT_ELEMENT_NAME: Default element name.
+    :type DEFAULT_ELEMENT_NAME: string
+    :cvar TYPE_LOCAL_NAME: Local name of the XSI type.
+    :type TYPE_LOCAL_NAME: string
+    :cvar TYPE_NAME: QName of the XSI type.
+    :type TYPE_NAME: string
     '''
 
     # Element local name.
@@ -240,8 +240,8 @@ class XACMLAuthzDecisionStatement(Statement):
     def __getstate__(self):
         '''Enable pickling
         
-        @return: object's attribute dictionary
-        @rtype: dict
+        :return: object's attribute dictionary
+        :rtype: dict
         '''
         _dict = super(XACMLAuthzDecisionStatement, self).__getstate__()
         for attrName in XACMLAuthzDecisionStatement.__slots__:
@@ -257,17 +257,17 @@ class XACMLAuthzDecisionStatement(Statement):
     def _getXacmlContextRequest(self):
         '''Gets the XACML context Request child element.
 
-        @return: Request value
-        @rtype: ndg.xacml.core.context.request.Request
+        :return: Request value
+        :rtype: ndg.xacml.core.context.request.Request
         '''
         return self.__xacmlContextRequest
     
     def _setXacmlContextRequest(self, value):
         '''Sets  the XACML context Request child element.
         
-        @param value: the new Request attribute value
-        @type value: ndg.xacml.core.context.request.Request
-        @raise TypeError: if incorrect input type 
+        :param value: the new Request attribute value
+        :type value: ndg.xacml.core.context.request.Request
+        :raise TypeError: if incorrect input type 
         '''
         if not isinstance(value, Request):
             raise TypeError('Expecting string type for "Request" '
@@ -282,17 +282,17 @@ class XACMLAuthzDecisionStatement(Statement):
     def _getXacmlContextResponse(self):
         '''Gets the XACML context Response child element.
 
-        @return: Response value
-        @rtype: ndg.xacml.core.context.request.Response
+        :return: Response value
+        :rtype: ndg.xacml.core.context.request.Response
         '''
         return self.__xacmlContextResponse
     
     def _setXacmlContextResponse(self, value):
         '''Sets  the XACML context Response child element.
         
-        @param value: the new Response attribute value
-        @type value: ndg.xacml.core.context.request.Response
-        @raise TypeError: if incorrect input type 
+        :param value: the new Response attribute value
+        :type value: ndg.xacml.core.context.request.Response
+        :raise TypeError: if incorrect input type 
         '''
         if not isinstance(value, Response):
             raise TypeError('Expecting string type for "Response" '

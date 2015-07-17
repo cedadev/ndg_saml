@@ -59,13 +59,13 @@ class X500DN(dict):
 
         """Create a new X500 Distinguished Name
 
-        @type m2CryptoX509Name: M2Crypto.X509.X509_Name
-        @param m2CryptoX509Name:   initialise using using an 
+        :type m2CryptoX509Name: M2Crypto.X509.X509_Name
+        :param m2CryptoX509Name:   initialise using using an 
         M2Crypto.X509.X509_Name
-        @type dn: basestring
-        @param dn: initialise using a distinguished name string
-        @type separator: basestring
-        @param: separator: separator used to delimit dn fields - usually '/' 
+        :type dn: basestring
+        :param dn: initialise using a distinguished name string
+        :type separator: basestring
+        :param: separator: separator used to delimit dn fields - usually '/' 
         or ','.  If dn is input and separator is omitted the separator 
         character will be automatically parsed from the dn string.
         """
@@ -337,8 +337,8 @@ class X500DN(dict):
     @classmethod
     def Parse(cls, dn):
         """Convenience method to create an X500DN object from a DN string
-        @type dn: basestring
-        @param dn: Distinguished Name 
+        :type dn: basestring
+        :param dn: Distinguished Name 
         """
         return cls(dn=dn)
     
@@ -393,15 +393,15 @@ class X509Cert(object):
              **isValidTimeKw):
         """Read a certificate from PEM encoded DER format file
         
-        @type filePath: basestring
-        @param filePath: file path of PEM format file to be read
+        :type filePath: basestring
+        :param filePath: file path of PEM format file to be read
         
-        @type file_format: int
-        @param file_format: format of input file - PEM is the default.  Set to
+        :type file_format: int
+        :param file_format: format of input file - PEM is the default.  Set to
         X509Cert.formatDER for DER format
         
-        @type isValidTimeKw: dict
-        @param isValidTimeKw: keywords to isValidTime() call"""
+        :type isValidTimeKw: dict
+        :param isValidTimeKw: keywords to isValidTime() call"""
 
         if file_format is None:
             file_format = X509Cert.formatPEM
@@ -434,15 +434,15 @@ class X509Cert(object):
               **isValidTimeKw):
         """Read a certificate input as a string
         
-        @type certTxt: basestring
-        @param certTxt: PEM encoded certificate to parse 
+        :type certTxt: basestring
+        :param certTxt: PEM encoded certificate to parse 
         
-        @type file_format: int
-        @param file_format: format of input file - PEM is the default.  Set to
+        :type file_format: int
+        :param file_format: format of input file - PEM is the default.  Set to
         X509Cert.formatDER for DER format
         
-        @type isValidTimeKw: dict
-        @param isValidTimeKw: keywords to isValidTime() call"""
+        :type isValidTimeKw: dict
+        :param isValidTimeKw: keywords to isValidTime() call"""
 
         if file_format is None:
             file_format = X509Cert.formatPEM
@@ -583,8 +583,8 @@ class X509Cert(object):
     def __getPubKey(self):
         """Get public key
         
-        @return: RSA public key for certificate
-        @rtype: M2Crypto.RSA.RSA_pub"""
+        :return: RSA public key for certificate
+        :rtype: M2Crypto.RSA.RSA_pub"""
         if self.__m2CryptoX509 is None:
             return None
         
@@ -619,30 +619,30 @@ class X509Cert(object):
                     warningStackLevel=2):
         """Check Certificate for expiry
 
-        @type raiseExcep: bool
-        @param raiseExcep: set True to raise an exception if certificate is 
+        :type raiseExcep: bool
+        :param raiseExcep: set True to raise an exception if certificate is 
         invalid
         
-        @type expiryWarning: bool
-        @param expiryWarning: set to True to output a warning message if the 
+        :type expiryWarning: bool
+        :param expiryWarning: set to True to output a warning message if the 
         certificate is due to expire in less than nDaysBeforeExpiryLimit days. 
         Message is sent using warnings.warn and through logging.warning.  No 
         message is set if the certificate has an otherwise invalid time
         
-        @type nDaysBeforeExpiryLimit: int
-        @param nDaysBeforeExpiryLimit: used in conjunction with the 
+        :type nDaysBeforeExpiryLimit: int
+        :param nDaysBeforeExpiryLimit: used in conjunction with the 
         expiryWarning flag.  Set the number of days in advance of certificate
         expiry from which to start outputing warnings
         
-        @type warningStackLevel: int
-        @param warningStackLevel: set where in the stack to flag the warning
+        :type warningStackLevel: int
+        :param warningStackLevel: set where in the stack to flag the warning
         from.  Level 2 will flag it at the level of the caller of this 
         method.  Level 3 would flag at the level of the caller of the caller
         and so on.
         
-        @raise X509CertInvalidNotBeforeTime: current time is before the 
+        :raise X509CertInvalidNotBeforeTime: current time is before the 
         certificate's notBefore time
-        @raise X509CertExpired: current time is after the certificate's 
+        :raise X509CertExpired: current time is after the certificate's 
         notAfter time"""
 
         if not isinstance(self.__dtNotBefore, datetime):
@@ -727,13 +727,13 @@ class X509Cert(object):
         """Verify a certificate against the public key of the
         issuer
         
-        @param pubKey: public key of cert that issued self
-        @type pubKey: M2Crypto.RSA.RSA_pub
-        @param **kw: keywords to pass to M2Crypto.X509.X509 -
+        :param pubKey: public key of cert that issued self
+        :type pubKey: M2Crypto.RSA.RSA_pub
+        :param **kw: keywords to pass to M2Crypto.X509.X509 -
         'pkey'
-        @type: dict
-        @return: True if verifies OK, False otherwise
-        @rtype: bool
+        :type: dict
+        :return: True if verifies OK, False otherwise
+        :rtype: bool
         """
         return bool(self.__m2CryptoX509.verify(pubKey, **kw))
 
@@ -790,38 +790,38 @@ class X509Stack(object):
     def __init__(self, m2X509Stack=None):
         """Initialise from an M2Crypto stack object
         
-        @param m2X509Stack: M2Crypto X.509 stack object
-        @type m2X509Stack: M2Crypto.X509.X509_Stack"""
+        :param m2X509Stack: M2Crypto X.509 stack object
+        :type m2X509Stack: M2Crypto.X509.X509_Stack"""
         
         self.__m2X509Stack = m2X509Stack or M2Crypto.X509.X509_Stack()
         
     def __len__(self):
-        """@return: length of stack
-        @rtype: int"""
+        """:return: length of stack
+        :rtype: int"""
         return self.__m2X509Stack.__len__()
 
     def __getitem__(self, idx):
         """Index stack as an array
-        @param idx: stack index
-        @type idx: int
-        @return: X.509 cert object
-        @rtype: ndg.security.common.X509.X509Cert"""
+        :param idx: stack index
+        :type idx: int
+        :return: X.509 cert object
+        :rtype: ndg.security.common.X509.X509Cert"""
         
         return X509Cert(m2CryptoX509=self.__m2X509Stack.__getitem__(idx))
     
     def __iter__(self):
-        """@return: stack iterator
-        @rtype: listiterator"""
+        """:return: stack iterator
+        :rtype: listiterator"""
         return iter([X509Cert(m2CryptoX509=i) for i in self.__m2X509Stack])
 
     def push(self, x509Cert):
         """Push an X509 certificate onto the stack.
         
-        @param x509Cert: X509 object.
-        @type x509Cert: M2Crypto.X509.X509,
+        :param x509Cert: X509 object.
+        :type x509Cert: M2Crypto.X509.X509,
         ndg.security.common.X509.X509Cert or basestring
-        @return: The number of X509 objects currently on the stack.
-        @rtype: int"""
+        :return: The number of X509 objects currently on the stack.
+        :rtype: int"""
         if isinstance(x509Cert, M2Crypto.X509.X509):
             return self.__m2X509Stack.push(x509Cert)
         
@@ -838,16 +838,16 @@ class X509Stack(object):
     def pop(self):
         """Pop a certificate from the stack.
         
-        @return: X509 object that was popped, or None if there is nothing
+        :return: X509 object that was popped, or None if there is nothing
         to pop.
-        @rtype: ndg.security.common.X509.X509Cert
+        :rtype: ndg.security.common.X509.X509Cert
         """
         return X509Cert(m2CryptoX509=self.__m2X509Stack.pop())
 
     def asDER(self):
         """Return the stack as a DER encoded string
-        @return: DER string
-        @rtype: string"""
+        :return: DER string
+        :rtype: string"""
         return self.__m2X509Stack.as_der()
 
     def verifyCertChain(self, 
@@ -857,18 +857,18 @@ class X509Stack(object):
         """Treat stack as a list of certificates in a chain of
         trust.  Validate the signatures through to a single root issuer.  
 
-        @param x509Cert2Verify: X.509 certificate to be verified default is
+        :param x509Cert2Verify: X.509 certificate to be verified default is
         last in the stack
-        @type x509Cert2Verify: X509Cert
+        :type x509Cert2Verify: X509Cert
         
-        @param caX509Stack: X.509 stack containing CA certificates that are
+        :param caX509Stack: X.509 stack containing CA certificates that are
         trusted.
-        @type caX509Stack: X509Stack
+        :type caX509Stack: X509Stack
         
-        @param rejectSelfSignedCert: Set to True (default) to raise an 
+        :param rejectSelfSignedCert: Set to True (default) to raise an 
         SelfSignedCert exception if a certificate in self's stack is 
         self-signed.  
-        @type rejectSelfSignedCert: bool"""
+        :type rejectSelfSignedCert: bool"""
         
         if caX509Stack is None:
             caX509Stack = []
@@ -984,25 +984,25 @@ class HostCheck(SSL.Checker.Checker, object):
         """Override parent class __init__ to enable setting of myProxyServerDN
         setting
         
-        @type peerCertDN: string/list
-        @param peerCertDN: Set the expected Distinguished Name of the
+        :type peerCertDN: string/list
+        :param peerCertDN: Set the expected Distinguished Name of the
         server to avoid errors matching hostnames.  This is useful
         where the hostname is not fully qualified.  
 
         *param acceptedDNs: a list of acceptable DNs.  This enables validation 
         where the expected DN is where against a limited list of certs.
         
-        @type peerCertCN: string
-        @param peerCertCN: enable alternate Common Name to peer
+        :type peerCertCN: string
+        :param peerCertCN: enable alternate Common Name to peer
         hostname
         
-        @type caCertList: list type of M2Crypto.X509.X509 types
-        @param caCertList: CA X.509 certificates - if set the peer cert's 
+        :type caCertList: list type of M2Crypto.X509.X509 types
+        :param caCertList: CA X.509 certificates - if set the peer cert's 
         CA signature is verified against one of these.  At least one must
         verify
         
-        @type caCertFilePathList: list string types
-        @param caCertFilePathList: same as caCertList except input as list
+        :type caCertFilePathList: list string types
+        :param caCertFilePathList: same as caCertList except input as list
         of CA cert file paths"""
         
         if acceptedDNs is None:
@@ -1030,9 +1030,9 @@ class HostCheck(SSL.Checker.Checker, object):
             
     def __call__(self, peerCert, host=None):
         """Carry out checks on server ID
-        @param peerCert: MyProxy server host certificate as M2Crypto.X509.X509
+        :param peerCert: MyProxy server host certificate as M2Crypto.X509.X509
         instance
-        @param host: name of host to check
+        :param host: name of host to check
         """
         if peerCert is None:
             raise SSL.Checker.NoCertificate('SSL Peer did not return '
@@ -1090,8 +1090,8 @@ class HostCheck(SSL.Checker.Checker, object):
         '''Read CA certificates from file and add them to the X.509
         stack
         
-        @type caCertFilePathList: basestring, list or tuple
-        @param caCertFilePathList: list of file paths for CA certificates to
+        :type caCertFilePathList: basestring, list or tuple
+        :param caCertFilePathList: list of file paths for CA certificates to
         be used to verify certificate used to sign message.  If a single 
         string item is input then this is converted into a tuple
         '''
@@ -1117,10 +1117,10 @@ class HTTPSConnection(_HTTPSConnection):
     """Modified version of M2Crypto equivalent to enable custom checks with
     the peer and timeout settings
     
-    @type defReadTimeout: M2Crypto.SSL.timeout
-    @cvar defReadTimeout: default timeout for read operations
-    @type defWriteTimeout: M2Crypto.SSL.timeout
-    @cvar defWriteTimeout: default timeout for write operations"""    
+    :type defReadTimeout: M2Crypto.SSL.timeout
+    :cvar defReadTimeout: default timeout for read operations
+    :type defWriteTimeout: M2Crypto.SSL.timeout
+    :cvar defWriteTimeout: default timeout for write operations"""    
     defReadTimeout = SSL.timeout(sec=20.)
     defWriteTimeout = SSL.timeout(sec=20.)
     
@@ -1132,12 +1132,12 @@ class HTTPSConnection(_HTTPSConnection):
         param *args: args which apply to M2Crypto.httpslib.HTTPSConnection
         type **kw: dict
         param **kw: additional keywords
-        @type postConnectionCheck: SSL.Checker.Checker derivative
-        @keyword postConnectionCheck: set class for checking peer
-        @type readTimeout: M2Crypto.SSL.timeout
-        @keyword readTimeout: readTimeout - set timeout for read
-        @type writeTimeout: M2Crypto.SSL.timeout
-        @keyword writeTimeout: similar to read timeout'''
+        :type postConnectionCheck: SSL.Checker.Checker derivative
+        :keyword postConnectionCheck: set class for checking peer
+        :type readTimeout: M2Crypto.SSL.timeout
+        :keyword readTimeout: readTimeout - set timeout for read
+        :type writeTimeout: M2Crypto.SSL.timeout
+        :keyword writeTimeout: similar to read timeout'''
         
         self._postConnectionCheck = kw.pop('postConnectionCheck',
                                            SSL.Checker.Checker)
@@ -1198,11 +1198,11 @@ class SSLContextProxy(SSLContextProxyInterface):
     
     def __call__(self):
         """Create an M2Crypto SSL Context from this objects properties
-        @type depth: int
-        @param depth: max. depth of certificate to verify against
-        @type kw: dict
-        @param kw: M2Crypto.SSL.Context keyword arguments
-        @rtype: M2Crypto.SSL.Context
+        :type depth: int
+        :param depth: max. depth of certificate to verify against
+        :type kw: dict
+        :param kw: M2Crypto.SSL.Context keyword arguments
+        :rtype: M2Crypto.SSL.Context
         @return M2Crypto SSL context object
         """
         ctx = SSL.Context(protocol=self.__class__.M2_SSL_PROTOCOL_METHOD)
@@ -1262,14 +1262,14 @@ class SSLContextProxy(SSLContextProxyInterface):
             This implementation applies verification in order to check the DN
             of the peer certificate against a whitelist
             
-            @type preVerifyOK: int
-            @param preVerifyOK: If a verification error is found, this 
+            :type preVerifyOK: int
+            :param preVerifyOK: If a verification error is found, this 
             parameter will be set to 0
-            @type x509StoreCtx: M2Crypto.X509.X509_Store_Context
-            @param x509StoreCtx: locate the certificate to be verified and 
+            :type x509StoreCtx: M2Crypto.X509.X509_Store_Context
+            :param x509StoreCtx: locate the certificate to be verified and 
             perform additional verification steps as needed
-            @rtype: int
-            @return: controls the strategy of the further verification process. 
+            :rtype: int
+            :return: controls the strategy of the further verification process. 
             - If verify_callback returns 0, the verification process is 
             immediately stopped with "verification failed" state. If 
             SSL_VERIFY_PEER is set, a verification failure alert is sent to the

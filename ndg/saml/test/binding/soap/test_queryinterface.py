@@ -21,7 +21,7 @@ from ndg.saml.xml.etree import ResponseElementTree
 
 class SOAPQueryInterfaceMiddlewareTestCase(unittest.TestCase):
     """Test Setting of SOAP Query Interface middleware attributes"""
-    
+        
     def test01Create(self):
         queryIface = SOAPQueryInterfaceMiddleware(None)
         config = {

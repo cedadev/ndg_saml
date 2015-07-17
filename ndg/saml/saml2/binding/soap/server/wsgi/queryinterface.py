@@ -56,14 +56,14 @@ class QueryIssueInstantInvalid(SOAPBindingInvalidResponse):
 class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
     """Implementation of SAML 2.0 SOAP Binding for Query/Request Binding
     
-    @type PATH_OPTNAME: basestring
-    @cvar PATH_OPTNAME: name of app_conf option for specifying a path or paths
+    :type PATH_OPTNAME: basestring
+    :cvar PATH_OPTNAME: name of app_conf option for specifying a path or paths
     that this middleware will intercept and process
-    @type QUERY_INTERFACE_KEYNAME_OPTNAME: basestring
-    @cvar QUERY_INTERFACE_KEYNAME_OPTNAME: app_conf option name for key name
+    :type QUERY_INTERFACE_KEYNAME_OPTNAME: basestring
+    :cvar QUERY_INTERFACE_KEYNAME_OPTNAME: app_conf option name for key name
     used to reference the SAML query interface in environ
-    @type DEFAULT_QUERY_INTERFACE_KEYNAME: basestring
-    @param DEFAULT_QUERY_INTERFACE_KEYNAME: default key name for referencing
+    :type DEFAULT_QUERY_INTERFACE_KEYNAME: basestring
+    :param DEFAULT_QUERY_INTERFACE_KEYNAME: default key name for referencing
     SAML query interface in environ
     """
     log = logging.getLogger('SOAPQueryInterfaceMiddleware')
@@ -98,8 +98,8 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
     )
     
     def __init__(self, app):
-        '''@type app: callable following WSGI interface
-        @param app: next middleware application in the chain 
+        ''':type app: callable following WSGI interface
+        :param app: next middleware application in the chain 
         '''     
         super(SOAPQueryInterfaceMiddleware, self).__init__()
         
@@ -129,12 +129,12 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
       
     def initialise(self, global_conf, prefix='', **app_conf):
         '''
-        @type global_conf: dict        
-        @param global_conf: PasteDeploy global configuration dictionary
-        @type prefix: basestring
-        @param prefix: prefix for configuration items
-        @type app_conf: dict        
-        @param app_conf: PasteDeploy application specific configuration 
+        :type global_conf: dict        
+        :param global_conf: PasteDeploy global configuration dictionary
+        :type prefix: basestring
+        :param prefix: prefix for configuration items
+        :type app_conf: dict        
+        :param app_conf: PasteDeploy application specific configuration 
         dictionary
         '''
         # Override where set in config
@@ -326,11 +326,11 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
     
     def _setMountPath(self, value):
         '''
-        @type value: basestring
-        @param value: URL paths to apply this middleware to. Paths are relative 
+        :type value: basestring
+        :param value: URL paths to apply this middleware to. Paths are relative 
         to the point at which this middleware is mounted as set in 
         environ['PATH_INFO']
-        @raise TypeError: incorrect input type
+        :raise TypeError: incorrect input type
         '''
         
         if not isinstance(value, basestring):
@@ -351,14 +351,14 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         """Set-up using a Paste app factory pattern.  Set this method to avoid
         possible conflicts from multiple inheritance
         
-        @type app: callable following WSGI interface
-        @param app: next middleware application in the chain      
-        @type global_conf: dict        
-        @param global_conf: PasteDeploy global configuration dictionary
-        @type prefix: basestring
-        @param prefix: prefix for configuration items
-        @type app_conf: dict        
-        @param app_conf: PasteDeploy application specific configuration 
+        :type app: callable following WSGI interface
+        :param app: next middleware application in the chain      
+        :type global_conf: dict        
+        :param global_conf: PasteDeploy global configuration dictionary
+        :type prefix: basestring
+        :param prefix: prefix for configuration items
+        :type app_conf: dict        
+        :param app_conf: PasteDeploy application specific configuration 
         dictionary
         """
         app = cls(app)
@@ -385,10 +385,10 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         """Check for and parse a SOAP SAML Attribute Query and return a
         SAML Response
         
-        @type environ: dict
-        @param environ: WSGI environment variables dictionary
-        @type start_response: function
-        @param start_response: standard WSGI start response function
+        :type environ: dict
+        :param environ: WSGI environment variables dictionary
+        :type start_response: function
+        :param start_response: standard WSGI start response function
         """
     
         # Ignore non-matching path
@@ -488,21 +488,21 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
     
     def _validateQuery(self, query, response):
         """Checking incoming query issue instant and version
-        @type query: saml.saml2.core.SubjectQuery 
-        @param query: SAML subject query to be checked
-        @type: saml.saml2.core.Response
-        @param: SAML Response 
+        :type query: saml.saml2.core.SubjectQuery 
+        :param query: SAML subject query to be checked
+        :type: saml.saml2.core.Response
+        :param: SAML Response 
         """
         self._verifyQueryTimeConditions(query, response)
         self._verifyQuerySAMLVersion(query, response)
         
     def _verifyQueryTimeConditions(self, query, response):
         """Checking incoming query issue instant
-        @type query: saml.saml2.core.SubjectQuery 
-        @param query: SAML subject query to be checked
-        @type: saml.saml2.core.Response
-        @param: SAML Response 
-        @raise QueryIssueInstantInvalid: for invalid issue instant
+        :type query: saml.saml2.core.SubjectQuery 
+        :param query: SAML subject query to be checked
+        :type: saml.saml2.core.Response
+        :param: SAML Response 
+        :raise QueryIssueInstantInvalid: for invalid issue instant
         """
         if not self.verifyTimeConditions: 
             log.debug("Skipping verification of SAML query time conditions")
@@ -525,10 +525,10 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
     def _verifyQuerySAMLVersion(self, query, response):
         """Checking incoming query issue SAML version
         
-        @type query: saml.saml2.core.SubjectQuery 
-        @param query: SAML subject query to be checked
-        @type: saml.saml2.core.Response
-        @param: SAML Response 
+        :type query: saml.saml2.core.SubjectQuery 
+        :param query: SAML subject query to be checked
+        :type: saml.saml2.core.Response
+        :param: SAML Response 
         """
         if not self.verifySAMLVersion:
             log.debug("Skipping verification of SAML query version")
@@ -551,8 +551,8 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         """Create a SAML Response object with basic settings if any have been
         provided at initialisation of this class - see initialise
         
-        @return: SAML response object
-        @rtype: ndg.saml.saml2.core.Response
+        :return: SAML response object
+        :rtype: ndg.saml.saml2.core.Response
         """
         samlResponse = Response()
         utcNow = datetime.utcnow()

@@ -110,7 +110,6 @@ class SOAPBinding(object):
             raise TypeError('Expecting callable for "deserialise"; got %r' % 
                             value)
         
-
     deserialise = property(_getDeserialise, 
                            _setDeserialise, 
                            doc="callable to de-serialise response from XML "
@@ -151,12 +150,12 @@ class SOAPBinding(object):
     def send(self, samlObj, uri=None, request=None):
         '''Make an request/query to a remote SAML service
         
-        @type samlObj: saml.common.SAMLObject
-        @param samlObj: SAML query/request object
-        @type uri: basestring 
-        @param uri: uri of service.  May be omitted if set from request.url
-        @type request: ndg.security.common.soap.UrlLib2SOAPRequest
-        @param request: SOAP request object to which query will be attached
+        :type samlObj: saml.common.SAMLObject
+        :param samlObj: SAML query/request object
+        :type uri: basestring 
+        :param uri: uri of service.  May be omitted if set from request.url
+        :type request: ndg.security.common.soap.UrlLib2SOAPRequest
+        :param request: SOAP request object to which query will be attached
         defaults to ndg.security.common.soap.client.UrlLib2SOAPRequest
         '''
         if self.serialise is None:
@@ -197,10 +196,10 @@ class SOAPBinding(object):
     @classmethod
     def fromConfig(cls, cfg, **kw):
         '''Alternative constructor makes object from config file settings
-        @type cfg: basestring / ConfigParser derived type
-        @param cfg: configuration file path or ConfigParser type object
-        @rtype: ndg.saml.saml2.binding.soap.client.SOAPBinding or derived type
-        @return: new instance of this class
+        :type cfg: basestring / ConfigParser derived type
+        :param cfg: configuration file path or ConfigParser type object
+        :rtype: ndg.saml.saml2.binding.soap.client.SOAPBinding or derived type
+        :return: new instance of this class
         '''
         obj = cls()
         obj.parseConfig(cfg, **kw)
@@ -209,12 +208,12 @@ class SOAPBinding(object):
 
     def parseConfig(self, cfg, prefix='', section='DEFAULT'):
         '''Read config file settings
-        @type cfg: basestring /ConfigParser derived type
-        @param cfg: configuration file path or ConfigParser type object
-        @type prefix: basestring
-        @param prefix: prefix for option names e.g. "attributeQuery."
-        @type section: baestring
-        @param section: configuration file section from which to extract
+        :type cfg: basestring /ConfigParser derived type
+        :param cfg: configuration file path or ConfigParser type object
+        :type prefix: basestring
+        :param prefix: prefix for option names e.g. "attributeQuery."
+        :type section: baestring
+        :param section: configuration file section from which to extract
         parameters.
         '''  
         if isinstance(cfg, basestring):
@@ -242,11 +241,11 @@ class SOAPBinding(object):
     def parseKeywords(self, prefix='', **kw):
         """Update object from input keywords
         
-        @type prefix: basestring
-        @param prefix: if a prefix is given, only update self from kw items 
+        :type prefix: basestring
+        :param prefix: if a prefix is given, only update self from kw items 
         where keyword starts with this prefix
-        @type kw: dict
-        @param kw: items corresponding to class instance variables to 
+        :type kw: dict
+        :param kw: items corresponding to class instance variables to 
         update.  Keyword names must match their equivalent class instance 
         variable names.  However, they may prefixed with <prefix>
         """
@@ -264,15 +263,15 @@ class SOAPBinding(object):
     def fromKeywords(cls, prefix='', **kw):
         """Create a new instance initialising instance variables from the 
         keyword inputs
-        @type prefix: basestring
-        @param prefix: if a prefix is given, only update self from kw items 
+        :type prefix: basestring
+        :param prefix: if a prefix is given, only update self from kw items 
         where keyword starts with this prefix
-        @type kw: dict
-        @param kw: items corresponding to class instance variables to 
+        :type kw: dict
+        :param kw: items corresponding to class instance variables to 
         update.  Keyword names must match their equivalent class instance 
         variable names.  However, they may prefixed with <prefix>
-        @return: new instance of this class
-        @rtype: ndg.saml.saml2.binding.soap.client.SOAPBinding or derived type
+        :return: new instance of this class
+        :rtype: ndg.saml.saml2.binding.soap.client.SOAPBinding or derived type
         """
         obj = cls()
         obj.fromKeywords(prefix=prefix, **kw)

@@ -23,7 +23,8 @@ from ndg.saml.saml2.core import Attribute, StatusCode
 from ndg.saml.xml.etree import ResponseElementTree
 from ndg.saml.saml2.binding.soap.client.attributequery import \
     AttributeQuerySslSOAPBinding
-from ndg.saml.test.binding.soap import WithPasterBaseTestCase    
+from ndg.saml.utils.factory import AttributeQueryFactory
+from ndg.saml.test.binding.soap import WithPasterBaseTestCase, paste_installed
     
     
 class SamlSslSoapBindingTestCase(WithPasterBaseTestCase):
@@ -42,33 +43,37 @@ class SamlSslSoapBindingTestCase(WithPasterBaseTestCase):
         '/O=NDG/OU=Security/CN=localhost', 
     ]
     
+    @unittest.skipIf(not paste_installed, 'Need Paste.Deploy to run '
+                     'SamlSslSoapBindingTestCase')
+    
     def __init__(self, *arg, **kw):
         kw['withSSL'] = True
         super(SamlSslSoapBindingTestCase, self).__init__(*arg, **kw)
                     
     def test02SendQuery(self):
-        attributeQuery = AttributeQuerySslSOAPBinding()
+        query_binding = AttributeQuerySslSOAPBinding()
         
-        attributeQuery.subjectIdFormat = self.__class__.SUBJECT_FORMAT
-        attributeQuery.clockSkewTolerance = 2.
-        attributeQuery.issuerName = '/O=Site A/CN=Authorisation Service'
+        attribute_query = AttributeQueryFactory.create()
+        attribute_query.subject.nameID.format = self.__class__.SUBJECT_FORMAT
+        attribute_query.subject.nameID.value = self.__class__.SUBJECT
+        attribute_query.issuerName = '/O=Site A/CN=Authorisation Service'
 
-        query = attributeQuery.makeQuery()
-        attributeQuery.setQuerySubjectId(query, self.__class__.SUBJECT)
 
         attribute = Attribute()
         attribute.name = 'urn:ndg:saml:emailaddress'
         attribute.friendlyName = 'emailAddress'
         attribute.nameFormat = 'http://www.w3.org/2001/XMLSchema'
         
-        query.attributes.append(attribute)
+        attribute_query.attributes.append(attribute)
         
-        attributeQuery.sslCACertDir = self.__class__.CLIENT_CACERT_DIR
-        attributeQuery.sslCertFilePath = self.__class__.CLIENT_CERT_FILEPATH
-        attributeQuery.sslPriKeyFilePath = self.__class__.CLIENT_PRIKEY_FILEPATH
-        attributeQuery.sslValidDNs = self.__class__.VALID_DNS
+        query_binding.clockSkewTolerance = 2.
+        query_binding.sslCACertDir = self.__class__.CLIENT_CACERT_DIR
+        query_binding.sslCertFilePath = self.__class__.CLIENT_CERT_FILEPATH
+        query_binding.sslPriKeyFilePath = self.__class__.CLIENT_PRIKEY_FILEPATH
+        query_binding.sslValidDNs = self.__class__.VALID_DNS
         
-        response = attributeQuery.send(query, uri=self.__class__.SERVICE_URI)
+        response = query_binding.send(attribute_query, 
+                                      uri=self.__class__.SERVICE_URI)
         
         # Convert back to ElementTree instance read for string output
         samlResponseElem = ResponseElementTree.toXML(response)
@@ -82,4 +87,9 @@ class SamlSslSoapBindingTestCase(WithPasterBaseTestCase):
   
  
 if __name__ == "__main__":
-    unittest.main()        
+    if paste_installed:
+        unittest.main()
+    else:
+        import warnings
+        warnings.warn('Skip unittests for %r, Paste package is not installed' %
+                      __name__)
