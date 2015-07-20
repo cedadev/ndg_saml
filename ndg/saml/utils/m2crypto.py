@@ -1195,6 +1195,8 @@ class SSLContextProxy(SSLContextProxyInterface):
     PRE_VERIFY_FAIL, PRE_VERIFY_OK = range(2)
     M2_SSL_PROTOCOL_METHOD = 'tlsv1'
     M2_SSL_VERIFY_DEPTH = 9
+
+    __slots__ = ()
     
     def __call__(self):
         """Create an M2Crypto SSL Context from this objects properties
