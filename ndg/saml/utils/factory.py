@@ -15,6 +15,7 @@ import os
 import sys
 import re
 from ConfigParser import ConfigParser, SafeConfigParser
+from abc import ABCMeta, abstractmethod
 
 from ndg.saml.saml2 import core as saml2
 
@@ -167,10 +168,14 @@ class SubjectFactory(object):
         return subject
 
 
-class AttributeQueryFactory(object):
-    """Factory class to create attribute queries from various inputs
+class QueryFactoryBase(object):
+    """Abstract base Factory class to create SAML queries from various 
+    inputs - derived classes determine the query types
     """
-    PREFIX = 'attribute_query.'
+    __metaclass__ = ABCMeta
+    
+    QUERY_CLASS = None
+    PREFIX = None
     SUBJECT_PARAM_NAME_PREFIX = 'subject.'
     ISSUER_PARAM_NAME_PREFIX = 'issuer.'
     ATTR_PARAM_VAL_SEP_PAT = re.compile(',\s*')
@@ -181,16 +186,19 @@ class AttributeQueryFactory(object):
         '''Create a blank attribute query with all member variables instantiated
          - issuer, subject etc.
         '''
-        attribute_query = saml2.AttributeQuery()
-        attribute_query.version = saml2.SAMLVersion(
-                                                saml2.SAMLVersion.VERSION_20)
-        attribute_query.subject = SubjectFactory.create()
-        attribute_query.issuer = saml2.Issuer()
+        if cls.QUERY_CLASS is None:
+            raise NotImplementedError('"QUERY_CLASS" class variable must be '
+                                      'set in derived class')
+            
+        query = cls.QUERY_CLASS()
+        query.version = saml2.SAMLVersion(saml2.SAMLVersion.VERSION_20)
+        query.subject = SubjectFactory.create()
+        query.issuer = saml2.Issuer()
         
         # Default to X.509 subject name for format
-        attribute_query.issuer.format = saml2.Issuer.X509_SUBJECT
+        query.issuer.format = saml2.Issuer.X509_SUBJECT
         
-        return attribute_query
+        return query
    
     @classmethod
     def from_config(cls, cfg, prefix=PREFIX, section='DEFAULT'):
@@ -224,6 +232,22 @@ class AttributeQueryFactory(object):
             kw['prefix'] = prefix
             
         return cls.from_kw(**kw)
+    
+    @classmethod
+    @abstractmethod
+    def from_kw(cls, prefix=PREFIX, **config):
+        '''parse attribute query from an input keywords'''
+           
+    
+class AttributeQueryFactory(QueryFactoryBase):
+    """Factory class to create attribute queries from various inputs
+    """
+    PREFIX = 'attribute_query.'
+    QUERY_CLASS = saml2.AttributeQuery
+    SUBJECT_PARAM_NAME_PREFIX = 'subject.'
+    ISSUER_PARAM_NAME_PREFIX = 'issuer.'
+    ATTR_PARAM_VAL_SEP_PAT = re.compile(',\s*')
+    ATTR_PARAM_NAME_PREFIX = 'attributes.'
 
     @classmethod
     def from_kw(cls, prefix=PREFIX, **config):
@@ -273,4 +297,64 @@ class AttributeQueryFactory(object):
                                                                  param_name))
             
         return attribute_query
+
+
+class AuthzDecisionQueryFactory(QueryFactoryBase):
+    """Factory class to create authorisation decision queries from various 
+    inputs
+    """
+    PREFIX = 'authz_decision_query.'
+    QUERY_CLASS = saml2.AuthzDecisionQuery
+    SUBJECT_PARAM_NAME_PREFIX = 'subject.'
+    ISSUER_PARAM_NAME_PREFIX = 'issuer.'
+    ATTR_PARAM_VAL_SEP_PAT = re.compile(',\s*')
+    ATTR_PARAM_NAME_PREFIX = 'attributes.'
+    
+    @classmethod
+    def from_kw(cls, prefix=PREFIX, **config):
+        '''parse attribute query from an input keywords'''
+        authz_decision_query = cls.create()
+        pat = cls.ATTR_PARAM_VAL_SEP_PAT
+        
+        for param_name, param_val in config.items():
             
+            # Skip values that don't start with the correct prefix
+            if not param_name.startswith(prefix):
+                continue
+            
+            _param_name = param_name.rsplit(prefix, 1)[-1]
+            
+            # Check for items which have the same name as AttributeQuery
+            # object member variables
+            if _param_name.startswith(cls.SUBJECT_PARAM_NAME_PREFIX):
+                nameid_param_name = _param_name.rsplit('subject.nameID.')[-1]
+                
+                setattr(authz_decision_query.subject.nameID, nameid_param_name, 
+                        param_val)
+                
+            elif _param_name.startswith(cls.ISSUER_PARAM_NAME_PREFIX):
+                issuer_param_name = _param_name.rsplit('issuer.')[-1]
+                setattr(authz_decision_query.issuer, issuer_param_name, 
+                        param_val)
+                
+            elif _param_name.startswith(cls.ATTR_PARAM_NAME_PREFIX):
+                # attributes are set with a special syntax.  Each attribute
+                # name in the dictionary should start with 
+                # ``prefix`` and end with some unique string
+                attribute = saml2.Attribute()
+                
+                # The values should be parsed from a string containing a 
+                # comma-separated list e.g.
+                #
+                # attribute.0 = urn:esg:first:name, FirstName, http://www.w3.org/2001/XMLSchema#string
+                (attribute.name, 
+                 attribute.friendlyName, 
+                 attribute.nameFormat) = pat.split(param_val)
+         
+                authz_decision_query.attributes.append(attribute)
+            else:
+                raise AttributeError('Config item %r not recognised as a valid '
+                                     'AuthzDecisionbQuery object member '
+                                     'variable.' % param_name)
+            
+        return authz_decision_query
