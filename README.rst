@@ -14,15 +14,15 @@ Releases
 * 0.7.0 - add command line script for making attribute and authorisation decision query client calls.
         
 * 0.6.0 (Thanks to Richard Wilkinson for these contributions)
-     - added support for SAML 2.0 profile of XACML v2.0 (http://docs.oasis-open.org/xacml/2.0/access_control-xacml-2.0-saml-profile-spec-os.pdf),
-       specifically the SAML request extensions: XACMLAuthzDecisionQuery and 
-       XACMLAuthzDecisionStatement.  This an alternative to the SAML defined
-       AuthzDecisionQuery.  It enables a richer functionality for expressing
-       queries and authorisation decisions taking advantage of the full
-       capabilities of a XACML PDP.
-     - fixed bug in SAML SOAP binding code: RequestBaseSOAPBinding and derived 
-       classes to act as a query factory, instead of container, for thread 
-       safety.
+ - added support for SAML 2.0 profile of XACML v2.0 (http://docs.oasis-open.org/xacml/2.0/access_control-xacml-2.0-saml-profile-spec-os.pdf),
+   specifically the SAML request extensions: XACMLAuthzDecisionQuery and 
+   XACMLAuthzDecisionStatement.  This an alternative to the SAML defined
+   AuthzDecisionQuery.  It enables a richer functionality for expressing
+   queries and authorisation decisions taking advantage of the full
+   capabilities of a XACML PDP.
+ - fixed bug in SAML SOAP binding code: RequestBaseSOAPBinding and derived 
+   classes to act as a query factory, instead of container, for thread 
+   safety.
       
 * 0.5.5 - allow passing a client certificate chain in client HTTPS requests
 
