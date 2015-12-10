@@ -45,6 +45,11 @@ easily be extended to use other Python XML parsers.
 Releases
 ========
         
+0.8.0
+-----
+ * Re-factored to use ndg-httpsclient for client HTTP calls in place of M2Crypto.
+ * decoupled SAML bindings classes from types.
+
 0.7.0
 ----- 
  * add command line script for making attribute and authorisation decision
