@@ -6,7 +6,7 @@ OpenSAML libraries.  An implementation is provided with ``ElementTree`` but it c
 easily be extended to use other Python XML parsers.
 
 Releases
------
+--------
  * 0.8.0
   - Re-factored to use ndg-httpsclient for client HTTP calls in place of M2Crypto.
   - decoupled SAML bindings classes from types.
@@ -27,19 +27,15 @@ Releases
         
  * 0.5.5 - allow passing a client certificate chain in client HTTPS requests
 
- * 0.5.4 - fix for ndg.saml.saml2.binding.soap.server.wsgi.queryinterface.SOAPQueryInterfaceMiddleware:
-bug in issuerFormat property setter - setting issuerName value
+ * 0.5.4 - fix for ndg.saml.saml2.binding.soap.server.wsgi.queryinterface.SOAPQueryInterfaceMiddleware: bug in issuerFormat property setter - setting issuerName value
 
  * 0.5.3 - fix for ndg.soap.utils.etree.prettyPrint for undeclared Nss.
 
- * 0.5.2 - fix for applying clock skew property in queryinterface WSGI middleware,
-and various minor fixes for classfactory module and m2crytpo utilities.
+ * 0.5.2 - fix for applying clock skew property in queryinterface WSGI middleware, and various minor fixes for classfactory module and m2crytpo utilities.
 
- * 0.5.1 - fix for date time parsing where no seconds fraction is present, fixed
-error message for InResponseTo ID check for Subject Query.
+ * 0.5.1 - fix for date time parsing where no seconds fraction is present, fixed error message for InResponseTo ID check for Subject Query.
 
- * 0.5 - adds WSGI middleware and clients for SAML SOAP binding and assertion
-query/request profile.
+ * 0.5 - adds WSGI middleware and clients for SAML SOAP binding and assertion query/request profile.
 
 It is not a complete implementation of SAML 2.0.  Only those components required
 for the NERC DataGrid have been provided (Attribute and AuthZ Decision Query/
