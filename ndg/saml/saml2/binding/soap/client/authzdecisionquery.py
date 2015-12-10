@@ -9,13 +9,11 @@ __copyright__ = "(C) 2009 Science and Technology Facilities Council"
 __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = '$Id$'
+from urlparse import urlparse
 import logging
 log = logging.getLogger(__name__)
 
-from M2Crypto.m2urllib2 import HTTPSHandler
-
 from ndg.saml.saml2.core import AuthzDecisionQuery
-
 from ndg.saml.saml2.binding.soap.client.subjectquery import (
                                                     SubjectQuerySOAPBinding,
                                                     SubjectQueryResponseError)
@@ -23,11 +21,24 @@ from ndg.saml.saml2.binding.soap.client.subjectquery import (
 # Prevent whole module breaking if this is not available - it's only needed for
 # AuthzDecisionQuerySslSOAPBinding
 try:
-    from ndg.saml.utils.m2crypto import SSLContextProxy
+    from ndg.httpsclient.https import HTTPSContextHandler as HTTPSHandler_
+
+except ImportError:
+    from M2Crypto.m2urllib2 import HTTPSHandler as HTTPSHandler_
+
+# Prevent whole module breaking if this is not available - it's only needed for
+# AttributeQuerySslSOAPBinding
+try:
+    from ndg.saml.utils.pyopenssl import SSLContextProxy as SSLContextProxy_
     _sslContextProxySupport = True
     
 except ImportError:
-    _sslContextProxySupport = False
+    try:
+        from ndg.saml.utils.m2crypto import SSLContextProxy as SSLContextProxy_
+        _sslContextProxySupport = True
+        
+    except ImportError:
+        _sslContextProxySupport = False
     
 
 class AuthzDecisionQueryResponseError(SubjectQueryResponseError):
@@ -79,12 +90,17 @@ class AuthzDecisionQuerySslSOAPBinding(AuthzDecisionQuerySOAPBinding):
             
         super(AuthzDecisionQuerySslSOAPBinding, self).__init__(handlers=(), 
                                                                **kw)
-        self.__sslCtxProxy = SSLContextProxy()
+        self.__sslCtxProxy = SSLContextProxy_()
 
     def send(self, query, **kw):
         """Override base class implementation to pass explicit SSL Context
         """
-        httpsHandler = HTTPSHandler(ssl_context=self.sslCtxProxy.createCtx())
+        if 'uri' in kw:
+            parsed_url = urlparse(kw['uri'])
+            self.sslCtxProxy.ssl_valid_hostname = parsed_url.netloc.split(':'
+                                                                          )[0]
+
+        httpsHandler = HTTPSHandler_(ssl_context=self.sslCtxProxy())
         self.client.openerDirector.add_handler(httpsHandler)
         return super(AuthzDecisionQuerySslSOAPBinding, self).send(query, **kw)
         

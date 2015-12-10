@@ -8,15 +8,17 @@ __copyright__ = "(C) 2009 Science and Technology Facilities Council"
 __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = '$Id$'
-import re
+from urlparse import urlparse
 import logging
 log = logging.getLogger(__name__)
 
-from M2Crypto.m2urllib2 import HTTPSHandler
+try:
+    from ndg.httpsclient.https import HTTPSContextHandler as HTTPSHandler_
+    
+except ImportError:
+    from M2Crypto.m2urllib2 import HTTPSHandler as HTTPSHandler_
 
-from ndg.saml.saml2.core import Attribute, AttributeQuery
-
-from ndg.saml.utils import TypedList
+from ndg.saml.saml2.core import AttributeQuery
 from ndg.saml.saml2.binding.soap.client.subjectquery import (
                                                     SubjectQuerySOAPBinding,
                                                     SubjectQueryResponseError)
@@ -24,11 +26,16 @@ from ndg.saml.saml2.binding.soap.client.subjectquery import (
 # Prevent whole module breaking if this is not available - it's only needed for
 # AttributeQuerySslSOAPBinding
 try:
-    from ndg.saml.utils.m2crypto import SSLContextProxy
+    from ndg.saml.utils.pyopenssl import SSLContextProxy as SSLContextProxy_
     _sslContextProxySupport = True
     
 except ImportError:
-    _sslContextProxySupport = False
+    try:
+        from ndg.saml.utils.m2crypto import SSLContextProxy as SSLContextProxy_
+        _sslContextProxySupport = True
+        
+    except ImportError:
+        _sslContextProxySupport = False
 
 
 class AttributeQueryResponseError(SubjectQueryResponseError):
@@ -38,16 +45,11 @@ class AttributeQueryResponseError(SubjectQueryResponseError):
 class AttributeQuerySOAPBinding(SubjectQuerySOAPBinding): 
     """SAML Attribute Query SOAP Binding
     """
-    QUERY_ATTRIBUTES_ATTRNAME = 'queryAttributes'
-    LEN_QUERY_ATTRIBUTES_ATTRNAME = len(QUERY_ATTRIBUTES_ATTRNAME)
-    QUERY_ATTRIBUTES_PAT = re.compile(',\s*')
-    
-    __PRIVATE_ATTR_PREFIX = "__"
-    __slots__ = ('__attributes',)
-
     SERIALISE_KW = 'serialise'
     DESERIALISE_KW = 'deserialise'
     QUERY_TYPE = AttributeQuery
+
+    __slots__ = ()
     
     def __init__(self, **kw):
         '''Create SOAP Client for SAML Attribute Query'''
@@ -63,63 +65,14 @@ class AttributeQuerySOAPBinding(SubjectQuerySOAPBinding):
             kw[AttributeQuerySOAPBinding.DESERIALISE_KW
                ] = ResponseElementTree.fromXML
 
-        self.__attributes = TypedList(Attribute)
-
         super(AttributeQuerySOAPBinding, self).__init__(**kw)
-            
-    def addQueryAttributes(self, query):
-        """Adds to a query attributes that are configured for
-        SubjectQuerySOAPBinding.
-        """
-        super(AttributeQuerySOAPBinding, self).addQueryAttributes(query)
-        # Initialise the query attributes from those preset.
-        query.attributes = TypedList(Attribute)
-        query.attributes.extend(self.queryAttributes)
-
-    def __setattr__(self, name, value):
-        """Enable setting of SAML query attribute objects via a comma separated
-        string suitable for use reading from an ini file.  
-        """
-        try:
-            super(AttributeQuerySOAPBinding, self).__setattr__(name, value)
-            
-        except AttributeError:
-            if name.startswith(
-                        AttributeQuerySOAPBinding.QUERY_ATTRIBUTES_ATTRNAME):
-                # Special handler for parsing string format settings
-                if not isinstance(value, basestring):
-                    raise TypeError('Expecting string format for special '
-                                    '%r attribute; got %r instead' %
-                                    (name, type(value)))
-                    
-                pat = AttributeQuerySOAPBinding.QUERY_ATTRIBUTES_PAT
-                attribute = Attribute()
-                
-                (attribute.name, 
-                 attribute.friendlyName, 
-                 attribute.nameFormat) = pat.split(value)
-                 
-                self.queryAttributes.append(attribute)
-            else:
-                raise
-             
-    def _getQueryAttributes(self):
-        return self.__attributes
-
-    def _setQueryAttributes(self, value):
-        if not isinstance(value, TypedList) and value.elementType != Attribute:
-            raise TypeError('Expecting TypedList(Attribute) type for '
-                            '"queryAttributes"; got %r instead' % type(value))
         
-        # Remove all previously set items and add new ones 
-        del self.__attributes[:]
-        for attribute in value:
-            self.__attributes.append(attribute)
-  
-    queryAttributes = property(_getQueryAttributes, 
-                               _setQueryAttributes, 
-                               doc="List of attributes to query from the "
-                                   "Attribute Authority")
+    def __setattr__(self, name, value):
+        """Enable setting of SSLContextProxy attributes as if they were 
+        attributes of this class.  This is intended as a convenience for 
+        making settings parameters read from a config file
+        """
+        super(AttributeQuerySOAPBinding, self).__setattr__(name, value)
 
     
 class AttributeQuerySslSOAPBinding(AttributeQuerySOAPBinding):
@@ -140,12 +93,17 @@ class AttributeQuerySslSOAPBinding(AttributeQuerySOAPBinding):
                             "'handlers'")
             
         super(AttributeQuerySslSOAPBinding, self).__init__(handlers=(), **kw)
-        self.__sslCtxProxy = SSLContextProxy()
+        self.__sslCtxProxy = SSLContextProxy_()
 
     def send(self, query, **kw):
         """Override base class implementation to pass explicit SSL Context
         """
-        httpsHandler = HTTPSHandler(ssl_context=self.sslCtxProxy.createCtx())
+        if 'uri' in kw:
+            parsed_url = urlparse(kw['uri'])
+            self.sslCtxProxy.ssl_valid_hostname = parsed_url.netloc.split(':'
+                                                                          )[0]
+            
+        httpsHandler = HTTPSHandler_(ssl_context=self.sslCtxProxy())
         self.client.openerDirector.add_handler(httpsHandler)
         return super(AttributeQuerySslSOAPBinding, self).send(query, **kw)
             
@@ -153,7 +111,7 @@ class AttributeQuerySslSOAPBinding(AttributeQuerySOAPBinding):
         return self.__sslCtxProxy
     
     def _setSslCtxProxy(self, value):
-        if not isinstance(value, SSLContextProxy):
+        if not isinstance(value, SSLContextProxy_):
             raise TypeError('Expecting %r type for "sslCtxProxy attribute; got '
                             '%r' % type(value))
             
@@ -175,5 +133,5 @@ class AttributeQuerySslSOAPBinding(AttributeQuerySOAPBinding):
             # Coerce into setting SSL Context Proxy attributes
             try:
                 setattr(self.sslCtxProxy, name, value)
-            except:
+            except Exception:
                 raise e

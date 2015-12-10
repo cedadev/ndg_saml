@@ -16,7 +16,12 @@ import unittest
 from datetime import datetime, timedelta
 import os
 from uuid import uuid4
-import paste.fixture
+try:
+    import paste.fixture
+    paste_installed = True
+except ImportError:
+    paste_installed = False
+    
 from cStringIO import StringIO
 
 from ndg.saml import importElementTree
@@ -34,10 +39,7 @@ from ndg.saml.saml2.binding.soap.client.requestbase import (
     AssertionConditionNotBeforeInvalid, AssertionConditionNotOnOrAfterInvalid)
 from ndg.saml.saml2.binding.soap.client.subjectquery import (
                                                         SubjectQuerySOAPBinding)
-
-from ndg.soap.client import (UrlLib2SOAPClient, UrlLib2SOAPRequest)
 from ndg.soap.etree import SOAPEnvelope
-from ndg.soap.utils.etree import QName, prettyPrint
 
 
 class SamlSoapBindingApp(object):
@@ -192,6 +194,9 @@ class SamlAttributeQueryTestCase(unittest.TestCase):
    </soap11:Body>
 </soap11:Envelope>
 '''
+    
+    @unittest.skipIf(not paste_installed, 'Need Paste to run '
+                     'SamlAttributeQueryTestCase')
 
     def __init__(self, *args, **kwargs):
         wsgiApp = SamlSoapBindingApp()
@@ -426,10 +431,10 @@ class SamlAttributeQueryTestCase(unittest.TestCase):
         try:
             binding._verifyTimeConditions(response)
             
-        except AssertionConditionNotOnOrAfterInvalid, e:
+        except AssertionConditionNotOnOrAfterInvalid:
             self.fail("Not on or after timestamp error should be corrected for")
             
             
 if __name__ == "__main__":
-    unittest.main()        
+    unittest.main()
 

@@ -2,12 +2,18 @@
 
 NERC DataGrid Project
 """
+from _pyio import __metaclass__
 __author__ = "P J Kershaw"
 __date__ = "27/07/09"
 __copyright__ = "(C) 2010 Science and Technology Facilities Council"
 __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = '$Id: client.py 7131 2010-06-30 13:37:48Z pjkersha $'
+from abc import ABCMeta, abstractmethod
+import httplib
+import urllib2
+from urllib import addinfourl
+
 import logging
 log = logging.getLogger(__name__)
 
@@ -16,6 +22,7 @@ from ndg.soap import SOAPEnvelopeBase
 
 class SOAPClientError(Exception):
     """Base class for SOAP Client exceptions"""
+
 
 class SOAPParseError(SOAPClientError):
     """Error parsing SOAP response"""
@@ -27,6 +34,7 @@ class SOAPClientBase(object):
     response from a service
     @type RESPONSE_CONTENT_TYPES: string
     """
+    __metaclass__ = ABCMeta
     RESPONSE_CONTENT_TYPES = ('text/xml', )
     
     def __init__(self):
@@ -45,7 +53,8 @@ class SOAPClientBase(object):
                                      fset=_setResponseEnvelopeClass, 
                                      doc="Set the class for handling "
                                          "the SOAP envelope responses")
-     
+    
+    @abstractmethod 
     def send(self, soapRequest):
         raise NotImplementedError()
 
@@ -92,10 +101,7 @@ class SOAPRequestBase(object):
 class SOAPResponseBase(_SoapIOBase):
     """Interface for SOAP responses"""
 
-import httplib
-import urllib2
-from urllib import addinfourl
-  
+
 class UrlLib2SOAPClientError(SOAPClientError):
     """Specialisation to enable the urllib2 response to be included in the
     exception instance as context information for the caller
@@ -295,7 +301,6 @@ class UrlLib2SOAPClient(SOAPClientBase):
                                  % (type(e), soapRequest.url, e))
         
         if logLevel <= logging.DEBUG:
-            from ndg.soap.utils.etree import prettyPrint
             log.debug("SOAP Response:")
             log.debug("_"*80)
             log.debug(prettyPrint(soapResponse.envelope.elem))

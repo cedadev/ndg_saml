@@ -22,7 +22,8 @@ from ndg.saml.saml2.core import (SAMLVersion, Subject, NameID, Issuer,
                                  DecisionType, Action, Conditions, Assertion)
 from ndg.saml.xml.etree import (AuthzDecisionQueryElementTree, 
                                 ResponseElementTree)
-from ndg.saml.test.binding.soap import WithPasteFixtureBaseTestCase
+from ndg.saml.test.binding.soap import (WithPasteFixtureBaseTestCase, 
+                                        paste_installed)
 
 
 class TestAuthorisationServiceMiddleware(object):
@@ -30,6 +31,10 @@ class TestAuthorisationServiceMiddleware(object):
     QUERY_INTERFACE_KEYNAME_OPTNAME = 'queryInterfaceKeyName'
     RESOURCE_URI = 'http://localhost/dap/data/'
     ISSUER_DN = '/O=Test/OU=Authorisation/CN=Service Stub'
+
+    
+    @unittest.skipIf(not paste_installed, 'Need Paste.Deploy to run '
+                     'SamlSslSoapBindingTestCase')
     
     def __init__(self, app, global_conf, **app_conf):
         self.queryInterfaceKeyName = app_conf[
@@ -112,6 +117,9 @@ class SOAPAuthzDecisionInterfaceMiddlewareTestCase(
                                         WithPasteFixtureBaseTestCase):
     CONFIG_FILENAME = 'authz-decision-interface.ini'
     RESOURCE_URI = TestAuthorisationServiceMiddleware.RESOURCE_URI
+    
+    @unittest.skipIf(not paste_installed, 'Need Paste.Deploy to run '
+                     'SOAPAuthzDecisionInterfaceMiddlewareTestCase')
     
     def _createAuthzDecisionQuery(self, 
                             issuer="/O=Site A/CN=PEP",

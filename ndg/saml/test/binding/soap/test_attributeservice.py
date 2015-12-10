@@ -22,7 +22,8 @@ from ndg.saml.saml2.core import (Assertion, Attribute, AttributeStatement,
                                  Conditions, StatusCode)
 from ndg.saml.xml import XMLConstants
 from ndg.saml.xml.etree import AttributeQueryElementTree, ResponseElementTree
-from ndg.saml.test.binding.soap import WithPasteFixtureBaseTestCase
+from ndg.saml.test.binding.soap import (WithPasteFixtureBaseTestCase, 
+                                        paste_installed)
 
 
 class TestAttributeServiceMiddleware(object):
@@ -158,9 +159,12 @@ class SOAPAttributeInterfaceMiddlewareTestCase(WithPasteFixtureBaseTestCase):
     CONFIG_FILENAME = 'attribute-interface.ini'
     SERVICE_URI = '/attributeauthority'
     
-    @staticmethod
-    def _createAttributeQuery(issuer="/O=Site A/CN=Authorisation Service",
-                        subject="https://openid.localhost/philip.kershaw"):
+    @unittest.skipIf(not paste_installed, 'Need Paste.Deploy to run '
+                     'SOAPAttributeInterfaceMiddlewareTestCase')
+    
+    def _createAttributeQuery(self,
+                            issuer="/O=Site A/CN=Authorisation Service",
+                            subject="https://openid.localhost/philip.kershaw"):
         """Helper to create a query"""
         attributeQuery = AttributeQuery()
         attributeQuery.version = SAMLVersion(SAMLVersion.VERSION_20)
@@ -205,12 +209,11 @@ class SOAPAttributeInterfaceMiddlewareTestCase(WithPasteFixtureBaseTestCase):
 
         return attributeQuery
     
-    @classmethod
-    def _makeRequest(cls, attributeQuery=None, **kw):
+    def _makeRequest(self, attributeQuery=None, **kw):
         """Convenience method to construct queries for tests"""
         
         if attributeQuery is None:
-            attributeQuery = cls._createAttributeQuery(**kw)
+            attributeQuery = self._createAttributeQuery(**kw)
             
         elem = AttributeQueryElementTree.toXML(attributeQuery)
         soapRequest = SOAPEnvelope()
@@ -221,8 +224,7 @@ class SOAPAttributeInterfaceMiddlewareTestCase(WithPasteFixtureBaseTestCase):
         
         return request
     
-    @staticmethod
-    def _getSAMLResponse(responseBody):
+    def _getSAMLResponse(self, responseBody):
         """Deserialise response string into ElementTree element"""
         soapResponse = SOAPEnvelope()
         
@@ -234,7 +236,6 @@ class SOAPAttributeInterfaceMiddlewareTestCase(WithPasteFixtureBaseTestCase):
         
         print("Parsed response ...")
         print(soapResponse.serialize())
-#        print(prettyPrint(soapResponse.elem))
         
         response = ResponseElementTree.fromXML(soapResponse.body.elem[0])
         
@@ -358,4 +359,9 @@ class SOAPAttributeInterfaceMiddlewareTestCase(WithPasteFixtureBaseTestCase):
 
  
 if __name__ == "__main__":
-    unittest.main()
+    if paste_installed:
+        unittest.main()
+    else:
+        import warnings
+        warnings.warn('Skip unittests for %r, Paste package is not installed' %
+                      __name__)

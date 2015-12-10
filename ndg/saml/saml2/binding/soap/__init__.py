@@ -27,14 +27,14 @@ class SOAPBindingInvalidResponse(SOAPBindingError):
     def _getResponse(self):
         '''Gets the response corresponding to this error
         
-        @return the response
+        :return: the response
         '''
         return self.__response
 
     def _setResponse(self, value):
         '''Sets the response corresponding to this error.
         
-        @param value: the response
+        :param value: the response
         '''
         if not isinstance(value, Response):
             raise TypeError('"response" must be a %r, got %r' % (Response,

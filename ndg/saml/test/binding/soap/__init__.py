@@ -11,11 +11,15 @@ __revision__ = '$Id$'
 import os
 import unittest
 import socket
-import paste.fixture
-from paste.deploy import loadapp
-
-from ndg.soap.test import PasteDeployAppServer
-
+try:
+    import paste.fixture
+    from paste.deploy import loadapp
+    from ndg.soap.test import PasteDeployAppServer
+    
+    paste_installed = True
+except ImportError as import_exc:
+    paste_installed = False
+    
 
 class TestApp(object):
     """Dummy application to terminate middleware stack containing SAML service
@@ -40,12 +44,20 @@ class WithPasteFixtureBaseTestCase(unittest.TestCase):
     CONFIG_FILENAME = None # Set in derived class
     
     def __init__(self, *args, **kwargs):
+        unittest.TestCase.__init__(self, *args, **kwargs)
+        
+        if not paste_installed:
+            import warnings
+            warnings.warn('Disabling WithPasteFixtureBaseTestCase, '
+                          'Paste.Deploy package is not installed')
+            self.app = None
+            return
+        
         wsgiapp = loadapp('config:%s' % self.__class__.CONFIG_FILENAME, 
                           relative_to=self.__class__.HERE_DIR)
         
         self.app = paste.fixture.TestApp(wsgiapp)
          
-        unittest.TestCase.__init__(self, *args, **kwargs)
         
     
 class WithPasterBaseTestCase(unittest.TestCase):
@@ -75,11 +87,11 @@ class WithPasterBaseTestCase(unittest.TestCase):
         """Utility for setting up threads to run Paste HTTP based services with
         unit tests
         
-        @param arg: tuple contains ini file path setting for the service
-        @type arg: tuple
-        @param kw: keywords including "port" - port number to run the service 
+        :param arg: tuple contains ini file path setting for the service
+        :type arg: tuple
+        :param kw: keywords including "port" - port number to run the service 
         from
-        @type kw: dict
+        :type kw: dict
         """
         if self.disableServiceStartup:
             return

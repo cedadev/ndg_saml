@@ -3,6 +3,7 @@
 
 NERC DataGrid Project
 """
+from ndg.saml.test.binding.soap import paste_installed
 __author__ = "P J Kershaw"
 __date__ = "24/07/09"
 __copyright__ = "(C) 2009 Science and Technology Facilities Council"
@@ -17,7 +18,12 @@ import unittest
 import socket
 from cStringIO import StringIO
 from os import path
-import paste.fixture
+try:
+    import paste.fixture
+    paste_installed = True
+except ImportError:
+    paste_installed = False
+    
 from urllib2 import HTTPHandler, URLError
 
 from ndg.soap import SOAPFaultBase
@@ -145,6 +151,9 @@ class SOAPServiceTestCase(unittest.TestCase):
     SOAP_SERVICE_PORTNUM = 10080
     ENDPOINT = 'http://localhost:%d/soap' % SOAP_SERVICE_PORTNUM
     THIS_DIR = path.abspath(path.dirname(__file__))   
+    
+    @unittest.skipIf(not paste_installed, 'Need Paste.Deploy to run '
+                     'SOAPServiceTestCase')
     
     def __init__(self, *args, **kwargs):
         """Use paste.fixture to test client/server SOAP interface"""

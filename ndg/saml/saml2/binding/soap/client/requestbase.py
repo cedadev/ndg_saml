@@ -11,17 +11,15 @@ __revision__ = '$Id: subjectquery.py 7634 2010-10-20 20:23:29Z pjkersha $'
 import logging
 log = logging.getLogger(__name__)
 
-import copy
 from datetime import datetime, timedelta
 from uuid import uuid4
 
 from ndg.saml.utils import SAMLDateTime
-from ndg.saml.saml2.core import (RequestAbstractType, StatusCode, Issuer,
-                                 SAMLVersion)
+from ndg.saml.saml2.core import RequestAbstractType, StatusCode
 
 from ndg.saml.utils import str2Bool
 from ndg.saml.saml2.binding.soap.client import (SOAPBinding,
-    SOAPBindingInvalidResponse)
+                                                SOAPBindingInvalidResponse)
 
 
 class RequestResponseError(SOAPBindingInvalidResponse):
@@ -53,14 +51,10 @@ class AssertionConditionNotOnOrAfterInvalid(RequestResponseError):
 class RequestBaseSOAPBinding(SOAPBinding): 
     """SAML Request Base SOAP Binding
     """
-    ISSUER_NAME_OPTNAME = 'issuerName'
-    ISSUER_FORMAT_OPTNAME = 'issuerFormat'
     CLOCK_SKEW_OPTNAME = 'clockSkewTolerance'
     VERIFY_TIME_CONDITIONS_OPTNAME = 'verifyTimeConditions'
     
     CONFIG_FILE_OPTNAMES = (
-        ISSUER_NAME_OPTNAME, 
-        ISSUER_FORMAT_OPTNAME,                
         CLOCK_SKEW_OPTNAME,
         VERIFY_TIME_CONDITIONS_OPTNAME            
     )
@@ -76,58 +70,8 @@ class RequestBaseSOAPBinding(SOAPBinding):
         '''Create SOAP Client for a SAML Subject Query'''       
         self.__clockSkewTolerance = timedelta(seconds=0.)
         self.__verifyTimeConditions = True
-        self.__issuer = Issuer()
-        self.__issuer.format = Issuer.X509_SUBJECT
         
         super(RequestBaseSOAPBinding, self).__init__(**kw)
-
-    def makeQuery(self):
-        query = self.__class__.QUERY_TYPE()
-        query.version = SAMLVersion(SAMLVersion.VERSION_20)
-        self.addQueryAttributes(query)
-        return query
-
-    def addQueryAttributes(self, query):
-        query.issuer = copy.deepcopy(self.issuer)
-
-    def _getIssuer(self):
-        return self.__issuer
-
-    def _setIssuer(self, value):
-        self.__issuer = value
-
-    issuer = property(_getIssuer, _setIssuer, 
-                      doc="Issuer")
-
-    def _getIssuerFormat(self):
-        if self.issuer is None:
-            return None
-        else:
-            return self.issuer.format
-
-    def _setIssuerFormat(self, value):
-        if self.issuer is None:
-            self.issuer = Issuer()
-
-        self.issuer.format = value
-
-    issuerFormat = property(_getIssuerFormat, _setIssuerFormat, 
-                            doc="Issuer format")
-
-    def _getIssuerName(self):
-        if self.issuer is None:
-            return None
-        else:
-            return self.issuer.value
-
-    def _setIssuerName(self, value):
-        if self.issuer is None:
-            self.issuer = Issuer()
-
-        self.issuer.value = value
-
-    issuerName = property(_getIssuerName, _setIssuerName, 
-                          doc="Name of issuer of SAML Subject Query")
 
     def _getVerifyTimeConditions(self):
         return self.__verifyTimeConditions
@@ -179,10 +123,10 @@ class RequestBaseSOAPBinding(SOAPBinding):
         sending it"""
         errors = []
         
-        if query.issuer.value is None:
+        if query.issuer is None or query.issuer.value is None:
             errors.append('issuer name')
 
-        if query.issuer.format is None:
+        if query.issuer is None or query.issuer.format is None:
             errors.append('issuer format')
         
         if errors:
@@ -199,9 +143,9 @@ class RequestBaseSOAPBinding(SOAPBinding):
 
     def _verifyTimeConditions(self, response):
         """Verify time conditions set in a response
-        @param response: SAML Response returned from remote service
-        @type response: ndg.saml.saml2.core.Response
-        @raise RequestResponseError: if a timestamp is invalid
+        :param response: SAML Response returned from remote service
+        :type response: ndg.saml.saml2.core.Response
+        :raise RequestResponseError: if a timestamp is invalid
         """
         
         if not self.verifyTimeConditions:
@@ -268,10 +212,10 @@ class RequestBaseSOAPBinding(SOAPBinding):
     def send(self, query, **kw):
         '''Make an attribute query to a remote SAML service
         
-        @type uri: basestring 
-        @param uri: uri of service.  May be omitted if set from request.url
-        @type request: ndg.security.common.soap.UrlLib2SOAPRequest
-        @param request: SOAP request object to which query will be attached
+        :type uri: basestring 
+        :param uri: uri of service.  May be omitted if set from request.url
+        :type request: ndg.security.common.soap.UrlLib2SOAPRequest
+        :param request: SOAP request object to which query will be attached
         defaults to ndg.security.common.soap.client.UrlLib2SOAPRequest
         '''
         self._validateQueryParameters(query)
