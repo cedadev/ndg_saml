@@ -279,8 +279,13 @@ class UrlLib2SOAPClient(SOAPClientBase):
             excep.urllib2Response = response
             raise excep
         
-        if (response.headers.typeheader not in 
-            UrlLib2SOAPClient.RESPONSE_CONTENT_TYPES):
+        # Check for accepted response type string in response from server
+        accepted_response_content_type = False
+        for content_type in UrlLib2SOAPClient.RESPONSE_CONTENT_TYPES:
+            if content_type in response.headers.typeheader:
+                accepted_response_content_type = True
+        
+        if not accepted_response_content_type:
             responseType = ', '.join(UrlLib2SOAPClient.RESPONSE_CONTENT_TYPES)
             excep = SOAPResponseError("Expecting %r response type; got %r for "
                                       "request to [%s]" % 
