@@ -23,7 +23,7 @@ limitations under the License.
 """
 __author__ = "P J Kershaw"
 __date__ = "10/08/09"
-__copyright__ = "(C) 2009 Science and Technology Facilities Council"
+__copyright__ = "(C) 2015 Science and Technology Facilities Council"
 __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = '$Id$'
