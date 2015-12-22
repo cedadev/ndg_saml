@@ -45,6 +45,11 @@ easily be extended to use other Python XML parsers.
 Releases
 ========
         
+0.8.1
+-----
+ * Fixes for SAML response processing - allow for more liberal check of response type
+   and for case for status message value not returned
+ 
 0.8.0
 -----
  * Re-factored to use ndg-httpsclient for client HTTP calls in place of M2Crypto.
@@ -105,17 +110,17 @@ Response).  Where possible, stubs have been provided for other classes.
 
 setup(
     name =           		'ndg_saml',
-    version =        		'0.7.0',
+    version =        		'0.8.1',
     description =    		('SAML 2.0 implementation for the NERC DataGrid '
-                             'based on the Java OpenSAML library'),
+                                'based on the Java OpenSAML library'),
     long_description =		_longDescription,
     author =         		'Philip Kershaw',
     author_email =   		'Philip.Kershaw@stfc.ac.uk',
     maintainer =         	'Philip Kershaw',
     maintainer_email =   	'Philip.Kershaw@stfc.ac.uk',
     url =            		'https://github.com/cedadev/ndg_saml',
-    license =               'http://www.apache.org/licenses/LICENSE-2.0',
-    packages =			    find_packages(),
+    license =                   'http://www.apache.org/licenses/LICENSE-2.0',
+    packages =			find_packages(),
     namespace_packages =	['ndg'],
     extras_require = {
         # These additional packages are needed if you wish to use the SOAP 
@@ -127,14 +132,14 @@ setup(
         # for expressing authorisation queries and decisions.
         'xacml_profile': ['ndg_xacml'],
     },
-    entry_points = {
+    entry_points={
     'console_scripts': [
         'ndg_saml_client = ndg.saml.utils.command_line_client:SamlSoapCommandLineClient.main',
         ],
     },
-    include_package_data =  True,
-    classifiers = [
-        'Development Status :: 4 - Beta',
+    include_package_data=True,
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
         'Environment :: Web Environment',
         'Intended Audience :: End Users/Desktop',
@@ -153,5 +158,5 @@ setup(
         'Topic :: System :: Systems Administration :: Authentication/Directory',
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
-    zip_safe =              False
+    zip_safe=False
 )

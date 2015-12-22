@@ -224,12 +224,18 @@ class RequestBaseSOAPBinding(SOAPBinding):
         log.debug("Sending request: query ID: %s", query.id)
         response = super(RequestBaseSOAPBinding, self).send(query, **kw)
 
-        # Perform validation
+        # Perform validation - Nb. status message may be None
         if response.status.statusCode.value != StatusCode.SUCCESS_URI:
+            # Allow for server response missing status message
+            status_msg = getattr(response.status, 'statusMessage')
+            if not status_msg:
+                status_msg_val = ''
+            else:
+                status_msg_val = status_msg.value
+                
             msg = ('Return status code flagged an error, %r.  '
                    'The message is, %r' %
-                   (response.status.statusCode.value,
-                    response.status.statusMessage.value))
+                   (response.status.statusCode.value, status_msg_val)) 
             samlRespError = RequestResponseError(msg)
             samlRespError.response = response
             raise samlRespError

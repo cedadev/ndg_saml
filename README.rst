@@ -7,6 +7,10 @@ easily be extended to use other Python XML parsers.
 
 Releases
 --------
+* 0.8.1
+ * Fixes for SAML response processing - allow for more liberal check of response type
+   and for case for status message value not returned
+
 * 0.8.0
  * Re-factored to use ndg-httpsclient for client HTTP calls in place of ``M2Crypto``.
  * decoupled SAML bindings classes from types.
