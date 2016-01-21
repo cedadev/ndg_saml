@@ -1763,18 +1763,29 @@ class ActionElementTree(Action):
             
         action = Action()
         namespace = elem.attrib.get(cls.NAMESPACE_ATTRIB_NAME)
+        elem_value = elem.text.strip()
         if namespace is None:
             log.warning('No "%s" attribute found in "%s" element assuming '
-                        '%r action namespace' %
+                        'checking for valid action namespace' %
                         (cls.NAMESPACE_ATTRIB_NAME,
-                         cls.DEFAULT_ELEMENT_LOCAL_NAME,
-                         action.namespace))
+                         cls.DEFAULT_ELEMENT_LOCAL_NAME))
+            # Iterate across all valid namespaces and check if elem_value works
+            for namespace in cls.ACTION_NS_IDENTIFIERS:
+                try:
+                    action.namespace = namespace
+                    action.value = elem_value
+                    return action
+                except:
+                    pass
+            log.warning("No valid namespace found for action value '%s'" % (elem_value))
+            # Should cause an exception here
+            action.namespace = cls.RWEDC_NEGATION_NS_URI
+            action.value = elem_value
+            return action
         else:
             action.namespace = namespace
-            
-        action.value = elem.text.strip() 
-        
-        return action
+            action.value = elem_value
+            return action
     
     
 class AuthzDecisionQueryElementTree(AuthzDecisionQuery):
