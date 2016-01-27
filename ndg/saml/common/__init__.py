@@ -61,9 +61,7 @@ class SAMLObject(object):
         if elementLocalName is None:
             elementLocalName = self.__class__.DEFAULT_ELEMENT_LOCAL_NAME
             
-        self.__qname = QName(namespaceURI, 
-                             elementLocalName, 
-                             namespacePrefix)
+        self.__qname = QName(namespaceURI, elementLocalName, namespacePrefix)
             
     @property
     def qname(self):

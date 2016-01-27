@@ -31,6 +31,7 @@ __revision__ = "$Id$"
 from datetime import datetime
 from urlparse import urlsplit, urlunsplit
 import urllib
+import itertools # use to extract unique action types for Action class
 
 from ndg.saml.common import SAMLObject, SAMLVersion
 from ndg.saml.common.xml import SAMLConstants, QName
@@ -2804,20 +2805,27 @@ class Action(SAMLObject):
         UNIX_NS_URI: ()   
     }
     
+    # Unique action types across all action namespaces - this is useful for 
+    # rudimentary validation of action values where the namespace has not been
+    # declared
+    ALL_ACTION_TYPES = tuple(set(itertools.chain(*ACTION_TYPES.values())))
+    
     __slots__ = (
+        'default_namespace',
         '__namespace', 
         '__value', 
         '__actionTypes'
     )
     
-    def __init__(self, **kw):
+    def __init__(self, default_namespace=RWEDC_NEGATION_NS_URI, **kw):
         '''Create an authorization action type
         '''
         super(Action, self).__init__(**kw)
 
         # URI of the Namespace of this action.  Default to read/write/negation 
         # type - 2.7.4.2 SAML 2 Core Spec. 15 March 2005
-        self.__namespace = Action.RWEDC_NEGATION_NS_URI
+        self.default_namespace = default_namespace
+        self.__namespace = default_namespace
 
         # Action value
         self.__value = None       
@@ -2916,23 +2924,39 @@ class Action(SAMLObject):
             raise TypeError('Expecting string or int type for "action" '
                             'attribute; got %r' % type(value))
             
-        # Default to read/write/negation type - 2.7.4.2 SAML 2 Core Spec.
-        # 15 March 2005
-        allowedActions = self.__actionTypes.get(self.__namespace,
-                                                Action.RWEDC_NEGATION_NS_URI)
+        # Read/write/negation type is the default - 2.7.4.2 SAML 2 Core Spec.
+        # 15 March 2005.  Allow for no setting also for misbehaving third party
+        # code ;)
+        if self.__namespace == None and self.default_namespace == None:
+            # No default set - check against all possible action types for all
+            # action namespaces
+            allowed_actions = self.__class__.ALL_ACTION_TYPES
+            if value not in allowed_actions:
+                raise AttributeError('%r action not recognised; known actions '
+                                     'across all known namespace identifier '
+                                     'are: %r.  If this is not as expected '
+                                     'make sure to set the "namespace" '
+                                     'attribute or override completely by '
+                                     'explicitly setting the "allowTypes" '
+                                     'attribute' % (value, allowed_actions))
+        else:  
+            # Default namespace has been set - check action against the default
+            # action type        
+            allowed_actions = self.__actionTypes.get(self.__namespace,
+                                                     self.default_namespace)
         
-        # Only apply restriction for action type that has a restricted 
-        # vocabulary - UNIX type is missed out of this because its an octal
-        # mask
-        if len(allowedActions) > 0 and value not in allowedActions:
-            raise AttributeError('%r action not recognised; known actions for '
-                                 'the %r namespace identifier are: %r.  ' 
-                                 'If this is not as expected make sure to set '
-                                 'the "namespace" attribute to an alternative '
-                                 'value first or override completely by '
-                                 'explicitly setting the "allowTypes" '
-                                 'attribute' % 
-                                 (value, self.__namespace, allowedActions))
+            # Only apply restriction for action type that has a restricted 
+            # vocabulary - UNIX type is missed out of this because its an octal
+            # mask
+            if len(allowed_actions) > 0 and value not in allowed_actions:
+                raise AttributeError('%r action not recognised; known actions '
+                                     'for the %r namespace identifier are: '
+                                     '%r.  If this is not as expected make '
+                                     'sure to set the "namespace" attribute to '
+                                     'an alternative value first or override '
+                                     'completely by explicitly setting the '
+                                     '"allowTypes" attribute' % 
+                                     (value, self.__namespace, allowed_actions))
         self.__value = value
 
     value = property(_getValue, _setValue, doc="Action string")
