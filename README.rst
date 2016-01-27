@@ -7,6 +7,10 @@ easily be extended to use other Python XML parsers.
 
 Releases
 --------
+* 0.8.2
+ * Allow for authorisation decision query response not setting Action namespace
+   correctly. - Accept response with warning.
+   
 * 0.8.1
  * Fixes for SAML response processing - allow for more liberal check of response type
    and for case for status message value not returned
