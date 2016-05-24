@@ -1196,8 +1196,6 @@ class SSLContextProxy(SSLContextProxyInterface):
     M2_SSL_PROTOCOL_METHOD = 'tlsv1'
     M2_SSL_VERIFY_DEPTH = 9
 
-    __slots__ = ()
-    
     def __call__(self):
         """Create an M2Crypto SSL Context from this objects properties
         :type depth: int
@@ -1213,7 +1211,7 @@ class SSLContextProxy(SSLContextProxyInterface):
         if self.sslCertFilePath and self.sslPriKeyFilePath:
             # Pass client certificate (optionally with chain)
             ctx.load_cert_chain(self.sslCertFilePath, 
-                                self._ssl_pri_key_filepath, 
+                                self._ssl_prikey_filepath, 
                                 lambda *arg, **kw: self.sslPriKeyPwd)
             log.debug("Set client certificate and key in SSL Context")
         else:

@@ -23,8 +23,6 @@ class SSLContextProxy(SSLContextProxyInterface):
     SSL_PROTOCOL_METHOD = SSL.TLSv1_METHOD
     SSL_VERIFY_DEPTH = 9
     
-    __slots__ = ()
-
     def __call__(self):
         """Create an M2Crypto SSL Context from this objects properties
         :type depth: int
