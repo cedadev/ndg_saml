@@ -32,6 +32,7 @@ from datetime import datetime
 from urlparse import urlsplit, urlunsplit
 import urllib
 import itertools # use to extract unique action types for Action class
+import ipaddress # use for SubjectLocality element - part of AuthnStatement
 
 from ndg.saml.common import SAMLObject, SAMLVersion
 from ndg.saml.common.xml import SAMLConstants, QName
@@ -352,6 +353,62 @@ class AttributeStatement(Statement):
     encryptedAttributes = property(fget=_get_encryptedAttributes)
 
 
+class SubjectLocality(SAMLObject):
+    '''Subject locality specifies the DNS domain name and IP address for the 
+    system from which an assertion subject was authenticated - part of 
+    Authentication statement'''
+    
+    # Element local name
+    DEFAULT_ELEMENT_LOCAL_NAME = "SubjectLocality"
+
+    # Default element name
+    DEFAULT_ELEMENT_NAME = QName(SAMLConstants.SAML20_NS, 
+                                 DEFAULT_ELEMENT_LOCAL_NAME,
+                                 SAMLConstants.SAML20_PREFIX)
+
+    # Local name of the XSI type
+    TYPE_LOCAL_NAME = "SubjectLocalityType"
+
+    # QName of the XSI type
+    TYPE_NAME = QName(SAMLConstants.SAML20_NS, 
+                      TYPE_LOCAL_NAME,
+                      SAMLConstants.SAML20_PREFIX)
+    
+    __slots__ = ('__address', '__dns_name')
+    
+    def __init__(self):
+        self.__address = None
+        self.__dns_name = None
+        
+    @property
+    def address(self):
+        return self.__address
+    
+    @address.setter
+    def address(self, value):
+        if isinstance(value, basestring):
+            self.__address = ipaddress.ip_address(value)
+            
+        elif isinstance(value, (ipaddress.IPv4Address,
+                                    ipaddress.IPv6Address)):
+            self.__address = value
+        else:
+            raise TypeError('Expecting IP address or string type for '
+                            '"address", got %r' % type(value))            
+
+    @property
+    def dns_name(self):
+        return self.__dns_name
+    
+    @dns_name.setter
+    def dns_name(self, value):
+        if not isinstance(value, basestring):
+            raise TypeError('Expecting string type for "dns_name", got %r' % 
+                            type(value))            
+    
+        self.__dns_name = value
+        
+        
 class AuthnStatement(Statement):
     '''SAML 2.0 Core AuthnStatement.  Currently implemented in abstract form
     only
@@ -397,93 +454,137 @@ class AuthnStatement(Statement):
     # SessionNoOnOrAfter attribute name
     SESSION_NOT_ON_OR_AFTER_ATTRIB_NAME = "SessionNotOnOrAfter"
     
-    __slots__ = ()
+    SUBJECT_LOCALITY_ATTRIB_NAME = "SubjectLocality"
     
-    def _getAuthnInstant(self):
+    AUTHN_CONTEXT_ATTRIB_NAME = "AuthnContext"
+    
+    __slots__ = (
+        '__authn_instant', 
+        '__session_index', 
+        '__session_not_on_or_after',
+        '__subject_locality',
+        '__authn_context'
+    )
+    
+    def __init__(self):
+        self.__authn_instant = None
+        
+        # Optional
+        self.__session_index = None
+        
+        # Optional
+        self.__session_not_on_or_after = None
+        
+        # Optional
+        self.__subject_locality = None
+        
+        self.__authn_context = None
+    
+    @property    
+    def authn_instant(self):
         '''Abstract method.  Gets the time when the authentication took place.
         
         :return: the time when the authentication took place
         :rtype: datetime.datetime
-        :raise NotImplementedError: abstract method
         '''
-        raise NotImplementedError()
+        return self.__authn_instant
 
-    def _setAuthnInstant(self, value):
+    @authn_instant.setter
+    def authn_instant(self, value):
         '''Sets the time when the authentication took place.
         
         :param value: the time when the authentication took place
         :type value: datetime.datetime
-        :raise NotImplementedError: abstract method
+        :raise TypeError: invalid type set
         '''
-        raise NotImplementedError()
+        if not isinstance(value, datetime):
+            raise TypeError('Expecting "datetime" type for "authn_instant", '
+                            'got %r' % type(value))
+            
+        self.__authn_instant = value
 
-    def _getSessionIndex(self):
+    @property
+    def session_index(self):
         '''Get the session index between the principal and the authenticating 
         authority.
         
         :return: the session index between the principal and the authenticating 
         authority
         :rtype: ?
-        :raise NotImplementedError: abstract method
         '''
-        raise NotImplementedError()
+        return self.__session_index
 
-    def _setSessionIndex(self, value):
+    @session_index.setter
+    def session_index(self, value):
         '''Sets the session index between the principal and the authenticating 
         authority.
         
         :param value: the session index between the principal and the 
         authenticating authority
         :type value: ?
-        :raise NotImplementedError: abstract method
         '''
-        raise NotImplementedError()
+        if not isinstance(value, basestring):
+            raise TypeError('Expecting string type for "session_index", '
+                            'got %r' % type(value))
+        
+        return self.__session_index
 
-    def _getSessionNotOnOrAfter(self):
+    @property
+    def session_not_on_or_after(self):
         '''Get the time when the session between the principal and the SAML 
         authority ends.
         
         :return: the time when the session between the principal and the SAML 
         authority ends
         :rtype: datetime.datetime
-        :raise NotImplementedError: abstract method
         '''
-        raise NotImplementedError()
+        return self.__session_not_on_or_after
 
-    def _setSessionNotOnOrAfter(self, value):
+    @session_not_on_or_after.setter
+    def session_not_on_or_after(self, value):
         '''Set the time when the session between the principal and the SAML 
         authority ends.
         
         :param value: the time when the session between the 
         principal and the SAML authority ends
         :type value: datetime.datetime
-        :raise NotImplementedError: abstract method
+        :raise TypeError: invalid type set
         '''
-        raise NotImplementedError()
+        if not isinstance(value, datetime):
+            raise TypeError('Expecting "datetime" type for '
+                            '"session_not_on_or_after", got %r' % type(value))
 
-    def _getSubjectLocality(self):
+        self.__session_not_on_or_after = value
+    
+    @property  
+    def subject_locality(self):
         '''Get the DNS domain and IP address of the system where the principal 
         was authenticated.
         
         :return: the DNS domain and IP address of the system where the principal
         was authenticated
-        :rtype: ?
-        :raise NotImplementedError: abstract method
+        :rtype: SubjectLocality or None
         '''
-        raise NotImplementedError()
+        return self.__subject_locality
 
-    def _setSubjectLocality(self, value):
+    @subject_locality.setter
+    def subject_locality(self, value):
         '''Set the DNS domain and IP address of the system where the principal 
         was authenticated.
         
         :param value: the DNS domain and IP address of the system where 
         the principal was authenticated
-        :type value: ?
-        :raise NotImplementedError: abstract method
+        :type value: SubjectLocality
+        :raise TypeError: wrong type
         '''
-        raise NotImplementedError()
+        if not isinstance(value, SubjectLocality):
+            raise TypeError('Error expecting SubjectLocality type for '
+                            '"subject_locality"; got %r type' % type(value))
+            
+        self.__subject_locality = value
 
-    def _getAuthnContext(self):
+    @property
+    def authn_context(self):
         '''Gets the context used to authenticate the subject.
         
         :return: the context used to authenticate the subject

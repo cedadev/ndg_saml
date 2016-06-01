@@ -9,8 +9,7 @@ __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = '$Id$'
 import logging
-from OpenSSL import SSL, crypto
-from OpenSSL.test.test_ssl import verify_cb
+from OpenSSL import SSL
 
 from ndg.httpsclient.ssl_peer_verification import ServerSSLCertVerification
 
