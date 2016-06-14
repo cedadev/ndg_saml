@@ -1,4 +1,4 @@
-"""SAML 2.0 Utilities module for M2Crypto SSL functionality 
+"""SAML 2.0 Utilities module for SSL functionality via PyOpenSSL package
 
 NDG SAML
 """
@@ -9,7 +9,7 @@ __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = '$Id$'
 import logging
-from OpenSSL import SSL
+from OpenSSL import SSL, crypto
 
 from ndg.httpsclient.ssl_peer_verification import ServerSSLCertVerification
 
