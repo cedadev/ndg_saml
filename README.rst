@@ -7,6 +7,9 @@ easily be extended to use other Python XML parsers.
 
 Releases
 --------
+* 0.8.3 (Candidate)
+ * Minor fixes for PyOpenSSL imports
+
 * 0.8.2
  * Allow for authorisation decision query response not setting Action namespace
    correctly. - Accept response with warning.
