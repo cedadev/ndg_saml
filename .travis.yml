@@ -5,6 +5,7 @@ python:
 #install:
 #  - "python setup.py develop"
 #  - "pip install -r requirements.txt"
+# 
 # command to run tests
 #script: "nosetests && echo OK"
 script: nosetests
