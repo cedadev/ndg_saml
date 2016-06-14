@@ -39,187 +39,16 @@ from ndg.saml import importElementTree
 ElementTree = importElementTree()
 
 from ndg.saml.utils import SAMLDateTime
-from ndg.saml.saml2.core import (SAMLVersion, Attribute, AttributeStatement, 
-                                 AuthzDecisionStatement, Assertion, 
+from ndg.saml.saml2.core import (SAMLVersion, AuthzDecisionStatement, Assertion, 
                                  AttributeQuery, Response, Issuer, Subject, 
                                  NameID, StatusCode, StatusMessage, Status, 
-                                 Conditions, DecisionType, 
-                                 XSStringAttributeValue, Action, 
+                                 Conditions, DecisionType, Action, 
                                  AuthzDecisionQuery)
 
-from ndg.saml.common.xml import SAMLConstants
 from ndg.saml.xml.etree import (prettyPrint, AssertionElementTree, 
                             AttributeQueryElementTree, ResponseElementTree,
                             AuthzDecisionQueryElementTree)
-
-
-class SAMLUtil(object):
-    """SAML utility class based on ANL examples for Earth System Grid:
-    http://www.ci.uchicago.edu/wiki/bin/view/ESGProject/ESGSAMLAttributes#ESG_Attribute_Service
-    """
-    NAMEID_FORMAT = "urn:esg:openid"
-    NAMEID_VALUE = "https://openid.localhost/philip.kershaw"
-    ISSUER_DN = "/O=NDG/OU=BADC/CN=attributeauthority.badc.rl.ac.uk"
-    UNCORRECTED_RESOURCE_URI = "http://LOCALHOST:80/My Secured URI"
-    RESOURCE_URI = "http://localhost/My%20Secured%20URI"
-    XSSTRING_NS = "http://www.w3.org/2001/XMLSchema#string"
-    
-    def __init__(self):
-        """Set-up ESG core attributes, Group/Role and miscellaneous 
-        attributes lists
-        """
-        self.firstName = None
-        self.lastName = None
-        self.emailAddress = None
-        
-        self.__miscAttrList = []
-    
-    def addAttribute(self, name, value):
-        """Add a generic attribute
-        @type name: basestring
-        @param name: attribute name
-        @type value: basestring
-        @param value: attribute value
-        """
-        self.__miscAttrList.append((name, value))
-
-    def buildAssertion(self):
-        """Create a SAML Assertion containing ESG core attributes: First
-        Name, Last Name, e-mail Address; ESG Group/Role type attributes
-        and generic attributes
-        @rtype: ndg.security.common.saml.Assertion
-        @return: new SAML Assertion object
-        """
-        
-        assertion = Assertion()
-        assertion.version = SAMLVersion(SAMLVersion.VERSION_20)
-        assertion.id = str(uuid4())
-        assertion.issueInstant = datetime.utcnow()
-        attributeStatement = AttributeStatement()
-        
-        for attribute in self.createAttributes():
-            attributeStatement.attributes.append(attribute)
-            
-        assertion.attributeStatements.append(attributeStatement)
-        
-        return assertion
-
-    def buildAttributeQuery(self, issuer, subjectNameID):
-        """Make a SAML Attribute Query
-        @type issuer: basestring
-        @param issuer: attribute issuer name
-        @type subjectNameID: basestring
-        @param subjectNameID: identity to query attributes for
-        """
-        attributeQuery = AttributeQuery()
-        attributeQuery.version = SAMLVersion(SAMLVersion.VERSION_20)
-        attributeQuery.id = str(uuid4())
-        attributeQuery.issueInstant = datetime.utcnow()
-        
-        attributeQuery.issuer = Issuer()
-        attributeQuery.issuer.format = Issuer.X509_SUBJECT
-        attributeQuery.issuer.value = issuer
-                        
-        attributeQuery.subject = Subject()  
-        attributeQuery.subject.nameID = NameID()
-        attributeQuery.subject.nameID.format = SAMLTestCase.NAMEID_FORMAT
-        attributeQuery.subject.nameID.value = subjectNameID
-                                    
-        attributeQuery.attributes = self.createAttributes()
-        
-        return attributeQuery
-    
-    def createAttributes(self):
-        """Create SAML Attributes for use in an Assertion or AttributeQuery"""
-        
-        attributes = []
-        if self.firstName is not None:    
-            # special case handling for 'FirstName' attribute
-            fnAttribute = Attribute()
-            fnAttribute.name = "urn:esg:first:name"
-            fnAttribute.nameFormat = SAMLUtil.XSSTRING_NS
-            fnAttribute.friendlyName = "FirstName"
-
-            firstName = XSStringAttributeValue()
-            firstName.value = self.firstName
-            fnAttribute.attributeValues.append(firstName)
-
-            attributes.append(fnAttribute)
-        
-
-        if self.lastName is not None:
-            # special case handling for 'LastName' attribute
-            lnAttribute = Attribute()
-            lnAttribute.name = "urn:esg:last:name"
-            lnAttribute.nameFormat = SAMLUtil.XSSTRING_NS
-            lnAttribute.friendlyName = "LastName"
-
-            lastName = XSStringAttributeValue()
-            lastName.value = self.lastName
-            lnAttribute.attributeValues.append(lastName)
-
-            attributes.append(lnAttribute)
-        
-
-        if self.emailAddress is not None:
-            # special case handling for 'LastName' attribute
-            emailAddressAttribute = Attribute()
-            emailAddressAttribute.name = "urn:esg:email:address"
-            emailAddressAttribute.nameFormat = SAMLConstants.XSD_NS+"#"+\
-                                        XSStringAttributeValue.TYPE_LOCAL_NAME
-            emailAddressAttribute.friendlyName = "emailAddress"
-
-            emailAddress = XSStringAttributeValue()
-            emailAddress.value = self.emailAddress
-            emailAddressAttribute.attributeValues.append(emailAddress)
-
-            attributes.append(emailAddressAttribute)
-        
-        for name, value in self.__miscAttrList:
-            attribute = Attribute()
-            attribute.name = name
-            attribute.nameFormat = SAMLUtil.XSSTRING_NS
-
-            stringAttributeValue = XSStringAttributeValue()
-            stringAttributeValue.value = value
-            attribute.attributeValues.append(stringAttributeValue)
-
-            attributes.append(attribute)
-            
-        return attributes
-    
-    def buildAuthzDecisionQuery(self, 
-                                issuer=ISSUER_DN,
-                                issuerFormat=Issuer.X509_SUBJECT,
-                                subjectNameID=NAMEID_VALUE, 
-                                subjectNameIdFormat=NAMEID_FORMAT,
-                                resource=UNCORRECTED_RESOURCE_URI,
-                                actions=((Action.HTTP_GET_ACTION, 
-                                          Action.GHPP_NS_URI),)):
-        """Convenience utility to make an Authorisation decision query"""
-        authzDecisionQuery = AuthzDecisionQuery()
-
-        authzDecisionQuery.version = SAMLVersion(SAMLVersion.VERSION_20)
-        authzDecisionQuery.id = str(uuid4())
-        authzDecisionQuery.issueInstant = datetime.utcnow()
-        
-        authzDecisionQuery.issuer = Issuer()
-        authzDecisionQuery.issuer.format = issuerFormat
-        authzDecisionQuery.issuer.value = issuer
-        
-        authzDecisionQuery.subject = Subject()
-        authzDecisionQuery.subject.nameID = NameID()
-        authzDecisionQuery.subject.nameID.format = subjectNameIdFormat
-        authzDecisionQuery.subject.nameID.value = subjectNameID
-        
-        authzDecisionQuery.resource = resource
-        
-        for action, namespace in actions:
-            authzDecisionQuery.actions.append(Action())
-            authzDecisionQuery.actions[-1].namespace = namespace
-            authzDecisionQuery.actions[-1].value = action
-            
-        return authzDecisionQuery
+from ndg.saml.test.utils import SAMLUtil
             
 
 class SAMLTestCase(unittest.TestCase):
@@ -402,26 +231,6 @@ class SAMLTestCase(unittest.TestCase):
         print("\n"+"_"*80)
         print(xmlOutput)
         print("_"*80)
-        
-    def _createAuthzDecisionQuery(self):
-        authzDecisionQuery = AuthzDecisionQuery()
-
-        authzDecisionQuery.version = SAMLVersion(SAMLVersion.VERSION_20)
-        authzDecisionQuery.id = str(uuid4())
-        authzDecisionQuery.issueInstant = datetime.utcnow()
-        
-        authzDecisionQuery.issuer = Issuer()
-        authzDecisionQuery.issuer.format = Issuer.X509_SUBJECT
-        authzDecisionQuery.issuer.value = SAMLTestCase.ISSUER_DN
-        
-        authzDecisionQuery.subject = Subject()
-        authzDecisionQuery.subject.nameID = NameID()
-        authzDecisionQuery.subject.nameID.format = SAMLTestCase.NAMEID_FORMAT
-        authzDecisionQuery.subject.nameID.value = SAMLTestCase.NAMEID_VALUE
-        
-        authzDecisionQuery.resource = "http://LOCALHOST:80/My Secured URI"
-        
-        return authzDecisionQuery
     
     def test06CreateAuthzDecisionQuery(self):
         samlUtil = SAMLUtil()
@@ -462,116 +271,8 @@ class SAMLTestCase(unittest.TestCase):
         authzDecisionQuery.actions[0].namespace = 'urn:malicious'
         authzDecisionQuery.actions[0].value = "delete everything"
         
-    def test07SerializeAuthzDecisionQuery(self):
-        samlUtil = SAMLUtil()
-        authzDecisionQuery = samlUtil.buildAuthzDecisionQuery()
-        
-        # Create ElementTree Assertion Element
-        authzDecisionQueryElem = AuthzDecisionQueryElementTree.toXML(
-                                                            authzDecisionQuery)
-        
-        self.assert_(ElementTree.iselement(authzDecisionQueryElem))
-        
-        # Serialise to output 
-        xmlOutput = prettyPrint(authzDecisionQueryElem)       
-        self.assert_(len(xmlOutput))
-        
-        print("\n"+"_"*80)
-        print(xmlOutput)
-        print("_"*80)
-   
-    def test08DeserializeAuthzDecisionQuery(self):
-        samlUtil = SAMLUtil()
-        authzDecisionQuery = samlUtil.buildAuthzDecisionQuery()
-        
-        # Create ElementTree Assertion Element
-        authzDecisionQueryElem = AuthzDecisionQueryElementTree.toXML(
-                                                            authzDecisionQuery)
-        
-        self.assert_(ElementTree.iselement(authzDecisionQueryElem))
-        
-        # Serialise to output 
-        xmlOutput = prettyPrint(authzDecisionQueryElem)       
-        self.assert_(len(xmlOutput))
-        
-        authzDecisionQueryStream = StringIO()
-        authzDecisionQueryStream.write(xmlOutput)
-        authzDecisionQueryStream.seek(0)
-
-        tree = ElementTree.parse(authzDecisionQueryStream)
-        elem2 = tree.getroot()
-        
-        authzDecisionQuery2 = AuthzDecisionQueryElementTree.fromXML(elem2)
-        self.assert_(authzDecisionQuery2)
-        self.assert_(
-        authzDecisionQuery2.subject.nameID.value == SAMLTestCase.NAMEID_VALUE)
-        self.assert_(
-        authzDecisionQuery2.subject.nameID.format == SAMLTestCase.NAMEID_FORMAT)
-        self.assert_(
-            authzDecisionQuery2.issuer.value == SAMLTestCase.ISSUER_DN)
-        self.assert_(
-            authzDecisionQuery2.resource == SAMLTestCase.RESOURCE_URI)
-        self.assert_(len(authzDecisionQuery2.actions) == 1)
-        self.assert_(
-            authzDecisionQuery2.actions[0].value == Action.HTTP_GET_ACTION)
-        self.assert_(
-            authzDecisionQuery2.actions[0].namespace == Action.GHPP_NS_URI)
-        self.assert_(authzDecisionQuery2.evidence is None)
-
-    def _createAuthzDecisionQueryResponse(self):
-        """Helper method for Authz Decision Response"""
-        response = Response()
-        now = datetime.utcnow()
-        response.issueInstant = now
-        
-        # Make up a request ID that this response is responding to
-        response.inResponseTo = str(uuid4())
-        response.id = str(uuid4())
-        response.version = SAMLVersion(SAMLVersion.VERSION_20)
-            
-        response.issuer = Issuer()
-        response.issuer.format = Issuer.X509_SUBJECT
-        response.issuer.value = SAMLTestCase.ISSUER_DN
-        
-        response.status = Status()
-        response.status.statusCode = StatusCode()
-        response.status.statusCode.value = StatusCode.SUCCESS_URI
-        response.status.statusMessage = StatusMessage()        
-        response.status.statusMessage.value = "Response created successfully"
-           
-        assertion = Assertion()
-        assertion.version = SAMLVersion(SAMLVersion.VERSION_20)
-        assertion.id = str(uuid4())
-        assertion.issueInstant = now
-        
-        authzDecisionStatement = AuthzDecisionStatement()
-        authzDecisionStatement.decision = DecisionType.PERMIT
-        authzDecisionStatement.resource = SAMLTestCase.RESOURCE_URI
-        authzDecisionStatement.actions.append(Action())
-        authzDecisionStatement.actions[-1].namespace = Action.GHPP_NS_URI
-        authzDecisionStatement.actions[-1].value = Action.HTTP_GET_ACTION
-        assertion.authzDecisionStatements.append(authzDecisionStatement)
-        
-        # Add a conditions statement for a validity of 8 hours
-        assertion.conditions = Conditions()
-        assertion.conditions.notBefore = now
-        assertion.conditions.notOnOrAfter = now + timedelta(seconds=60*60*8)
-               
-        assertion.subject = Subject()  
-        assertion.subject.nameID = NameID()
-        assertion.subject.nameID.format = SAMLTestCase.NAMEID_FORMAT
-        assertion.subject.nameID.value = SAMLTestCase.NAMEID_VALUE    
-            
-        assertion.issuer = Issuer()
-        assertion.issuer.format = Issuer.X509_SUBJECT
-        assertion.issuer.value = SAMLTestCase.ISSUER_DN
-
-        response.assertions.append(assertion)
-        
-        return response
-        
     def test09CreateAuthzDecisionQueryResponse(self):
-        response = self._createAuthzDecisionQueryResponse()
+        response = SAMLUtil.create_authz_decision_query_response()
         self.assert_(response.assertions[0])
         self.assert_(response.assertions[0].authzDecisionStatements[0])
         self.assert_(response.assertions[0].authzDecisionStatements[0
@@ -584,53 +285,6 @@ class SAMLTestCase(unittest.TestCase):
             ].actions[-1].namespace == Action.GHPP_NS_URI)
         self.assert_(response.assertions[0].authzDecisionStatements[0
             ].actions[-1].value == Action.HTTP_GET_ACTION)
-     
-    def _serializeAuthzDecisionQueryResponse(self):
-        response = self._createAuthzDecisionQueryResponse()
-        
-        # Create ElementTree Assertion Element
-        responseElem = ResponseElementTree.toXML(response)
-        self.assert_(ElementTree.iselement(responseElem))
-        
-        # Serialise to output        
-        xmlOutput = prettyPrint(responseElem)
-        return xmlOutput
-    
-    def test10SerializeAuthzDecisionQueryResponse(self):
-        xmlOutput = self._serializeAuthzDecisionQueryResponse()
-        self.assert_(len(xmlOutput))
-        print("\n"+"_"*80)
-        print(xmlOutput)
-        print("_"*80)
-        
-        self.assert_('AuthzDecisionStatement' in xmlOutput)
-        self.assert_('GET' in xmlOutput)
-        self.assert_('Permit' in xmlOutput)
-
-    def test11DeserializeAuthzDecisionResponse(self):
-        xmlOutput = self._serializeAuthzDecisionQueryResponse()
-        
-        authzDecisionResponseStream = StringIO()
-        authzDecisionResponseStream.write(xmlOutput)
-        authzDecisionResponseStream.seek(0)
-
-        tree = ElementTree.parse(authzDecisionResponseStream)
-        elem = tree.getroot()
-        response = ResponseElementTree.fromXML(elem)
-        
-        self.assert_(response.assertions[0])
-        self.assert_(response.assertions[0].authzDecisionStatements[0])
-        self.assert_(response.assertions[0].authzDecisionStatements[0
-            ].decision == DecisionType.PERMIT)
-        self.assert_(response.assertions[0].authzDecisionStatements[0
-            ].resource == SAMLTestCase.RESOURCE_URI)
-        self.assert_(response.assertions[0].authzDecisionStatements[0
-            ].decision == DecisionType.PERMIT)
-        self.assert_(response.assertions[0].authzDecisionStatements[0
-            ].actions[-1].namespace == Action.GHPP_NS_URI)
-        self.assert_(response.assertions[0].authzDecisionStatements[0
-            ].actions[-1].value == Action.HTTP_GET_ACTION)
-        
  
     def test12PickleAssertion(self):
         # Test pickling with __slots__
@@ -715,7 +369,7 @@ class SAMLTestCase(unittest.TestCase):
         self.assert_(query2.actions[0].namespace == Action.GHPP_NS_URI)
 
     def test16PickleAuthzDecisionResponse(self):
-        response = self._createAuthzDecisionQueryResponse()
+        response = SAMLUtil.create_authz_decision_query_response()
         
         jar = pickle.dumps(response)
         response2 = pickle.loads(jar)
@@ -749,8 +403,7 @@ class SAMLTestCase(unittest.TestCase):
         # No seconds fraction
         self.assert_(SAMLDateTime.fromString('2010-10-20T14:49:50Z'))
         
-        self.assertRaises(TypeError, SAMLDateTime.fromString, 
-                          None)
+        self.assertRaises(TypeError, SAMLDateTime.fromString, None)
         
         
 if __name__ == "__main__":

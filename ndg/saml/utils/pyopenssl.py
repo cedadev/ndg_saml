@@ -1,4 +1,4 @@
-"""SAML 2.0 Utilities module for M2Crypto SSL functionality 
+"""SAML 2.0 Utilities module for SSL functionality via PyOpenSSL package
 
 NDG SAML
 """
@@ -10,7 +10,6 @@ __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = '$Id$'
 import logging
 from OpenSSL import SSL, crypto
-from OpenSSL.test.test_ssl import verify_cb
 
 from ndg.httpsclient.ssl_peer_verification import ServerSSLCertVerification
 
@@ -23,8 +22,6 @@ class SSLContextProxy(SSLContextProxyInterface):
     SSL_PROTOCOL_METHOD = SSL.TLSv1_METHOD
     SSL_VERIFY_DEPTH = 9
     
-    __slots__ = ()
-
     def __call__(self):
         """Create an M2Crypto SSL Context from this objects properties
         :type depth: int

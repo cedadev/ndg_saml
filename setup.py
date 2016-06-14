@@ -44,7 +44,16 @@ easily be extended to use other Python XML parsers.
 
 Releases
 ========
-        
+
+0.8.3 (Candidate)
+-----------------
+ * Minor fixes for PyOpenSSL imports
+
+0.8.2
+-----
+ * Allow for authorisation decision query response not setting Action namespace
+   correctly. - Accept response with warning.
+           
 0.8.1
 -----
  * Fixes for SAML response processing - allow for more liberal check of response type
@@ -110,7 +119,7 @@ Response).  Where possible, stubs have been provided for other classes.
 
 setup(
     name =           		'ndg_saml',
-    version =        		'0.8.1',
+    version =        		'0.8.3',
     description =    		('SAML 2.0 implementation for the NERC DataGrid '
                                 'based on the Java OpenSAML library'),
     long_description =		_longDescription,

@@ -34,7 +34,7 @@ import re
 from ndg.saml import Config, importElementTree
 ElementTree = importElementTree()
 
-from ndg.saml.saml2.core import (SAMLObject, Attribute, AttributeStatement, 
+from ndg.saml.saml2.core import (Attribute, AttributeStatement, 
                                  AuthnStatement, AuthzDecisionStatement, 
                                  Assertion, Conditions, AttributeValue, 
                                  AttributeQuery, AuthzDecisionQuery, Subject, 
@@ -987,6 +987,7 @@ class AttributeValueElementTreeFactory(object):
         XSStringAttributeValue: XSStringAttributeValueElementTree
     }
 
+    # Convert into static method _after_ addition to type map
     def xsstringMatch(elem):
         """Match function for xs:string type attribute.
         
@@ -1025,7 +1026,7 @@ class AttributeValueElementTreeFactory(object):
         @param customToSAMLTypeMap: string ID based mapping for custom SAML 
         AttributeValue classes to their respective ElementTree based 
         representations.  As with customToXMLTypeMap, this appends to
-        to the respective self.__toSAMLTypeMap
+        to the respective self.__saml_type_map
         """
         if customToXMLTypeMap is None:
             customToXMLTypeMap = {}
@@ -1048,12 +1049,12 @@ class AttributeValueElementTreeFactory(object):
             raise TypeError('Expecting list or tuple type for '
                             '"customToSAMLTypeMap"')
         
-        self.__toSAMLTypeMap = AttributeValueElementTreeFactory.toSAMLTypeMap[:]
+        self.__saml_type_map = AttributeValueElementTreeFactory.toSAMLTypeMap[:]
         for func in customToSAMLTypeMap:
             if not callable(func):
                 raise TypeError('"customToSAMLTypeMap" items must be callable')
             
-        self.__toSAMLTypeMap += customToSAMLTypeMap
+        self.__saml_type_map += customToSAMLTypeMap
 
     def __call__(self, input):
         """Create an ElementTree object based on the Attribute class type
@@ -1063,7 +1064,7 @@ class AttributeValueElementTreeFactory(object):
         @param input: pass an AttributeValue derived type or a string.  If
         an AttributeValue type, then self.__toXMLTypeMap is checked for a 
         matching AttributeValue class entry, if a string is passed, 
-        self.__toSAMLTypeMap is checked for a matching string ID.  In both 
+        self.__saml_type_map is checked for a matching string ID.  In both 
         cases, if a match is found an ElementTree class is returned which can 
         render or parse the relevant AttributeValue class
         """
@@ -1076,8 +1077,11 @@ class AttributeValueElementTreeFactory(object):
                 
         elif ElementTree.iselement(input):
             XMLTypeClasses = []
-            for matchFunc in self.__toSAMLTypeMap:
-                cls = matchFunc(input)
+            for matchFunc in self.__saml_type_map:
+                try:
+                    cls = matchFunc(input)
+                except:
+                    raise
                 if cls is None:
                     continue
                 elif issubclass(cls, AttributeValue):
@@ -1732,9 +1736,6 @@ class ActionElementTree(Action):
             cls.NAMESPACE_ATTRIB_NAME: action.namespace
         }
         tag = str(QName.fromGeneric(cls.DEFAULT_ELEMENT_NAME))
-        elem = makeEtreeElement(tag, action.qname.prefix,
-                                action.qname.namespaceURI,
-                                **attrib)
         elem = ElementTree.Element(tag, **attrib)
         
         if not action.value:
@@ -1760,18 +1761,22 @@ class ActionElementTree(Action):
         if QName.getLocalPart(elem.tag) != cls.DEFAULT_ELEMENT_LOCAL_NAME:
             raise XMLTypeParseError("No \"%s\" element found" %
                                     cls.DEFAULT_ELEMENT_LOCAL_NAME)
-            
-        action = Action()
+
         namespace = elem.attrib.get(cls.NAMESPACE_ATTRIB_NAME)
         if namespace is None:
-            log.warning('No "%s" attribute found in "%s" element assuming '
-                        '%r action namespace' %
+            # If no action namespace is set then spec. says to default to 
+            # Read/write/negation type (2.7.4.2 SAML 2 Core Spec.
+            # 15 March 2005).  However, set default to none to allow for
+            # misbehaving third party code ;)
+            action = Action(default_namespace=None)
+            log.warning('No "%s" attribute found in "%s" element - no action '
+                        'namespace set' %
                         (cls.NAMESPACE_ATTRIB_NAME,
-                         cls.DEFAULT_ELEMENT_LOCAL_NAME,
-                         action.namespace))
+                         cls.DEFAULT_ELEMENT_LOCAL_NAME))
         else:
+            action = Action()
             action.namespace = namespace
-            
+
         action.value = elem.text.strip() 
         
         return action
