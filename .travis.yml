@@ -8,5 +8,5 @@ python:
 # 
 # command to run tests
 #script: "nosetests && echo OK"
-script: nosetests
+script: "nosetests -s"
 #bundler_args: --retry 2

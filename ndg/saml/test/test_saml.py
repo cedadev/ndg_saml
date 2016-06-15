@@ -50,7 +50,6 @@ from ndg.saml.xml.etree import (prettyPrint, AssertionElementTree,
 from ndg.saml.test.utils import SAMLUtil
             
 
-@unittest.skip("Temporary skip to debug Travis CI fault")   
 class SAMLTestCase(unittest.TestCase):
     """Test SAML implementation for use with CMIP5 federation"""
     NAMEID_FORMAT = SAMLUtil.NAMEID_FORMAT
