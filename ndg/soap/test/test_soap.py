@@ -51,7 +51,6 @@ class SOAPBindingMiddleware(object):
         return [response]
     
     
-@unittest.skip("Temporary skip to debug Travis CI fault")   
 class SOAPTestCase(unittest.TestCase):
     EG_SOAPFAULT_CODE = "%s:%s" % (SOAPFaultBase.DEFAULT_ELEMENT_NS_PREFIX, 
                                    "MustUnderstand")
@@ -148,7 +147,6 @@ class SOAPTestCase(unittest.TestCase):
         self.assert_(soap2 == soap)
             
 
-@unittest.skip("Temporary skip to debug Travis CI fault")      
 class SOAPServiceTestCase(unittest.TestCase):
     SOAP_SERVICE_PORTNUM = 10080
     ENDPOINT = 'http://localhost:%d/soap' % SOAP_SERVICE_PORTNUM

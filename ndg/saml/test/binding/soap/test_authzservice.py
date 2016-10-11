@@ -113,7 +113,6 @@ class TestAuthorisationServiceMiddleware(object):
         return authzDecisionQuery
     
     
-@unittest.skip("Temporary skip to debug Travis CI fault")   
 class SOAPAuthzDecisionInterfaceMiddlewareTestCase(
                                         WithPasteFixtureBaseTestCase):
     CONFIG_FILENAME = 'authz-decision-interface.ini'

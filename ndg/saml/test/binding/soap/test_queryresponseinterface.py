@@ -161,7 +161,6 @@ class SamlSoapBindingApp(object):
         return [response]
 
         
-@unittest.skip("Temporary skip to debug Travis CI fault")   
 class SamlAttributeQueryTestCase(unittest.TestCase):
     """Test the SAML SOAP binding using an Attribute Query as an example"""
     thisDir = os.path.dirname(os.path.abspath(__file__))

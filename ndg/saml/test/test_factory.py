@@ -30,7 +30,6 @@ from ndg.saml.utils.factory import (AttributeQueryFactory,
                                     AuthzDecisionQueryFactory)
 
 
-@unittest.skip("Temporary skip to debug Travis CI fault")   
 class AttributeQueryFactoryTestCase(unittest.TestCase):
     '''Test attribute query factory class'''
     def setUp(self):
@@ -89,7 +88,6 @@ class AttributeQueryFactoryTestCase(unittest.TestCase):
                           self.config['attributeQuery.attributes.0']))
 
 
-@unittest.skip("Temporary skip to debug Travis CI fault")   
 class AuthzDecisionQueryFactoryTestCase(unittest.TestCase):
     '''Test authorisation decision query factory class'''
     def setUp(self):

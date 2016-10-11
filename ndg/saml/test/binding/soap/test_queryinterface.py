@@ -19,7 +19,6 @@ from ndg.saml.xml.etree import AttributeQueryElementTree
 from ndg.saml.xml.etree import ResponseElementTree
 
 
-@unittest.skip("Temporary skip to debug Travis CI fault")   
 class SOAPQueryInterfaceMiddlewareTestCase(unittest.TestCase):
     """Test Setting of SOAP Query Interface middleware attributes"""
         

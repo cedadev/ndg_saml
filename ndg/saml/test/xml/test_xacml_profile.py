@@ -61,7 +61,6 @@ if _xacml_support:
     
     logging.basicConfig(level=logging.DEBUG)
     
-    @unittest.skip("Temporary skip to debug Travis CI fault")   
     class XacmlProfileTestCase(unittest.TestCase):
         """Test XML handling for XACML profile elements"""
         ISSUER_DN = "/O=NDG/OU=BADC/CN=attributeauthority.badc.rl.ac.uk"

@@ -40,7 +40,6 @@ from ndg.saml.xml.etree import (ResponseElementTree,
 from ndg.saml.test.utils import SAMLUtil
 
 
-@unittest.skip("Temporary skip to debug Travis CI fault")   
 class SamlXmlTestCase(unittest.TestCase):
 
     def test01_missing_action_namespace(self):

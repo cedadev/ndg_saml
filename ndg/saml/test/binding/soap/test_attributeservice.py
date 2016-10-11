@@ -153,7 +153,6 @@ class TestAttributeServiceMiddleware(object):
         return attributeQuery
 
 
-@unittest.skip("Temporary skip to debug Travis CI fault")   
 class SOAPAttributeInterfaceMiddlewareTestCase(WithPasteFixtureBaseTestCase):
     """Test SAML Attribute Query over SOAP Binding querying a test attribute
     server served using Paste Paster over HTTPS""" 
