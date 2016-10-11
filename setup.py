@@ -45,8 +45,8 @@ easily be extended to use other Python XML parsers.
 Releases
 ========
 
-0.8.3 (Candidate)
------------------
+0.8.3
+-----
  * Minor fixes for PyOpenSSL imports
 
 0.8.2
