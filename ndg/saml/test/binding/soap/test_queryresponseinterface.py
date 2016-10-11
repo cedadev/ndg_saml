@@ -407,7 +407,7 @@ class SamlAttributeQueryTestCase(unittest.TestCase):
         
         try:
             binding._verifyTimeConditions(response)
-        except AssertionIssueInstantInvalid, e:
+        except AssertionIssueInstantInvalid:
             self.fail("issue instant timestamp error should be corrected for")
 
     def test08ClockSkewCorrectedAssertionConditionExpired(self):

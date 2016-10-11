@@ -42,7 +42,6 @@ from ndg.saml.test.utils import SAMLUtil
 
 class SamlXmlTestCase(unittest.TestCase):
 
-
     def test01_missing_action_namespace(self):
         # Handle case where response has used an invalid namespace URI for the
         # action specified.  In the example below 'GET' is used which belongs

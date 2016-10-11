@@ -46,8 +46,7 @@ from ndg.saml.saml2.core import (SAMLVersion, AuthzDecisionStatement, Assertion,
                                  AuthzDecisionQuery)
 
 from ndg.saml.xml.etree import (prettyPrint, AssertionElementTree, 
-                            AttributeQueryElementTree, ResponseElementTree,
-                            AuthzDecisionQueryElementTree)
+                                AttributeQueryElementTree, ResponseElementTree)
 from ndg.saml.test.utils import SAMLUtil
             
 
