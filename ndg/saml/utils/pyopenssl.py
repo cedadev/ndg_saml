@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 
 
 class SSLContextProxy(SSLContextProxyInterface):
-    SSL_PROTOCOL_METHOD = SSL.TLSv1_METHOD
+    SSL_PROTOCOL_METHOD = SSL.TLSv1_2_METHOD
     SSL_VERIFY_DEPTH = 9
     
     def __call__(self):
