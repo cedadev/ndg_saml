@@ -28,6 +28,8 @@ __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = "$Id$"
+import six
+
 from ndg.saml.common.xml import SAMLConstants, QName
  
 
@@ -49,14 +51,14 @@ class SAMLObject(object):
                  namespacePrefix=SAMLConstants.SAML20_PREFIX):
         '''
         :param namespaceURI: the namespace the element is in
-        :type namespaceURI: basestring
+        :type namespaceURI: string
         :param elementLocalName: the local name of the XML element this Object 
         represents, defaults to DEFAULT_ELEMENT_LOCAL_NAME.  Ensure that this
         is set to a valid string in derived classes rather the None base class
         setting
-        :type elementLocalName: NoneType/basestring
+        :type elementLocalName: NoneType/string
         :param namespacePrefix: the prefix for the given namespace
-        :type namespacePrefix: basestring
+        :type namespacePrefix: string
         '''
         if elementLocalName is None:
             elementLocalName = self.__class__.DEFAULT_ELEMENT_LOCAL_NAME
@@ -150,10 +152,10 @@ class SAMLVersion(object):
     def __init__(self, version):
         """Instantiate from a given input version
         :param version: SAML version to set
-        :type version: basestring or tuple or list
+        :type version: string or tuple or list
         :raise TypeError: unexpected type for version input
         """
-        if isinstance(version, basestring):
+        if isinstance(version, six.string_types):
             self.__version = SAMLVersion.valueOf(version)
         elif isinstance(version, (tuple, list)):
             self.__version = tuple(version)
@@ -198,7 +200,7 @@ class SAMLVersion(object):
         """Test for equality against an input version string, tuple or list
         
         :param version: SAML version to test
-        :type version: SAMLVersion, basestring, tuple or list
+        :type version: SAMLVersion, six.string_types, tuple or list
         :return: True if input and this object match
         :rtype: bool
         :raise TypeError: unexpected type for version input
@@ -206,7 +208,7 @@ class SAMLVersion(object):
         if isinstance(version, SAMLVersion):
             return str(self) == str(version)
           
-        elif isinstance(version, basestring):
+        elif isinstance(version, six.string_types):
             return self.__version == SAMLVersion.valueOf(version)
         
         elif isinstance(version, (tuple, list)):
@@ -219,7 +221,7 @@ class SAMLVersion(object):
         """Test True for this instance version not equal to input version
         
         :param version: SAML version to test
-        :type version: SAMLVersion, basestring, tuple or list
+        :type version: SAMLVersion, string, tuple or list
         :return: True if input and this object don't match
         :rtype: bool
         :raise TypeError: unexpected type for version input
@@ -230,12 +232,12 @@ class SAMLVersion(object):
         """Test True for this instance version greater than input version
         
         :param version: SAML version to test
-        :type version: SAMLVersion, basestring, tuple or list
+        :type version: SAMLVersion, string, tuple or list
         :return: True if this instance version greater than input version
         :rtype: bool
         :raise TypeError: unexpected type for version input
         """
-        if isinstance(version, basestring):
+        if isinstance(version, six.string_types):
             return self.__version > SAMLVersion.valueOf(version)
         elif isinstance(version, (tuple, list)):
             return self.__version > tuple(version)
@@ -247,12 +249,12 @@ class SAMLVersion(object):
         """Test True for this instance version less than input version
         
         :param version: SAML version to test
-        :type version: SAMLVersion, basestring, tuple or list
+        :type version: SAMLVersion, string, tuple or list
         :return: True if this instance version less than input version
         :rtype: bool
         :raise TypeError: unexpected type for version input
         """
-        if isinstance(version, basestring):
+        if isinstance(version, six.string_types):
             return self.__version < SAMLVersion.valueOf(version)
         elif isinstance(version, (tuple, list)):
             return self.__version < tuple(version)
@@ -265,13 +267,13 @@ class SAMLVersion(object):
         version
         
         :param version: SAML version to test
-        :type version: SAMLVersion, basestring, tuple or list
+        :type version: SAMLVersion, string, tuple or list
         :return: True if this instance version greater than or equal to input 
         version
         :rtype: bool
         :raise TypeError: unexpected type for version input
         """
-        if isinstance(version, basestring):
+        if isinstance(version, six.string_types):
             return self.__version >= SAMLVersion.valueOf(version)
         elif isinstance(version, (tuple, list)):
             return self.__version >= tuple(version)
@@ -284,13 +286,13 @@ class SAMLVersion(object):
         version
         
         :param version: SAML version to test
-        :type version: SAMLVersion, basestring, tuple or list
+        :type version: SAMLVersion, string, tuple or list
         :return: True if this instance version less than or equal to input 
         version
         :rtype: bool
         :raise TypeError: unexpected type for version input
         """
-        if isinstance(version, basestring):
+        if isinstance(version, six.string_types):
             return self.__version <= SAMLVersion.valueOf(version)
         elif isinstance(version, (tuple, list)):
             return self.__version <= tuple(version)
@@ -301,7 +303,7 @@ class SAMLVersion(object):
     @staticmethod
     def valueOf(version):
         """Parse input string into version tuple
-        :type version: basestring
+        :type version: string
         :param version: SAML version
         :rtype: tuple
         :return: SAML version tuple"""

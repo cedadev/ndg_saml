@@ -14,8 +14,9 @@ import logging
 import os
 import sys
 import re
-from ConfigParser import ConfigParser, SafeConfigParser
 from abc import ABCMeta, abstractmethod
+
+from six.moves.configparser import ConfigParser, SafeConfigParser
 
 from ndg.saml.saml2 import core as saml2
 
@@ -133,7 +134,7 @@ def callModuleObject(moduleName, objectName=None, moduleFilePath=None,
             if sysPathBak:
                 sys.path = sysPathBak
                             
-    except Exception, e:
+    except Exception as e:
         log.error('%r module import raised %r type exception: %r' % 
                   (moduleName, e.__class__, traceback.format_exc()))
         raise 
@@ -148,7 +149,7 @@ def callModuleObject(moduleName, objectName=None, moduleFilePath=None,
             
         return obj
 
-    except Exception, e:
+    except Exception as e:
         log.error("Instantiating module object, %r: %r" % 
                                                     (importedObject.__name__, 
                                                      traceback.format_exc()))

@@ -30,7 +30,7 @@ logging.basicConfig(level=logging.DEBUG)
     
 from datetime import datetime, timedelta
 from uuid import uuid4
-from cStringIO import StringIO
+from six import StringIO
 
 import unittest
 import pickle
@@ -260,7 +260,7 @@ class SAMLTestCase(unittest.TestCase):
             authzDecisionQuery.actions[0].value = "delete everything"
             self.fail("Expecting AttributeError raised for incorrect action "
                       "setting.")
-        except AttributeError, e:
+        except AttributeError as e:
             print("Caught incorrect action type setting: %s" % e)
         
         authzDecisionQuery.actions[0].actionTypes = {'urn:malicious': 

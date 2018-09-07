@@ -34,6 +34,7 @@ except ImportError:
                                                                 format)[0:6]))
 from datetime import datetime, timedelta
 
+import six
         
 # Interpret a string as a boolean
 str2Bool = lambda str: str.lower() in ("yes", "true", "t", "1")
@@ -54,7 +55,7 @@ class SAMLDateTime(object):
         
         @type dtValue: datetime.datetime
         @param dtValue: issue instance as a datetime
-        @rtype: basestring
+        @rtype: string
         @return: issue instance as a string
         """
         if not isinstance(dtValue, datetime):
@@ -69,13 +70,13 @@ class SAMLDateTime(object):
     def fromString(cls, strDateTime):
         """Convert issue instant string to datetime type
         
-        @type strDateTime: basestring
+        @type strDateTime: string
         @param strDateTime: issue instance as a string
         @rtype: datetime.datetime
         @return: issue instance as a datetime
         """
-        if not isinstance(strDateTime, basestring):
-            raise TypeError("Expecting basestring derived type for string "
+        if not isinstance(strDateTime, six.string_types):
+            raise TypeError("Expecting string derived type for string "
                             "conversion, got %r" % strDateTime)
         
         # Workaround for seconds fraction as strptime doesn't seem able to deal
@@ -109,17 +110,15 @@ class TypedList(list):
         @param elementType: object type or types which the list is allowed to
         contain.  If more than one type, pass as a tuple
         """
-        self.__elementType = elementType
+        self._elementType = elementType
         super(TypedList, self).__init__(*arg, **kw)
     
-    def _getElementType(self):
+    @property
+    def elementType(self):
         """@return: element type for this list
         @rtype: type
         """
-        return self.__elementType
-    
-    elementType = property(fget=_getElementType, 
-                           doc="The allowed type or types for list elements")
+        return self._elementType
      
     def extend(self, iter):
         """Extend an existing list with the input iterable
@@ -127,9 +126,9 @@ class TypedList(list):
         @type iter: iterable
         """
         for i in iter:
-            if not isinstance(i, self.__elementType):
+            if not isinstance(i, self._elementType):
                 raise TypeError("List items must be of type %s" % 
-                                (self.__elementType,))
+                                (self._elementType,))
                 
         return super(TypedList, self).extend(iter)
         
@@ -140,9 +139,9 @@ class TypedList(list):
         @type iter: iterable
         """
         for i in iter:
-            if not isinstance(i, self.__elementType):
+            if not isinstance(i, self._elementType):
                 raise TypeError("List items must be of type %s" % 
-                                (self.__elementType,))
+                                (self._elementType,))
                     
         return super(TypedList, self).__iadd__(iter)
          
@@ -152,8 +151,8 @@ class TypedList(list):
         @param item: item to extend list
         @type item: must agree witj "elementType" attribute of this list 
         """
-        if not isinstance(item, self.__elementType):
+        if not isinstance(item, self._elementType):
                 raise TypeError("List items must be of type %s" % 
-                                (self.__elementType,))
+                                (self._elementType,))
     
         return super(TypedList, self).append(item)

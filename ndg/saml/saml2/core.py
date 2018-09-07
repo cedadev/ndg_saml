@@ -29,10 +29,11 @@ __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = "$Id$"
 from datetime import datetime
-from urlparse import urlsplit, urlunsplit
-import urllib
 import itertools # use to extract unique action types for Action class
 import ipaddress # use for SubjectLocality element - part of AuthnStatement
+
+import six
+from six.moves.urllib.parse import urlsplit, urlunsplit, quote
 
 from ndg.saml.common import SAMLObject, SAMLVersion
 from ndg.saml.common.xml import SAMLConstants, QName
@@ -64,11 +65,11 @@ class Attribute(SAMLObject):
     :type BASIC: string
     
     :ivar __name: attribute name
-    :type __name: NoneType / basestring
+    :type __name: NoneType / string
     :ivar __nameFormat: name format
-    :type __nameFormat: NoneType / basestring
+    :type __nameFormat: NoneType / string
     :ivar __friendlyName: friendly name for attribute
-    :type __friendlyName: NoneType / basestring
+    :type __friendlyName: NoneType / string
     :ivar __attributeValues: list of values
     :type __attributeValues: list / tuple
     '''
@@ -155,11 +156,11 @@ class Attribute(SAMLObject):
         """Set name
 
         :param name: name
-        :type name: basestring
+        :type name: string
         :raise TypeError: invalid input value type
         """
-        if not isinstance(name, basestring):
-            raise TypeError("Expecting basestring type for name, got %r"% 
+        if not isinstance(name, six.string_types):
+            raise TypeError("Expecting string type for name, got %r"% 
                             type(name))
         
         self.__name = name
@@ -181,8 +182,8 @@ class Attribute(SAMLObject):
         :type nameFormat: string
         :raise TypeError: invalid input value type
         """
-        if not isinstance(nameFormat, basestring):
-            raise TypeError("Expecting basestring type for nameFormat, got %r"
+        if not isinstance(nameFormat, six.string_types):
+            raise TypeError("Expecting string type for nameFormat, got %r"
                             % type(nameFormat))
             
         self.__nameFormat = nameFormat
@@ -204,8 +205,8 @@ class Attribute(SAMLObject):
         :type friendlyName: string
         :raise TypeError: invalid input value type
         """
-        if not isinstance(friendlyName, basestring):
-            raise TypeError("Expecting basestring type for friendlyName, got "
+        if not isinstance(friendlyName, six.string_types):
+            raise TypeError("Expecting string type for friendlyName, got "
                             "%r" % type(friendlyName))
             
         self.__friendlyName = friendlyName
@@ -386,7 +387,7 @@ class SubjectLocality(SAMLObject):
     
     @address.setter
     def address(self, value):
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             self.__address = ipaddress.ip_address(value)
             
         elif isinstance(value, (ipaddress.IPv4Address,
@@ -402,7 +403,7 @@ class SubjectLocality(SAMLObject):
     
     @dns_name.setter
     def dns_name(self, value):
-        if not isinstance(value, basestring):
+        if not isinstance(value, six.string_types):
             raise TypeError('Expecting string type for "dns_name", got %r' % 
                             type(value))            
     
@@ -523,7 +524,7 @@ class AuthnStatement(Statement):
         authenticating authority
         :type value: ?
         '''
-        if not isinstance(value, basestring):
+        if not isinstance(value, six.string_types):
             raise TypeError('Expecting string type for "session_index", '
                             'got %r' % type(value))
         
@@ -683,7 +684,7 @@ class DecisionType(object):
             # Cast to string
             value = str(value)
             
-        elif not isinstance(value, basestring):
+        elif not isinstance(value, six.string_types):
             raise TypeError('Expecting string or DecisionType instance for '
                             '"value" attribute; got %r instead' % type(value))
             
@@ -712,7 +713,7 @@ class DecisionType(object):
         """Test for equality against an input decision type
         
         :param decision: decision type
-        :type decision: ndg.saml.saml2.core.DecisionType or basestring
+        :type decision: ndg.saml.saml2.core.DecisionType or string
         :return: True if input and this object match
         :rtype: bool
         :raise TypeError: unexpected type for decision type input
@@ -721,7 +722,7 @@ class DecisionType(object):
             # Cast to string
             value = decision.value
             
-        elif isinstance(decision, basestring):
+        elif isinstance(decision, six.string_types):
             value = decision
             
         else:
@@ -806,7 +807,7 @@ class AuthzDecisionStatement(Statement):
     
     :ivar __resource: identifier for the resource which is the subject of the 
     authorisation statement
-    :type __resource: basestring
+    :type __resource: string
     :ivar __decision: decision type for this authorisation statement
     :type __decision: ndg.saml.saml2.core.DecisionType
     :ivar __actions: list of ndg.saml.saml2.core.Action elements
@@ -938,7 +939,7 @@ class AuthzDecisionStatement(Statement):
         :type value: basetring
         :raise TypeError: input value is incorrect type
         '''
-        if not isinstance(value, basestring):
+        if not isinstance(value, six.string_types):
             raise TypeError('Expecting string type for "normalizeResource" '
                             'attribute; got %r instead' % type(value))
             
@@ -950,7 +951,7 @@ class AuthzDecisionStatement(Statement):
                                           "characters that should not be "
                                           "converted when Normalizing the "
                                           "resource URI.  These are passed to "
-                                          "urllib.quote when the resource "
+                                          "quote when the resource "
                                           "property is set.  The default "
                                           "characters are '/%'")
 
@@ -958,7 +959,7 @@ class AuthzDecisionStatement(Statement):
         '''Gets the Resource attrib value of this statement.
 
         :return: the Resource attrib value of this statement
-        :rtype: basestring
+        :rtype: string
         '''
         return self.__resource
     
@@ -968,10 +969,10 @@ class AuthzDecisionStatement(Statement):
         HTTPS) and converting the host component to lower case.
         
         :param value: the new Resource attrib value of this statement
-        :type value: basestring
+        :type value: string
         :raise TypeError: input value is incorrect type
         '''
-        if not isinstance(value, basestring):
+        if not isinstance(value, six.string_types):
             raise TypeError('Expecting string type for "resource" attribute; '
                             'got %r instead' % type(value))
         
@@ -995,8 +996,8 @@ class AuthzDecisionStatement(Statement):
                 if not isHttpWithStdPort and not isHttpsWithStdPort:
                     uriComponents[1] += ":%d" % splitResult.port
             
-            uriComponents[2] = urllib.quote(splitResult.path, 
-                                            self.safeNormalizationChars)
+            uriComponents[2] = quote(splitResult.path, 
+                                     self.safeNormalizationChars)
             
             self.__resource = urlunsplit(uriComponents)
         else:
@@ -1098,9 +1099,9 @@ class Subject(SAMLObject):
     :type TYPE_NAME: ndg.saml.common.xml.QName
     
     :ivar __baseID: base identifier
-    :type __baseID: basestring
+    :type __baseID: string
     :ivar __nameID: name identifier
-    :type __nameID: basestring
+    :type __nameID: string
     :ivar __encryptedID: encrypted identifier
     :type __encryptedID: any - not implemented for type checking
     :ivar __subjectConfirmations: list of subject confirmations
@@ -1169,19 +1170,19 @@ class Subject(SAMLObject):
     def _getBaseID(self): 
         """Get base identifier
         :return: base identifier
-        :rtype: basestring
+        :rtype: string
         """ 
         return self.__baseID
 
     def _setBaseID(self, value):
         """Set base identifier
         :param value: base identifier
-        :type value: basestring
+        :type value: string
         :raise TypeError: invalid input value type
         """ 
-        if not isinstance(value, basestring):
+        if not isinstance(value, six.string_types):
             raise TypeError("Expecting %r type for \"baseID\" got %r" %
-                            (basestring, value.__class__))
+                            (string, value.__class__))
         self.__baseID = value
 
     baseID = property(fget=_getBaseID, 
@@ -1191,14 +1192,14 @@ class Subject(SAMLObject):
     def _getNameID(self):
         """Get name identifier
         :return: name identifier
-        :rtype: basestring
+        :rtype: string
         """ 
         return self.__nameID
     
     def _setNameID(self, value):
         """Set name identifier
         :param value: name identifier
-        :type value: basestring
+        :type value: string
         :raise TypeError: invalid input value type
         """ 
         if not isinstance(value, NameID):
@@ -1213,7 +1214,7 @@ class Subject(SAMLObject):
     def _getEncryptedID(self):
         """Get encrypted identifier
         :return: encrypted identifier
-        :rtype: basestring
+        :rtype: string
         """ 
         return self.__encryptedID
     
@@ -1406,8 +1407,8 @@ class AbstractNameIDType(SAMLObject):
         :type value: string
         :raise TypeError: invalid input value type
         """
-        if not isinstance(value, basestring):
-            raise TypeError("\"value\" must be a basestring derived type, "
+        if not isinstance(value, six.string_types):
+            raise TypeError("\"value\" must be a string derived type, "
                             "got %r" % value.__class__)
             
         self.__value = value
@@ -1463,8 +1464,8 @@ class AbstractNameIDType(SAMLObject):
         :type format_: string
         :raise TypeError: invalid input value type
         """
-        if not isinstance(format_, basestring):
-            raise TypeError("\"format\" must be a basestring derived type, "
+        if not isinstance(format_, six.string_types):
+            raise TypeError("\"format\" must be a string derived type, "
                             "got %r" % format_.__class__)
             
         self.__format = format_
@@ -1967,7 +1968,7 @@ class Assertion(SAMLObject):
         '''Get the ID of this assertion
         
         :return: the ID of this assertion
-        :rtype: basestring/NoneType
+        :rtype: string/NoneType
         '''
         return self.__id
     
@@ -1975,11 +1976,11 @@ class Assertion(SAMLObject):
         '''Set the ID of this assertion
         
         :param _id: the ID of this assertion
-        :type _id: basestring
+        :type _id: string
         :raise TypeError: incorrect type for input value
         '''
-        if not isinstance(_id, basestring):
-            raise TypeError('Expecting basestring derived type for "id", got '
+        if not isinstance(_id, six.string_types):
+            raise TypeError('Expecting string derived type for "id", got '
                             '%r' % _id.__class__)
         self.__id = _id
         
@@ -2056,9 +2057,9 @@ class Assertion(SAMLObject):
         """Set advice string
         
         :param advice: advice for this assertion
-        :type advice: basestring
+        :type advice: string
         :raise TypeError: incorrect type for input value"""
-        if not isinstance(advice, basestring):
+        if not isinstance(advice, six.string_types):
             raise TypeError("advice must be a string")
 
         self.__advice = advice
@@ -2067,7 +2068,7 @@ class Assertion(SAMLObject):
         """Get advice string
         
         :return: advice for this assertion
-        :rtype: basestring
+        :rtype: string
         """
         return self.__advice
 
@@ -2140,7 +2141,7 @@ class XSStringAttributeValue(AttributeValue):
     :type TYPE_NAME: ndg.saml.common.xml.QName
     
     :ivar __value: value of this attribute
-    :type __value: basestring
+    :type __value: string
     """
     
     # Local name of the XSI type
@@ -2193,8 +2194,8 @@ class XSStringAttributeValue(AttributeValue):
         :type value: string
         :raise TypeError: invalid input value type
         """
-        if not isinstance(value, basestring):
-            raise TypeError("Input must be a basestring derived type, got %r" %
+        if not isinstance(value, six.string_types):
+            raise TypeError("Input must be a string derived type, got %r" %
                             value.__class__)
             
         self.__value = value
@@ -2304,7 +2305,7 @@ class StatusMessage(SAMLObject):
     :type DEFAULT_ELEMENT_NAME: ndg.saml.common.xml.QName
     
     :ivar __value: message text
-    :type __value: basestring
+    :type __value: string
     '''
 
     DEFAULT_ELEMENT_LOCAL_NAME = "StatusMessage"
@@ -2340,18 +2341,18 @@ class StatusMessage(SAMLObject):
     def _getValue(self):
         '''
         :return: message text
-        :rtype: basestring
+        :rtype: string
         '''
         return self.__value
         
     def _setValue(self, value):
         '''
         :param value: message text
-        :type value: basestring
+        :type value: string
         :raise TypeError: incorrect type for input value
         '''
-        if not isinstance(value, basestring):
-            raise TypeError("\"value\" must be a basestring derived type, "
+        if not isinstance(value, six.string_types):
+            raise TypeError("\"value\" must be a string derived type, "
                             "got %r" % type(value))
             
         self.__value = value
@@ -2582,17 +2583,17 @@ class StatusCode(SAMLObject):
     def _getValue(self):
         """Get status message
         :return: message text
-        :rtype: basestring
+        :rtype: string
         """ 
         return self.__value
         
     def _setValue(self, value):
         """Set status message
         :param value: message text
-        :type value: basestring
+        :type value: string
         """ 
-        if not isinstance(value, basestring):
-            raise TypeError("\"value\" must be a basestring derived type, "
+        if not isinstance(value, six.string_types):
+            raise TypeError("\"value\" must be a string derived type, "
                             "got %r" % value.__class__)
             
         self.__value = value
@@ -2982,7 +2983,7 @@ class Action(SAMLObject):
         '''Get the namespace of the action
         
         :return: the namespace of the action
-        :rtype: basestring
+        :rtype: string
         '''
         return self.__namespace
 
@@ -2990,9 +2991,9 @@ class Action(SAMLObject):
         '''Set the namespace of the action
         
         :param value: the namespace of the action
-        :type value: basestring
+        :type value: string
         '''
-        if not isinstance(value, basestring):
+        if not isinstance(value, six.string_types):
             raise TypeError('Expecting string type for "namespace" '
                             'attribute; got %r' % type(value))
             
@@ -3009,7 +3010,7 @@ class Action(SAMLObject):
         '''Get the URI of the action to be performed.
         
         :return: the URI of the action to be performed
-        :rtype: basestring or int
+        :rtype: string or int
         '''
         return self.__value
 
@@ -3017,11 +3018,11 @@ class Action(SAMLObject):
         '''Set the URI of the action to be performed.
         
         :param value: the URI of the value to be performed
-        :type value: basestring or int
+        :type value: string or int
         :raise TypeError: incorrect type for input value
         '''
         # int and oct allow for UNIX file permissions action type
-        if not isinstance(value, (basestring, int)):
+        if not isinstance(value, (six.string_types, int)):
             raise TypeError('Expecting string or int type for "action" '
                             'attribute; got %r' % type(value))
             
@@ -3262,7 +3263,7 @@ class RequestAbstractType(SAMLObject):
         '''Get the unique identifier for this request
         
         :return: the ID of this request
-        :rtype: basestring
+        :rtype: string
         '''
         return self.__id
     
@@ -3270,11 +3271,11 @@ class RequestAbstractType(SAMLObject):
         '''Set the unique identifier for this request
         
         :param value: the ID of this assertion
-        :type value: basestring
+        :type value: string
         :raise TypeError: incorrect input type
         '''
-        if not isinstance(value, basestring):
-            raise TypeError('Expecting basestring derived type for "id", got '
+        if not isinstance(value, six.string_types):
+            raise TypeError('Expecting string derived type for "id", got '
                             '%r' % type(value))
         self.__id = value
         
@@ -3284,7 +3285,7 @@ class RequestAbstractType(SAMLObject):
         '''Get the URI of the destination of the request
         
         :return: the URI of the destination of the request
-        :rtype: basestring
+        :rtype: string
         '''
         return self.__destination
     
@@ -3292,11 +3293,11 @@ class RequestAbstractType(SAMLObject):
         '''Set the URI of the destination of the request
         
         :param value: the URI of the destination of the request
-        :type value: basestring
+        :type value: string
         :raise TypeError: incorrect input value type
         '''
-        if not isinstance(value, basestring):
-            raise TypeError('Expecting basestring derived type for '
+        if not isinstance(value, six.string_types):
+            raise TypeError('Expecting string derived type for '
                             '"destination", got %r' % type(value))
         self.__destination = value
         
@@ -3310,7 +3311,7 @@ class RequestAbstractType(SAMLObject):
         
         :return: the consent obtained from the principal for sending this 
         request
-        :rtype: basestring
+        :rtype: string
         '''
         return self.__consent
         
@@ -3320,11 +3321,11 @@ class RequestAbstractType(SAMLObject):
         
         :param value: the new consent obtained from the principal for 
         sending this request
-        :type value: basestring
+        :type value: string
         :raise TypeError: incorrect input type
         ''' 
-        if not isinstance(value, basestring):
-            raise TypeError('Expecting basestring derived type for "consent", '
+        if not isinstance(value, six.string_types):
+            raise TypeError('Expecting string derived type for "consent", '
                             'got %r' % type(value))
         self.__consent = value
               
@@ -3544,7 +3545,7 @@ class AssertionURIRef(Evidentiary):
     :type DEFAULT_ELEMENT_NAME: ndg.saml.common.xml.QName
 
     :ivar __assertionURI: URI for this assertion reference
-    :type __assertionURI: basestring
+    :type __assertionURI: string
     '''
     __slots__ = ('__assertionURI',)
     
@@ -3588,7 +3589,7 @@ class AssertionURIRef(Evidentiary):
         '''Get assertion URI
         
         :return: assertion URI 
-        :rtype: basestring
+        :rtype: string
         '''
         return self.__assertionURI
 
@@ -3596,10 +3597,10 @@ class AssertionURIRef(Evidentiary):
         '''Set assertion URI
         
         :param value: assertion URI
-        :type value: basestring
+        :type value: string
         :raise TypeError: incorrect input value type
         '''
-        if not isinstance(value, basestring):
+        if not isinstance(value, six.string_types):
             raise TypeError('Expecting string type for "assertionID" '
                             'attribute; got %r' % type(value))
         self.__assertionURI = value
@@ -3621,7 +3622,7 @@ class AssertionIDRef(Evidentiary):
     :type DEFAULT_ELEMENT_NAME: ndg.saml.common.xml.QName
 
     :ivar __assertionID: assertion identifier
-    :type __assertionID: basestring
+    :type __assertionID: string
     '''
 
     # Element local name.
@@ -3664,7 +3665,7 @@ class AssertionIDRef(Evidentiary):
         '''Get the ID of the assertion this references
         
         :return: the ID of the assertion this references
-        :rtype: basestring
+        :rtype: string
         '''
         return self.__assertionID
         
@@ -3672,10 +3673,10 @@ class AssertionIDRef(Evidentiary):
         '''Sets the ID of the assertion this references.
         
         :param value: the ID of the assertion this references
-        :type value: basestring
+        :type value: string
         :raise TypeError: incorrect type for input value
         '''
-        if not isinstance(value, basestring):
+        if not isinstance(value, six.string_types):
             raise TypeError('Expecting string type for "assertionID" '
                             'attribute; got %r' % type(value))
         self.__assertionID = value
@@ -4007,7 +4008,7 @@ class AuthzDecisionQuery(SubjectQuery):
         :type value: string
         :raise TypeError: incorrect type for input value
         '''
-        if not isinstance(value, basestring):
+        if not isinstance(value, six.string_types):
             raise TypeError('Expecting string type for "normalizeResource" '
                             'attribute; got %r instead' % type(value))
             
@@ -4019,7 +4020,7 @@ class AuthzDecisionQuery(SubjectQuery):
                                           "characters that should not be "
                                           "converted when Normalizing the "
                                           "resource URI.  These are passed to "
-                                          "urllib.quote when the resource "
+                                          "quote when the resource "
                                           "property is set.  The default "
                                           "characters are '/%'")
 
@@ -4027,7 +4028,7 @@ class AuthzDecisionQuery(SubjectQuery):
         '''Get the Resource attrib value of this query
 
         :return: the Resource attrib value of this query
-        :rtype: basestring
+        :rtype: string
         '''
         return self.__resource
     
@@ -4039,10 +4040,10 @@ class AuthzDecisionQuery(SubjectQuery):
         converting the host component to lower case.
         
         :param value: the new Resource attrib value of this query
-        :type value: basestring
+        :type value: string
         :raise TypeError: if incorrect input type 
         '''
-        if not isinstance(value, basestring):
+        if not isinstance(value, six.string_types):
             raise TypeError('Expecting string type for "resource" attribute; '
                             'got %r instead' % type(value))
         
@@ -4066,8 +4067,8 @@ class AuthzDecisionQuery(SubjectQuery):
                 if not isHttpWithStdPort and not isHttpsWithStdPort:
                     uriComponents[1] += ":%d" % splitResult.port
             
-            uriComponents[2] = urllib.quote(splitResult.path, 
-                                            self.safeNormalizationChars)
+            uriComponents[2] = quote(splitResult.path, 
+                                     self.safeNormalizationChars)
             
             self.__resource = urlunsplit(uriComponents)
         else:
@@ -4290,7 +4291,7 @@ class StatusResponseType(SAMLObject):
     
     def _set_version(self, version):
         ''':param version: the SAML Version of this response
-        :type version: basestring
+        :type version: string
         :raise TypeError: incorrect type for input version 
         '''
         if not isinstance(version, SAMLVersion):
@@ -4307,7 +4308,7 @@ class StatusResponseType(SAMLObject):
         '''Sets the ID of this response.
         
         :return: the ID of this response
-        :rtype: basestring
+        :rtype: string
         '''
         return self.__id
     
@@ -4315,11 +4316,11 @@ class StatusResponseType(SAMLObject):
         '''Sets the ID of this response.
         
         :param value: the ID of this response
-        :type value: basestring
+        :type value: string
         :raise TypeError: incorrect type for input value
         '''
-        if not isinstance(value, basestring):
-            raise TypeError('Expecting basestring derived type for "id", got '
+        if not isinstance(value, six.string_types):
+            raise TypeError('Expecting string derived type for "id", got '
                             '%r' % type(value))
         self.__id = value
         
@@ -4330,7 +4331,7 @@ class StatusResponseType(SAMLObject):
         
         :return: the unique identifier of the originating 
         request
-        :rtype: basestring
+        :rtype: string
         '''
         return self.__inResponseTo
     
@@ -4339,11 +4340,11 @@ class StatusResponseType(SAMLObject):
         
         :param value: the unique identifier of the originating 
         request
-        :type value: basestring
+        :type value: string
         :raise TypeError: incorrect type for input value
         '''
-        if not isinstance(value, basestring):
-            raise TypeError('Expecting basestring derived type for '
+        if not isinstance(value, six.string_types):
+            raise TypeError('Expecting string derived type for '
                             '"inResponseTo", got %r' % type(value))
         self.__inResponseTo = value
         
@@ -4380,7 +4381,7 @@ class StatusResponseType(SAMLObject):
         '''Gets the URI of the destination of the response.
         
         :return: the URI of the destination of the response
-        :rtype: basestring
+        :rtype: string
         '''
         return self.__destination
     
@@ -4388,11 +4389,11 @@ class StatusResponseType(SAMLObject):
         '''Sets the URI of the destination of the response.
         
         :param value: the URI of the destination of the response
-        :type value: basestring
+        :type value: string
         :raise TypeError: incorrect type for input value
         '''
-        if not isinstance(value, basestring):
-            raise TypeError('Expecting basestring derived type for '
+        if not isinstance(value, six.string_types):
+            raise TypeError('Expecting string derived type for '
                             '"destination", got %r' % type(value))
         self.__destination = value
         
@@ -4406,7 +4407,7 @@ class StatusResponseType(SAMLObject):
         
         :return: the consent obtained from the principal for sending this 
         response
-        :rtype: basestring
+        :rtype: string
         '''
         return self.__consent
         
@@ -4416,11 +4417,11 @@ class StatusResponseType(SAMLObject):
         
         :param value: the new consent obtained from the principal for 
         sending this response
-        :type value: basestring
+        :type value: string
         :raise TypeError: incorrect type for input value
         ''' 
-        if not isinstance(value, basestring):
-            raise TypeError('Expecting basestring derived type for "consent", '
+        if not isinstance(value, six.string_types):
+            raise TypeError('Expecting string derived type for "consent", '
                             'got %r' % type(value))
         self.__consent = value
               

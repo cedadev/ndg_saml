@@ -2,7 +2,6 @@
 
 NERC DataGrid Project
 """
-from _pyio import __metaclass__
 __author__ = "P J Kershaw"
 __date__ = "27/07/09"
 __copyright__ = "(C) 2010 Science and Technology Facilities Council"

@@ -28,6 +28,8 @@ __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = "$Id$"
+import six
+
 from ndg.saml.xml import XMLConstants    
 
 
@@ -380,21 +382,21 @@ class SAMLConstants(XMLConstants):
 class QName(object):
     """XML Qualified Name
     :ivar __namespaceURI: the namespace the element is in
-    :type __namespaceURI: basestring
+    :type __namespaceURI: string
     :ivar __localPart: the local name of the XML element 
-    :type __localPart: basestring
+    :type __localPart: string
     :ivar __prefix: the prefix for the given namespace
-    :type __prefix: basestring
+    :type __prefix: string
     """ 
 
     def __init__(self, namespaceURI, localPart, prefix):
         '''
         :param namespaceURI: the namespace the element is in
-        :type namespaceURI: basestring
+        :type namespaceURI: string
         :param localPart: the local name of the XML element 
-        :type localPart: basestring
+        :type localPart: string
         :param prefix: the prefix for the given namespace
-        :type prefix: basestring
+        :type prefix: string
         '''
         self.namespaceURI = namespaceURI
         self.localPart = localPart
@@ -413,7 +415,7 @@ class QName(object):
         :type value: string
         :raise TypeError: invalid input value type
         """
-        if not isinstance(value, basestring):
+        if not isinstance(value, six.string_types):
             raise TypeError('Expected string type for "prefix"; got %r' %
                             type(value))
         self.__prefix = value
@@ -433,7 +435,7 @@ class QName(object):
         :type value: string
         :raise TypeError: invalid input value type
         """
-        if not isinstance(value, basestring):
+        if not isinstance(value, six.string_types):
             raise TypeError('Expected string type for "localPart"; got %r' %
                             type(value))
         self.__localPart = value
@@ -453,7 +455,7 @@ class QName(object):
         :type value: string
         :raise TypeError: invalid input value type
         """
-        if not isinstance(value, basestring):
+        if not isinstance(value, six.string_types):
             raise TypeError('Expected string type for "namespaceURI"; got %r' %
                             type(value))
         self.__namespaceURI = value
