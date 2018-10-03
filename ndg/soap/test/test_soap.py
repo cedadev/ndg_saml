@@ -12,11 +12,10 @@ __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = "$Id: test_soap.py 7134 2010-06-30 13:49:40Z pjkersha $"
 import logging
-logging.basicConfig(level=logging.DEBUG)
-
+import sys
 import unittest
 import socket
-from cStringIO import StringIO
+from six.moves import cStringIO as StringIO
 from os import path
 try:
     import paste.fixture
@@ -24,12 +23,17 @@ try:
 except ImportError:
     paste_installed = False
     
-from urllib2 import HTTPHandler, URLError
-
+if sys.version_info[0] > 2:
+    from urllib.request import HTTPHandler, URLError
+else:
+    from urllib2 import HTTPHandler, URLError
+    
 from ndg.soap import SOAPFaultBase
 from ndg.soap.etree import SOAPEnvelope, SOAPFault, SOAPFaultException
 from ndg.soap.client import UrlLib2SOAPClient, UrlLib2SOAPRequest
 from ndg.soap.test import PasteDeployAppServer
+
+logging.basicConfig(level=logging.DEBUG)
 
 
 class SOAPBindingMiddleware(object):
@@ -53,8 +57,8 @@ class SOAPBindingMiddleware(object):
     
 class SOAPTestCase(unittest.TestCase):
     EG_SOAPFAULT_CODE = "%s:%s" % (SOAPFaultBase.DEFAULT_ELEMENT_NS_PREFIX, 
-                                   "MustUnderstand")
-    EG_SOAPFAULT_STRING = "Can't process element X set with mustUnderstand"
+                                    "MustUnderstand")
+    EG_SOAPFAULT_STRING = b"Can't process element X set with mustUnderstand"
         
     def test01Envelope(self):
         envelope = SOAPEnvelope()
@@ -62,9 +66,9 @@ class SOAPTestCase(unittest.TestCase):
         soap = envelope.serialize()
         
         self.assert_(len(soap) > 0)
-        self.assert_("Envelope" in soap)
-        self.assert_("Body" in soap)
-        self.assert_("Header" in soap)
+        self.assert_(b"Envelope" in soap)
+        self.assert_(b"Body" in soap)
+        self.assert_(b"Header" in soap)
         
         print(envelope.prettyPrint())
         stream = StringIO()
@@ -101,7 +105,7 @@ class SOAPTestCase(unittest.TestCase):
         fault = self._createSOAPFault()
         faultStr = fault.serialize()
         stream = StringIO()
-        stream.write(faultStr)
+        stream.write(faultStr.decode("utf-8"))
         stream.seek(0)
         
         fault2 = SOAPFault()
@@ -111,13 +115,14 @@ class SOAPTestCase(unittest.TestCase):
     
     def test05CreateSOAPFaultException(self):
         try:
-            raise SOAPFaultException("bad request", SOAPFault.CLIENT_FAULT_CODE)
+            raise SOAPFaultException("bad request", 
+                                     SOAPFault.CLIENT_FAULT_CODE)
         
-        except SOAPFaultException, e:
-            self.assert_(e.fault.faultString == "bad request")
+        except SOAPFaultException as e:
+            self.assert_(e.fault.faultString == b"bad request")
             self.assert_(SOAPFault.CLIENT_FAULT_CODE in e.fault.faultCode)
             e.fault.create()
-            self.assert_("bad request" in e.fault.serialize())
+            self.assert_(b"bad request" in e.fault.serialize())
             self.assert_(SOAPFault.CLIENT_FAULT_CODE in e.fault.serialize())
             return
         
@@ -131,10 +136,10 @@ class SOAPTestCase(unittest.TestCase):
         soap = envelope.serialize()
         
         self.assert_(len(soap) > 0)
-        self.assert_("Envelope" in soap)
-        self.assert_("Body" in soap)
-        self.assert_("Header" in soap)
-        self.assert_("Fault" in soap)
+        self.assert_(b"Envelope" in soap)
+        self.assert_(b"Body" in soap)
+        self.assert_(b"Header" in soap)
+        self.assert_(b"Fault" in soap)
         
         print(envelope.prettyPrint())
         stream = StringIO()

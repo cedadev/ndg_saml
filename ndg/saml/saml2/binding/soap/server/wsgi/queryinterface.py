@@ -12,9 +12,11 @@ __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 import logging
 log = logging.getLogger(__name__)
 import traceback
-from cStringIO import StringIO
 from uuid import uuid4
 from datetime import datetime, timedelta
+
+import six
+from six.moves import cStringIO as StringIO
 
 from ndg.soap.server.wsgi.middleware import SOAPMiddleware
 from ndg.soap.etree import SOAPEnvelope
@@ -32,7 +34,7 @@ from ndg.saml.saml2.binding.soap import SOAPBindingInvalidResponse
 try:
     from ndg.saml.saml2.xacml_profile import XACMLAuthzDecisionQuery
     import ndg.saml.xml.etree_xacml_profile as etree_xacml_profile
-except ImportError, e:
+except ImportError as e:
     from warnings import warn
     warn('Error importing XACML packages - disabling SAML XACML profile ' + \
          'support.  (Error is: %s)' % e)
@@ -56,13 +58,13 @@ class QueryIssueInstantInvalid(SOAPBindingInvalidResponse):
 class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
     """Implementation of SAML 2.0 SOAP Binding for Query/Request Binding
     
-    :type PATH_OPTNAME: basestring
+    :type PATH_OPTNAME: string
     :cvar PATH_OPTNAME: name of app_conf option for specifying a path or paths
     that this middleware will intercept and process
-    :type QUERY_INTERFACE_KEYNAME_OPTNAME: basestring
+    :type QUERY_INTERFACE_KEYNAME_OPTNAME: string
     :cvar QUERY_INTERFACE_KEYNAME_OPTNAME: app_conf option name for key name
     used to reference the SAML query interface in environ
-    :type DEFAULT_QUERY_INTERFACE_KEYNAME: basestring
+    :type DEFAULT_QUERY_INTERFACE_KEYNAME: string
     :param DEFAULT_QUERY_INTERFACE_KEYNAME: default key name for referencing
     SAML query interface in environ
     """
@@ -81,6 +83,10 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
     ISSUER_NAME_OPTNAME = 'issuerName'
     ISSUER_FORMAT_OPTNAME = 'issuerFormat'
     CLOCK_SKEW_TOLERANCE_OPTNAME = 'clockSkewTolerance'
+    if six.PY2:
+        CLOCK_SKEW_TOLERANCE_TYPES = (float, int, long)
+    else:
+        CLOCK_SKEW_TOLERANCE_TYPES = (float, int)
     
     CONFIG_FILE_OPTNAMES = (
         PATH_OPTNAME,
@@ -131,7 +137,7 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         '''
         :type global_conf: dict        
         :param global_conf: PasteDeploy global configuration dictionary
-        :type prefix: basestring
+        :type prefix: string
         :param prefix: prefix for configuration items
         :type app_conf: dict        
         :param app_conf: PasteDeploy application specific configuration 
@@ -155,7 +161,7 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         return self.__serialise
 
     def _setSerialise(self, value):
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             self.__serialise = importModuleObject(value)
             
         elif callable(value):
@@ -171,7 +177,7 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         return self.__deserialise
 
     def _setDeserialise(self, value):
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             self.__deserialise = importModuleObject(value)
             
         elif callable(value):
@@ -189,7 +195,7 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         return self.__deserialiseXacmlProfile
 
     def _setDeserialiseXacmlProfile(self, value):
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             self.__deserialiseXacmlProfile = importModuleObject(value)
 
         elif callable(value):
@@ -207,7 +213,7 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         return self.__issuer
 
     def _setIssuer(self, value):
-        if not isinstance(value, basestring):
+        if not isinstance(value, six.string_types):
             raise TypeError('Expecting string type for "issuer"; got %r' %
                             type(value))
             
@@ -251,7 +257,7 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         if isinstance(value, bool):
             self.__verifyTimeConditions = value
             
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             self.__verifyTimeConditions = str2Bool(value)
         else:
             raise TypeError('Expecting bool or string type for '
@@ -271,7 +277,7 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         if isinstance(value, bool):
             self.__verifySAMLVersion = value
             
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             self.__verifySAMLVersion = str2Bool(value)
         else:
             raise TypeError('Expecting bool or string type for '
@@ -292,10 +298,10 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         if isinstance(value, timedelta):
             self.__clockSkewTolerance = value
             
-        elif isinstance(value, (float, int, long)):
+        elif isinstance(value, self.__class__.CLOCK_SKEW_TOLERANCE_TYPES):
             self.__clockSkewTolerance = timedelta(seconds=value)
             
-        elif isinstance(value, basestring):
+        elif isinstance(value, six.string_types):
             self.__clockSkewTolerance = timedelta(seconds=float(value))
         else:
             raise TypeError('Expecting timedelta, float, int, long or string '
@@ -312,7 +318,7 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         return self.__samlVersion
 
     def _setSamlVersion(self, value):
-        if not isinstance(value, basestring):
+        if not isinstance(value, six.string_types):
             raise TypeError('Expecting string type for "samlVersion"; got %r' % 
                             type(value)) 
         self.__samlVersion = value
@@ -326,14 +332,14 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
     
     def _setMountPath(self, value):
         '''
-        :type value: basestring
+        :type value: string
         :param value: URL paths to apply this middleware to. Paths are relative 
         to the point at which this middleware is mounted as set in 
         environ['PATH_INFO']
         :raise TypeError: incorrect input type
         '''
         
-        if not isinstance(value, basestring):
+        if not isinstance(value, six.string_types):
             raise TypeError('Expecting string type for "mountPath" attribute; '
                             'got %r' % value)
             
@@ -355,7 +361,7 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         :param app: next middleware application in the chain      
         :type global_conf: dict        
         :param global_conf: PasteDeploy global configuration dictionary
-        :type prefix: basestring
+        :type prefix: string
         :param prefix: prefix for configuration items
         :type app_conf: dict        
         :param app_conf: PasteDeploy application specific configuration 
@@ -370,7 +376,7 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         return self.__queryInterfaceKeyName
 
     def _setQueryInterfaceKeyName(self, value):
-        if not isinstance(value, basestring):
+        if not isinstance(value, six.string_types):
             raise TypeError('Expecting string type for "queryInterfaceKeyName"'
                             ' got %r' % value)
             
@@ -440,7 +446,7 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
             else:
                 samlQuery = self.deserialise(queryElem)
 
-        except UnknownAttrProfile, e:
+        except UnknownAttrProfile as e:
             log.exception("%r raised parsing incoming query: %s" % 
                           (type(e), traceback.format_exc()))
             samlResponse.status.statusCode.value = \

@@ -12,7 +12,7 @@ __revision__ = '$Id$'
 import unittest
 from uuid import uuid4
 from datetime import datetime, timedelta
-from cStringIO import StringIO
+from six.moves import cStringIO as StringIO
 
 from ndg.soap.etree import SOAPEnvelope
 

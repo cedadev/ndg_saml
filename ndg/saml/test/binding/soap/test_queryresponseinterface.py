@@ -22,7 +22,7 @@ try:
 except ImportError:
     paste_installed = False
     
-from cStringIO import StringIO
+from six.moves import cStringIO as StringIO
 
 from ndg.saml import importElementTree
 ElementTree = importElementTree()
@@ -63,7 +63,7 @@ class SamlSoapBindingApp(object):
         attributeQuery = AttributeQueryElementTree.fromXML(attributeQueryElem)
         
         print("Received request from client:\n")
-        print soapRequest.prettyPrint()
+        print(soapRequest.prettyPrint())
         
         samlResponse = Response()
         
@@ -329,7 +329,7 @@ class SamlAttributeQueryTestCase(unittest.TestCase):
         try:
             binding._verifyTimeConditions(response)
             self.fail("Expecting not on or after timestamp error")
-        except AssertionConditionNotOnOrAfterInvalid, e:
+        except AssertionConditionNotOnOrAfterInvalid as e:
             print("PASSED: %s" % e)
 
     def test05ResponseIssueInstantInvalid(self):
@@ -348,7 +348,7 @@ class SamlAttributeQueryTestCase(unittest.TestCase):
         try:
             binding._verifyTimeConditions(response)
             self.fail("Expecting issue instant timestamp error")
-        except ResponseIssueInstantInvalid, e:
+        except ResponseIssueInstantInvalid as e:
             print("PASSED: %s" % e)
 
     def test06NotBeforeConditionInvalid(self):
@@ -366,7 +366,7 @@ class SamlAttributeQueryTestCase(unittest.TestCase):
         try:
             binding._verifyTimeConditions(response)
             self.fail("Expecting issue instant timestamp error")
-        except AssertionConditionNotBeforeInvalid, e:
+        except AssertionConditionNotBeforeInvalid as e:
             print("PASSED: %s" % e)
 
     def test07AssertionIssueInstantInvalid(self):
@@ -385,7 +385,7 @@ class SamlAttributeQueryTestCase(unittest.TestCase):
         try:
             binding._verifyTimeConditions(response)
             self.fail("Expecting issue instant timestamp error")
-        except AssertionIssueInstantInvalid, e:
+        except AssertionIssueInstantInvalid as e:
             print("PASSED: %s" % e)
 
     def test07ClockSkewCorrectedAssertionIssueInstantInvalid(self):

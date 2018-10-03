@@ -16,6 +16,7 @@ import sys
 import re
 from abc import ABCMeta, abstractmethod
 
+import six
 from six.moves.configparser import ConfigParser, SafeConfigParser
 
 from ndg.saml.saml2 import core as saml2
@@ -50,7 +51,7 @@ def importModuleObject(moduleName, objectName=None, objectType=None):
     else:
         _moduleName = moduleName
         
-    if isinstance(objectName, basestring):
+    if isinstance(objectName, six.string_types):
         objectName = [objectName]
     
     log.debug("Importing %r ..." % objectName) 
@@ -204,15 +205,15 @@ class QueryFactoryBase(object):
     @classmethod
     def from_config(cls, cfg, prefix=PREFIX, section='DEFAULT'):
         '''Create query from config file settings
-        @type cfg: basestring /ConfigParser derived type
+        @type cfg: string /ConfigParser derived type
         @param cfg: configuration file path or ConfigParser type object
-        @type prefix: basestring
+        @type prefix: string
         @param prefix: prefix for option names e.g. "attributeQuery."
         @type section: baestring
         @param section: configuration file section from which to extract
         parameters.
         '''  
-        if isinstance(cfg, basestring):
+        if isinstance(cfg, six.string_types):
             cfg_filepath = os.path.expandvars(cfg)
             here_dir = os.path.dirname(cfg_filepath)
             _cfg = SafeConfigParser(defaults=dict(here=here_dir))
@@ -223,7 +224,7 @@ class QueryFactoryBase(object):
         elif isinstance(cfg, ConfigParser):
             _cfg = cfg   
         else:
-            raise AttributeError('Expecting basestring or ConfigParser type '
+            raise AttributeError('Expecting string or ConfigParser type '
                                  'for "cfg" attribute; got %r type' % type(cfg))
         
         # Get items for this section as a dictionary so that from_kw can

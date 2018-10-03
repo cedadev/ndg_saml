@@ -13,6 +13,9 @@ __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = '$Id: __init__.py 7130 2010-06-30 13:33:07Z pjkersha $'
 import logging
+
+import six
+
 log = logging.getLogger(__name__)
 
 
@@ -159,7 +162,7 @@ class SOAPFaultBase(SOAPObject):
             self.detail = detail
 
     def _setFaultCode(self, value):
-        if not isinstance(value, basestring):
+        if not isinstance(value, six.string_types):
             raise AttributeError('Expecting string type for "faultCode" '
                                  'attribute; got %r' % type(value))
             
@@ -184,7 +187,7 @@ class SOAPFaultBase(SOAPObject):
                          doc="Fault Code")
 
     def _setFaultString(self, value):
-        if not isinstance(value, basestring):
+        if not isinstance(value, six.string_types):
             raise AttributeError('Expecting string type for "faultString" '
                                  'attribute; got %r' % type(value))
         self.__faultString = value
@@ -199,7 +202,7 @@ class SOAPFaultBase(SOAPObject):
         return self.__faultActor
 
     def _setFaultActor(self, value):
-        if not isinstance(value, basestring):
+        if not isinstance(value, six.string_types):
             raise AttributeError('Expecting string type for "faultActor" '
                                  'attribute; got %r' % type(value))
         self.__faultActor = value

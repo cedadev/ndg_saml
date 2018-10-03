@@ -9,9 +9,9 @@ __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = '$Id: client.py 7131 2010-06-30 13:37:48Z pjkersha $'
 from abc import ABCMeta, abstractmethod
-import httplib
-import urllib2
-from urllib import addinfourl
+import six.moves.http_client as httplib
+import six.moves.urllib as urllib2
+from six.moves.urllib.response import addinfourl
 
 import logging
 log = logging.getLogger(__name__)
@@ -299,7 +299,7 @@ class UrlLib2SOAPClient(SOAPClientBase):
         
         try:
             soapResponse.envelope.parse(soapResponse.fileObject)
-        except Exception, e:
+        except Exception as e:
             raise SOAPParseError("%r type error raised parsing response for "
                                  "request to [%s]: %s"
                                  % (type(e), soapRequest.url, e))

@@ -29,7 +29,8 @@ __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = "$Id$"
 import unittest
-from StringIO import StringIO
+
+from six.moves import StringIO
 
 from ndg.saml import importElementTree
 ElementTree = importElementTree()

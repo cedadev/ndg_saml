@@ -8,15 +8,11 @@ __copyright__ = "(C) 2009 Science and Technology Facilities Council"
 __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = '$Id$'
-from urlparse import urlparse
+from six.moves.urllib.parse import urlparse
 import logging
 log = logging.getLogger(__name__)
 
-try:
-    from ndg.httpsclient.https import HTTPSContextHandler as HTTPSHandler_
-    
-except ImportError:
-    from M2Crypto.m2urllib2 import HTTPSHandler as HTTPSHandler_
+from ndg.httpsclient.https import HTTPSContextHandler as HTTPSHandler_
 
 from ndg.saml.saml2.core import AttributeQuery
 from ndg.saml.saml2.binding.soap.client.subjectquery import (
@@ -129,7 +125,7 @@ class AttributeQuerySslSOAPBinding(AttributeQuerySOAPBinding):
         try:
             super(AttributeQuerySslSOAPBinding, self).__setattr__(name, value)
             
-        except AttributeError, e:
+        except AttributeError as e:
             # Coerce into setting SSL Context Proxy attributes
             try:
                 setattr(self.sslCtxProxy, name, value)

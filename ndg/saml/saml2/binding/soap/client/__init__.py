@@ -12,7 +12,7 @@ import logging
 log = logging.getLogger(__name__)
 
 from os import path
-from ConfigParser import ConfigParser, SafeConfigParser
+from six.moves.configparser import ConfigParser, SafeConfigParser
 
 from ndg.saml.common import SAMLObject
 
@@ -42,10 +42,8 @@ class SOAPBinding(object):
         DESERIALISE_OPTNAME
     )
     
-    __PRIVATE_ATTR_PREFIX = "__"
-    __slots__ = tuple([__PRIVATE_ATTR_PREFIX + i 
-                       for i in CONFIG_FILE_OPTNAMES + ("client",)])
-    del i
+    PRIVATE_ATTR_PREFIX = "__"
+    __slots__ = tuple(["__" + i for i in CONFIG_FILE_OPTNAMES + ("client",)])
     
     isIterable = staticmethod(_isIterable)
     

@@ -14,6 +14,8 @@ log = logging.getLogger(__name__)
 from datetime import datetime, timedelta
 from uuid import uuid4
 
+import six
+
 from ndg.saml.utils import SAMLDateTime
 from ndg.saml.saml2.core import RequestAbstractType, StatusCode
 
@@ -59,10 +61,8 @@ class RequestBaseSOAPBinding(SOAPBinding):
         VERIFY_TIME_CONDITIONS_OPTNAME            
     )
     
-    __PRIVATE_ATTR_PREFIX = "__"
-    __slots__ = tuple([__PRIVATE_ATTR_PREFIX + i 
-                       for i in CONFIG_FILE_OPTNAMES + ('issuer',)])
-    del i
+    PRIVATE_ATTR_PREFIX = "__"
+    __slots__ = tuple(["__" + i for i in CONFIG_FILE_OPTNAMES + ('issuer',)])
     
     QUERY_TYPE = RequestAbstractType
     
@@ -80,7 +80,7 @@ class RequestBaseSOAPBinding(SOAPBinding):
         if isinstance(value, bool):
             self.__verifyTimeConditions = value
             
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             self.__verifyTimeConditions = str2Bool(value)
         else:
             raise TypeError('Expecting bool or string type for '
