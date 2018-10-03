@@ -102,6 +102,7 @@ class TypedList(list):
     any type where the array type in the Standard Library is restricted to 
     only limited set of primitive types
     """
+    __slots__ = ('_elementType',)
     
     def __init__(self, elementType, *arg, **kw):
         """
@@ -109,29 +110,34 @@ class TypedList(list):
         @param elementType: object type or types which the list is allowed to
         contain.  If more than one type, pass as a tuple
         """
-        self.__elementType = elementType
         super(TypedList, self).__init__(*arg, **kw)
-    
-    def _getElementType(self):
+        self._elementType = elementType 
+           
+    @property
+    def elementType(self):
         """@return: element type for this list
         @rtype: type
         """
-        return self.__elementType
+        return self._elementType
     
-    elementType = property(fget=_getElementType, 
-                           doc="The allowed type or types for list elements")
+    @elementType.setter
+    def elementType(self, value):
+        if not isinstance(value, type):
+            raise TypeError('Expecting a type object for elementType')
+        
+        self._elementType = value
      
-    def extend(self, iter):
+    def extend(self, iter_):
         """Extend an existing list with the input iterable
-        @param iter: iterable to extend list with
-        @type iter: iterable
+        @param iter_: iterable to extend list with
+        @type iter_: iterable
         """
-        for i in iter:
-            if not isinstance(i, self.__elementType):
+        for i in iter_:
+            if not isinstance(i, self.elementType):
                 raise TypeError("List items must be of type %s" % 
-                                (self.__elementType,))
+                                (self.elementType,))
                 
-        return super(TypedList, self).extend(iter)
+        return super(TypedList, self).extend(iter_)
         
     def __iadd__(self, iter):
         """Extend an existing list with the input iterable with += operator
@@ -140,9 +146,9 @@ class TypedList(list):
         @type iter: iterable
         """
         for i in iter:
-            if not isinstance(i, self.__elementType):
+            if not isinstance(i, self.elementType):
                 raise TypeError("List items must be of type %s" % 
-                                (self.__elementType,))
+                                (self.elementType,))
                     
         return super(TypedList, self).__iadd__(iter)
          
@@ -152,8 +158,39 @@ class TypedList(list):
         @param item: item to extend list
         @type item: must agree witj "elementType" attribute of this list 
         """
-        if not isinstance(item, self.__elementType):
+        if not isinstance(item, self.elementType):
                 raise TypeError("List items must be of type %s" % 
-                                (self.__elementType,))
+                                (self.elementType,))
     
         return super(TypedList, self).append(item)
+    
+    def __getstate__(self):
+        '''Enable pickling
+        
+        :return: object's attribute dictionary
+        :rtype: dict
+        '''
+        _dict = {}
+        for attr_name in self.__slots__:
+            # Ugly hack to allow for derived classes setting private member
+            # variables
+            if attr_name.startswith('__'):
+                attr_name = "_TypedList" + attr_name
+                
+            _dict[attr_name] = getattr(self, attr_name)
+            
+        return _dict
+  
+    def __setstate__(self, attr_dict):
+        '''Enable pickling
+        
+        :param attr_dict: object's attribute dictionary
+        :type attr_dict: dict
+        '''
+        for attr_name, val in list(attr_dict.items()):
+            if attr_name.startswith('_TypedList'):
+                attr_name_ = attr_name.split('_TypedList__')[-1]
+                setattr(self, attr_name_, val)
+            else:  
+                setattr(self, attr_name, val)
+        

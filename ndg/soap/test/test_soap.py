@@ -53,14 +53,14 @@ class SOAPBindingMiddleware(object):
     
     
 class SOAPTestCase(unittest.TestCase):
-    EG_SOAPFAULT_CODE = "%s:%s" % (SOAPFaultBase.DEFAULT_ELEMENT_NS_PREFIX, 
-                                   "MustUnderstand")
+    EG_SOAPFAULT_CODE = "{}:{}".format(SOAPFaultBase.DEFAULT_ELEMENT_NS_PREFIX, 
+                                       "MustUnderstand")
     EG_SOAPFAULT_STRING = "Can't process element X set with mustUnderstand"
         
     def test01Envelope(self):
         envelope = SOAPEnvelope()
         envelope.create()
-        soap = envelope.serialize()
+        soap = envelope.serialize().decode()
         
         self.assertTrue(len(soap) > 0)
         self.assertTrue("Envelope" in soap)
@@ -74,7 +74,7 @@ class SOAPTestCase(unittest.TestCase):
         
         envelope2 = SOAPEnvelope()
         envelope2.parse(stream)
-        soap2 = envelope2.serialize()
+        soap2 = envelope2.serialize().decode()
         self.assertTrue(soap2 == soap)
 
     def test02CreateSOAPFaultBase(self):
@@ -82,8 +82,10 @@ class SOAPTestCase(unittest.TestCase):
         fault = SOAPFaultBase(self.__class__.EG_SOAPFAULT_STRING, 
                               self.__class__.EG_SOAPFAULT_CODE)
         
-        self.assertTrue(fault.faultCode == self.__class__.EG_SOAPFAULT_CODE)
-        self.assertTrue(fault.faultString == self.__class__.EG_SOAPFAULT_STRING)
+        self.assertTrue(
+            fault.faultCode == self.__class__.EG_SOAPFAULT_CODE)
+        self.assertTrue(
+            fault.faultString == self.__class__.EG_SOAPFAULT_STRING)
      
     def _createSOAPFault(self):
         fault = SOAPFault(self.__class__.EG_SOAPFAULT_STRING, 
@@ -94,13 +96,13 @@ class SOAPTestCase(unittest.TestCase):
     def test03SerialiseSOAPFault(self):
         # Use ElementTree implementation
         fault = self._createSOAPFault()
-        faultStr = fault.serialize()
+        faultStr = fault.serialize().decode()
         print(faultStr)
         self.assertTrue(self.__class__.EG_SOAPFAULT_STRING in faultStr)
 
     def test04ParseSOAPFault(self):
         fault = self._createSOAPFault()
-        faultStr = fault.serialize()
+        faultStr = fault.serialize().decode()
         stream = StringIO()
         stream.write(faultStr)
         stream.seek(0)
@@ -112,14 +114,16 @@ class SOAPTestCase(unittest.TestCase):
     
     def test05CreateSOAPFaultException(self):
         try:
-            raise SOAPFaultException("bad request", SOAPFault.CLIENT_FAULT_CODE)
+            raise SOAPFaultException("bad request", 
+                                     SOAPFault.CLIENT_FAULT_CODE)
         
         except SOAPFaultException as e:
             self.assertTrue(e.fault.faultString == "bad request")
             self.assertTrue(SOAPFault.CLIENT_FAULT_CODE in e.fault.faultCode)
             e.fault.create()
-            self.assertTrue("bad request" in e.fault.serialize())
-            self.assertTrue(SOAPFault.CLIENT_FAULT_CODE in e.fault.serialize())
+            self.assertTrue("bad request" in e.fault.serialize().decode())
+            self.assertTrue(
+                SOAPFault.CLIENT_FAULT_CODE in e.fault.serialize().decode())
             return
         
         self.fail("Expecting SOAPFaultException raised")
@@ -129,7 +133,9 @@ class SOAPTestCase(unittest.TestCase):
         envelope = SOAPEnvelope()
         envelope.body.fault = self._createSOAPFault()
         envelope.create()
-        soap = envelope.serialize()
+        
+        # Convert to unicode for tests
+        soap = envelope.serialize().decode()
         
         self.assertTrue(len(soap) > 0)
         self.assertTrue("Envelope" in soap)
@@ -144,7 +150,7 @@ class SOAPTestCase(unittest.TestCase):
         
         envelope2 = SOAPEnvelope()
         envelope2.parse(stream)
-        soap2 = envelope2.serialize()
+        soap2 = envelope2.serialize().decode()
         self.assertTrue(soap2 == soap)
             
 

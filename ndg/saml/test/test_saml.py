@@ -39,14 +39,14 @@ from ndg.saml import importElementTree
 ElementTree = importElementTree()
 
 from ndg.saml.utils import SAMLDateTime
-from ndg.saml.saml2.core import (SAMLVersion, AuthzDecisionStatement, Assertion, 
+from ndg.saml.saml2.core import (SAMLVersion, Assertion, 
                                  AttributeQuery, Response, Issuer, Subject, 
                                  NameID, StatusCode, StatusMessage, Status, 
                                  Conditions, DecisionType, Action, 
                                  AuthzDecisionQuery)
-
 from ndg.saml.xml.etree import (prettyPrint, AssertionElementTree, 
-                                AttributeQueryElementTree, ResponseElementTree)
+                                AttributeQueryElementTree, 
+                                ResponseElementTree)
 from ndg.saml.test.utils import SAMLUtil
             
 

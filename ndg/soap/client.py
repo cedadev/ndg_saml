@@ -2,17 +2,15 @@
 
 NERC DataGrid Project
 """
-from _pyio import __metaclass__
 __author__ = "P J Kershaw"
 __date__ = "27/07/09"
 __copyright__ = "(C) 2010 Science and Technology Facilities Council"
 __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
-__revision__ = '$Id: client.py 7131 2010-06-30 13:37:48Z pjkersha $'
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 import http.client
 import urllib.request, urllib.error, urllib.parse
-from urllib import addinfourl
+from urllib.response import addinfourl
 
 import logging
 log = logging.getLogger(__name__)
@@ -28,7 +26,7 @@ class SOAPParseError(SOAPClientError):
     """Error parsing SOAP response"""
     
            
-class SOAPClientBase(object, metaclass=ABCMeta):
+class SOAPClientBase(ABC):
     """Handle client request to a SOAP Service
     @cvar RESPONSE_CONTENT_TYPES: expected content type to be returned in a 
     response from a service
@@ -128,9 +126,11 @@ class UrlLib2SOAPClientError(SOAPClientError):
 
 class SOAPResponseError(UrlLib2SOAPClientError):
     """Raise for invalid SOAP response from server"""
+     
        
 class HTTPException(UrlLib2SOAPClientError):
     """Server returned HTTP code error code"""
+
 
 class UrlLib2SOAPRequest(SOAPRequestBase):  
     """Interface for UrlLib2 based SOAP Requests"""
@@ -281,7 +281,7 @@ class UrlLib2SOAPClient(SOAPClientBase):
         # Check for accepted response type string in response from server
         accepted_response_content_type = False
         for content_type in UrlLib2SOAPClient.RESPONSE_CONTENT_TYPES:
-            if content_type in response.headers.typeheader:
+            if content_type in response.headers.values():
                 accepted_response_content_type = True
         
         if not accepted_response_content_type:

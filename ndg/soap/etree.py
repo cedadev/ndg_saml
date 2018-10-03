@@ -53,17 +53,17 @@ class ETreeSOAPExtensions(object):
     elem = property(_getElem, _setElem, None, "Root element")
 
     @staticmethod
-    def _serialize(elem):
+    def _serialize(elem, encoding='utf-8'):
         """Serialise element tree into string"""
         if Config.use_lxml:
-            return ElementTree.tostring(elem)
+            return ElementTree.tostring(elem, encoding=encoding)
         else:
-            return cElementTree.tostring(elem)
+            return cElementTree.tostring(elem, encoding=encoding)
        
     @classmethod
     def _prettyPrint(cls, elem):
         """Basic pretty printing separating each element on to a new line"""
-        xml = cls._serialize(elem)
+        xml = cls._serialize(elem).decode()
         xml = ">\n".join(xml.split(">"))
         xml = "\n<".join(xml.split("<"))
         xml = '\n'.join(xml.split('\n\n'))

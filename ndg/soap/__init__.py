@@ -52,6 +52,7 @@ def importElementTree():
                 import ElementTree
     return ElementTree
 
+
 class SOAPObject(object):
     """Base class for SOAP envelope, header and body elements"""
     

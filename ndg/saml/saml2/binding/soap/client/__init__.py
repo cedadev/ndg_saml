@@ -26,7 +26,7 @@ from ndg.saml.saml2.binding.soap import SOAPBindingInvalidResponse
 _isIterable = lambda obj: getattr(obj, '__iter__', False) 
    
 
-class SOAPBinding(object):
+class SOAPBinding:
     '''Client SAML SOAP Binding'''
     SOAP_ACTION = 'http://www.oasis-open.org/committees/security'
     
@@ -42,10 +42,12 @@ class SOAPBinding(object):
         DESERIALISE_OPTNAME
     )
     
-    __PRIVATE_ATTR_PREFIX = "__"
-    __slots__ = tuple([__PRIVATE_ATTR_PREFIX + i 
-                       for i in CONFIG_FILE_OPTNAMES + ("client",)])
-    del i
+    PRIVATE_ATTR_PREFIX = "__"
+    
+    def _mk_slots(prefix, config_file_optnames): 
+        return tuple([prefix + i for i in config_file_optnames + ("client",)])
+    
+    __slots__ = _mk_slots(PRIVATE_ATTR_PREFIX, CONFIG_FILE_OPTNAMES)
     
     isIterable = staticmethod(_isIterable)
     

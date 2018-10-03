@@ -60,10 +60,10 @@ class RequestBaseSOAPBinding(SOAPBinding):
     )
     
     __PRIVATE_ATTR_PREFIX = "__"
-    __slots__ = tuple([__PRIVATE_ATTR_PREFIX + i 
-                       for i in CONFIG_FILE_OPTNAMES + ('issuer',)])
-    del i
-    
+    def _set_slots(prefix, config_file_optnames):
+        return tuple([prefix + i for i in config_file_optnames + ('issuer',)])
+    __slots__ = _set_slots(__PRIVATE_ATTR_PREFIX, CONFIG_FILE_OPTNAMES)
+
     QUERY_TYPE = RequestAbstractType
     
     def __init__(self, **kw):
