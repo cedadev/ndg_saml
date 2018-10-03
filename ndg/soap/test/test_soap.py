@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 import socket
-from cStringIO import StringIO
+from io import StringIO
 from os import path
 try:
     import paste.fixture
@@ -24,7 +24,8 @@ try:
 except ImportError:
     paste_installed = False
     
-from urllib2 import HTTPHandler, URLError
+from urllib.request import HTTPHandler
+from urllib.error import URLError
 
 from ndg.soap import SOAPFaultBase
 from ndg.soap.etree import SOAPEnvelope, SOAPFault, SOAPFaultException
@@ -38,8 +39,8 @@ class SOAPBindingMiddleware(object):
     def __call__(self, environ, start_response):
         requestFile = environ['wsgi.input']
         
-        print("Server received request from client:\n\n%s" % 
-              requestFile.read())
+        print(("Server received request from client:\n\n%s" % 
+              requestFile.read()))
         
         soapResponse = SOAPEnvelope()
         soapResponse.create()
@@ -61,12 +62,12 @@ class SOAPTestCase(unittest.TestCase):
         envelope.create()
         soap = envelope.serialize()
         
-        self.assert_(len(soap) > 0)
-        self.assert_("Envelope" in soap)
-        self.assert_("Body" in soap)
-        self.assert_("Header" in soap)
+        self.assertTrue(len(soap) > 0)
+        self.assertTrue("Envelope" in soap)
+        self.assertTrue("Body" in soap)
+        self.assertTrue("Header" in soap)
         
-        print(envelope.prettyPrint())
+        print((envelope.prettyPrint()))
         stream = StringIO()
         stream.write(soap)
         stream.seek(0)
@@ -74,15 +75,15 @@ class SOAPTestCase(unittest.TestCase):
         envelope2 = SOAPEnvelope()
         envelope2.parse(stream)
         soap2 = envelope2.serialize()
-        self.assert_(soap2 == soap)
+        self.assertTrue(soap2 == soap)
 
     def test02CreateSOAPFaultBase(self):
         
         fault = SOAPFaultBase(self.__class__.EG_SOAPFAULT_STRING, 
                               self.__class__.EG_SOAPFAULT_CODE)
         
-        self.assert_(fault.faultCode == self.__class__.EG_SOAPFAULT_CODE)
-        self.assert_(fault.faultString == self.__class__.EG_SOAPFAULT_STRING)
+        self.assertTrue(fault.faultCode == self.__class__.EG_SOAPFAULT_CODE)
+        self.assertTrue(fault.faultString == self.__class__.EG_SOAPFAULT_STRING)
      
     def _createSOAPFault(self):
         fault = SOAPFault(self.__class__.EG_SOAPFAULT_STRING, 
@@ -95,7 +96,7 @@ class SOAPTestCase(unittest.TestCase):
         fault = self._createSOAPFault()
         faultStr = fault.serialize()
         print(faultStr)
-        self.assert_(self.__class__.EG_SOAPFAULT_STRING in faultStr)
+        self.assertTrue(self.__class__.EG_SOAPFAULT_STRING in faultStr)
 
     def test04ParseSOAPFault(self):
         fault = self._createSOAPFault()
@@ -106,19 +107,19 @@ class SOAPTestCase(unittest.TestCase):
         
         fault2 = SOAPFault()
         fault2.parse(stream)
-        self.assert_(fault2.faultCode == fault.faultCode)
-        self.assert_(fault2.faultString == fault.faultString)
+        self.assertTrue(fault2.faultCode == fault.faultCode)
+        self.assertTrue(fault2.faultString == fault.faultString)
     
     def test05CreateSOAPFaultException(self):
         try:
             raise SOAPFaultException("bad request", SOAPFault.CLIENT_FAULT_CODE)
         
-        except SOAPFaultException, e:
-            self.assert_(e.fault.faultString == "bad request")
-            self.assert_(SOAPFault.CLIENT_FAULT_CODE in e.fault.faultCode)
+        except SOAPFaultException as e:
+            self.assertTrue(e.fault.faultString == "bad request")
+            self.assertTrue(SOAPFault.CLIENT_FAULT_CODE in e.fault.faultCode)
             e.fault.create()
-            self.assert_("bad request" in e.fault.serialize())
-            self.assert_(SOAPFault.CLIENT_FAULT_CODE in e.fault.serialize())
+            self.assertTrue("bad request" in e.fault.serialize())
+            self.assertTrue(SOAPFault.CLIENT_FAULT_CODE in e.fault.serialize())
             return
         
         self.fail("Expecting SOAPFaultException raised")
@@ -130,13 +131,13 @@ class SOAPTestCase(unittest.TestCase):
         envelope.create()
         soap = envelope.serialize()
         
-        self.assert_(len(soap) > 0)
-        self.assert_("Envelope" in soap)
-        self.assert_("Body" in soap)
-        self.assert_("Header" in soap)
-        self.assert_("Fault" in soap)
+        self.assertTrue(len(soap) > 0)
+        self.assertTrue("Envelope" in soap)
+        self.assertTrue("Body" in soap)
+        self.assertTrue("Header" in soap)
+        self.assertTrue("Fault" in soap)
         
-        print(envelope.prettyPrint())
+        print((envelope.prettyPrint()))
         stream = StringIO()
         stream.write(soap)
         stream.seek(0)
@@ -144,7 +145,7 @@ class SOAPTestCase(unittest.TestCase):
         envelope2 = SOAPEnvelope()
         envelope2.parse(stream)
         soap2 = envelope2.serialize()
-        self.assert_(soap2 == soap)
+        self.assertTrue(soap2 == soap)
             
 
 class SOAPServiceTestCase(unittest.TestCase):
@@ -173,9 +174,9 @@ class SOAPServiceTestCase(unittest.TestCase):
         response = self.app.post('/my-soap-endpoint', 
                                  params=request, 
                                  status=200)
-        print(response.headers)
-        print(response.status)
-        print(response.body)
+        print((response.headers))
+        print((response.status))
+        print((response.body))
 
     def test02Urllib2Client(self):
         
@@ -199,7 +200,7 @@ class SOAPServiceTestCase(unittest.TestCase):
         except URLError:
             self.fail("soap_server.py must be running for this test")
         
-        print("Response from server:\n\n%s" % response.envelope.serialize())
+        print(("Response from server:\n\n%s" % response.envelope.serialize()))
         
     def addService(self, *arg, **kw):
         """Utility for setting up threads to run Paste HTTP based services with

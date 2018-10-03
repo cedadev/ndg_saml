@@ -22,7 +22,7 @@ try:
 except ImportError:
     paste_installed = False
     
-from cStringIO import StringIO
+from io import StringIO
 
 from ndg.saml import importElementTree
 ElementTree = importElementTree()
@@ -63,7 +63,7 @@ class SamlSoapBindingApp(object):
         attributeQuery = AttributeQueryElementTree.fromXML(attributeQueryElem)
         
         print("Received request from client:\n")
-        print soapRequest.prettyPrint()
+        print(soapRequest.prettyPrint())
         
         samlResponse = Response()
         
@@ -263,7 +263,7 @@ class SamlAttributeQueryTestCase(unittest.TestCase):
                                  params=request, 
                                  headers=header, 
                                  status=200)
-        print("Response status=%d" % response.status)
+        print(("Response status=%d" % response.status))
 
         soapResponse = SOAPEnvelope()
         
@@ -274,13 +274,13 @@ class SamlAttributeQueryTestCase(unittest.TestCase):
         soapResponse.parse(responseStream)
         
         print("Parsed response ...")
-        print(soapResponse.serialize())
+        print((soapResponse.serialize()))
 #        print(prettyPrint(soapResponse.elem))
         
         response = ResponseElementTree.fromXML(soapResponse.body.elem[0])
-        self.assert_(response.status.statusCode.value==StatusCode.SUCCESS_URI)
-        self.assert_(response.inResponseTo == attributeQuery.id)
-        self.assert_(response.assertions[0].subject.nameID.value == \
+        self.assertTrue(response.status.statusCode.value==StatusCode.SUCCESS_URI)
+        self.assertTrue(response.inResponseTo == attributeQuery.id)
+        self.assertTrue(response.assertions[0].subject.nameID.value == \
                      attributeQuery.subject.nameID.value)
 
     def _parseResponse(self, responseStr):
@@ -294,7 +294,7 @@ class SamlAttributeQueryTestCase(unittest.TestCase):
         soapResponse.parse(responseStream)
         
         print("Parsed response ...")
-        print(soapResponse.serialize())
+        print((soapResponse.serialize()))
         
         response = ResponseElementTree.fromXML(soapResponse.body.elem[0])
         return response
@@ -310,7 +310,7 @@ class SamlAttributeQueryTestCase(unittest.TestCase):
         }
         responseStr = self.__class__.RESPONSE % respDict
         response = self._parseResponse(responseStr)
-        self.assert_(response)
+        self.assertTrue(response)
 
     def test04AssertionConditionExpired(self):
         # issued 9 hours ago
@@ -329,8 +329,8 @@ class SamlAttributeQueryTestCase(unittest.TestCase):
         try:
             binding._verifyTimeConditions(response)
             self.fail("Expecting not on or after timestamp error")
-        except AssertionConditionNotOnOrAfterInvalid, e:
-            print("PASSED: %s" % e)
+        except AssertionConditionNotOnOrAfterInvalid as e:
+            print(("PASSED: %s" % e))
 
     def test05ResponseIssueInstantInvalid(self):
         utcNow = datetime.utcnow()
@@ -348,8 +348,8 @@ class SamlAttributeQueryTestCase(unittest.TestCase):
         try:
             binding._verifyTimeConditions(response)
             self.fail("Expecting issue instant timestamp error")
-        except ResponseIssueInstantInvalid, e:
-            print("PASSED: %s" % e)
+        except ResponseIssueInstantInvalid as e:
+            print(("PASSED: %s" % e))
 
     def test06NotBeforeConditionInvalid(self):
         utcNow = datetime.utcnow()
@@ -366,8 +366,8 @@ class SamlAttributeQueryTestCase(unittest.TestCase):
         try:
             binding._verifyTimeConditions(response)
             self.fail("Expecting issue instant timestamp error")
-        except AssertionConditionNotBeforeInvalid, e:
-            print("PASSED: %s" % e)
+        except AssertionConditionNotBeforeInvalid as e:
+            print(("PASSED: %s" % e))
 
     def test07AssertionIssueInstantInvalid(self):
         utcNow = datetime.utcnow()
@@ -385,8 +385,8 @@ class SamlAttributeQueryTestCase(unittest.TestCase):
         try:
             binding._verifyTimeConditions(response)
             self.fail("Expecting issue instant timestamp error")
-        except AssertionIssueInstantInvalid, e:
-            print("PASSED: %s" % e)
+        except AssertionIssueInstantInvalid as e:
+            print(("PASSED: %s" % e))
 
     def test07ClockSkewCorrectedAssertionIssueInstantInvalid(self):
         utcNow = datetime.utcnow()

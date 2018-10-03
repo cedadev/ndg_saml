@@ -32,12 +32,12 @@ class SOAPQueryInterfaceMiddlewareTestCase(unittest.TestCase):
         'clockSkewTolerance': 60*3       
         }
         queryIface.initialise({}, **config)
-        self.assert_(queryIface.mountPath == '/attribute-authority')
-        self.assert_(queryIface.queryInterfaceKeyName == 'QUERY_IFACE_KEY')
-        self.assert_(queryIface.deserialise == \
+        self.assertTrue(queryIface.mountPath == '/attribute-authority')
+        self.assertTrue(queryIface.queryInterfaceKeyName == 'QUERY_IFACE_KEY')
+        self.assertTrue(queryIface.deserialise == \
                      AttributeQueryElementTree.fromXML)
-        self.assert_(queryIface.serialise == ResponseElementTree.toXML)
-        self.assert_(queryIface.clockSkewTolerance == timedelta(seconds=60*3))
+        self.assertTrue(queryIface.serialise == ResponseElementTree.toXML)
+        self.assertTrue(queryIface.clockSkewTolerance == timedelta(seconds=60*3))
 
 
 if __name__ == "__main__":

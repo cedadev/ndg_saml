@@ -353,9 +353,9 @@ commands:
         saml_response_elem = ResponseElementTree.toXML(response)
         
         if self.pretty_print:
-            print(prettyPrint(saml_response_elem))
+            print((prettyPrint(saml_response_elem)))
         else:
-            print(ElementTree.tostring(saml_response_elem))
+            print((ElementTree.tostring(saml_response_elem)))
 
     @classmethod
     def main(cls, argv=sys.argv):
@@ -374,7 +374,7 @@ commands:
         
         try:
             response = client.dispatch(command)
-        except Exception, e:
+        except Exception as e:
             if client.debug:
                 raise
             else:

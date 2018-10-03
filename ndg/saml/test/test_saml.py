@@ -30,7 +30,7 @@ logging.basicConfig(level=logging.DEBUG)
     
 from datetime import datetime, timedelta
 from uuid import uuid4
-from cStringIO import StringIO
+from io import StringIO
 
 import unittest
 import pickle
@@ -91,15 +91,15 @@ class SAMLTestCase(unittest.TestCase):
         # Create ElementTree Assertion Element
         assertionElem = AssertionElementTree.toXML(assertion)
         
-        self.assert_(ElementTree.iselement(assertionElem))
+        self.assertTrue(ElementTree.iselement(assertionElem))
         
         # Serialise to output 
         xmlOutput = prettyPrint(assertionElem)       
-        self.assert_(len(xmlOutput))
+        self.assertTrue(len(xmlOutput))
         
-        print("\n"+"_"*80)
+        print(("\n"+"_"*80))
         print(xmlOutput)
-        print("_"*80)
+        print(("_"*80))
 
     def test02ParseAssertion(self):
         assertion = self._createAttributeAssertionHelper()
@@ -107,14 +107,14 @@ class SAMLTestCase(unittest.TestCase):
         # Create ElementTree Assertion Element
         assertionElem = AssertionElementTree.toXML(assertion)
         
-        self.assert_(ElementTree.iselement(assertionElem))
+        self.assertTrue(ElementTree.iselement(assertionElem))
         
         # Serialise to output 
         xmlOutput = prettyPrint(assertionElem)       
            
-        print("\n"+"_"*80)
+        print(("\n"+"_"*80))
         print(xmlOutput)
-        print("_"*80)
+        print(("_"*80))
                 
         assertionStream = StringIO()
         assertionStream.write(xmlOutput)
@@ -124,7 +124,7 @@ class SAMLTestCase(unittest.TestCase):
         elem2 = tree.getroot()
         
         assertion2 = AssertionElementTree.fromXML(elem2)
-        self.assert_(assertion2)
+        self.assertTrue(assertion2)
         
     def test03CreateAttributeQuery(self):
         samlUtil = SAMLUtil()
@@ -137,9 +137,9 @@ class SAMLTestCase(unittest.TestCase):
         elem = AttributeQueryElementTree.toXML(attributeQuery)
         xmlOutput = prettyPrint(elem)
            
-        print("\n"+"_"*80)
+        print(("\n"+"_"*80))
         print(xmlOutput)
-        print("_"*80)
+        print(("_"*80))
 
     def test04ParseAttributeQuery(self):
         samlUtil = SAMLUtil()
@@ -151,7 +151,7 @@ class SAMLTestCase(unittest.TestCase):
         
         elem = AttributeQueryElementTree.toXML(attributeQuery)        
         xmlOutput = prettyPrint(elem)       
-        print("\n"+"_"*80)
+        print(("\n"+"_"*80))
         print(xmlOutput)
                 
         attributeQueryStream = StringIO()
@@ -162,18 +162,18 @@ class SAMLTestCase(unittest.TestCase):
         elem2 = tree.getroot()
         
         attributeQuery2 = AttributeQueryElementTree.fromXML(elem2)
-        self.assert_(attributeQuery2.id == attributeQuery.id)
-        self.assert_(attributeQuery2.issuer.value==attributeQuery.issuer.value)
-        self.assert_(attributeQuery2.subject.nameID.value == \
+        self.assertTrue(attributeQuery2.id == attributeQuery.id)
+        self.assertTrue(attributeQuery2.issuer.value==attributeQuery.issuer.value)
+        self.assertTrue(attributeQuery2.subject.nameID.value == \
                      attributeQuery.subject.nameID.value)
         
-        self.assert_(attributeQuery2.attributes[1].name == \
+        self.assertTrue(attributeQuery2.attributes[1].name == \
                      attributeQuery.attributes[1].name)
         
         xmlOutput2 = prettyPrint(elem2)       
-        print("_"*80)
+        print(("_"*80))
         print(xmlOutput2)
-        print("_"*80)
+        print(("_"*80))
 
     def _createAttributeQueryResponse(self):
         response = Response()
@@ -222,37 +222,37 @@ class SAMLTestCase(unittest.TestCase):
         # Create ElementTree Assertion Element
         responseElem = ResponseElementTree.toXML(response)
         
-        self.assert_(ElementTree.iselement(responseElem))
+        self.assertTrue(ElementTree.iselement(responseElem))
         
         # Serialise to output        
         xmlOutput = prettyPrint(responseElem)       
-        self.assert_(len(xmlOutput))
-        print("\n"+"_"*80)
+        self.assertTrue(len(xmlOutput))
+        print(("\n"+"_"*80))
         print(xmlOutput)
-        print("_"*80)
+        print(("_"*80))
     
     def test06CreateAuthzDecisionQuery(self):
         samlUtil = SAMLUtil()
         authzDecisionQuery = samlUtil.buildAuthzDecisionQuery()
         
-        self.assert_(":80" not in authzDecisionQuery.resource)
-        self.assert_("localhost" in authzDecisionQuery.resource)
-        self.assert_(" " not in authzDecisionQuery.resource)
+        self.assertTrue(":80" not in authzDecisionQuery.resource)
+        self.assertTrue("localhost" in authzDecisionQuery.resource)
+        self.assertTrue(" " not in authzDecisionQuery.resource)
         
         authzDecisionQuery.resource = \
             "https://Somewhere.ac.uk:443/My Secured URI?blah=4&yes=True"
             
-        self.assert_(":443" not in authzDecisionQuery.resource)
-        self.assert_("somewhere.ac.uk" in authzDecisionQuery.resource)
-        self.assert_("yes=True" in authzDecisionQuery.resource)
+        self.assertTrue(":443" not in authzDecisionQuery.resource)
+        self.assertTrue("somewhere.ac.uk" in authzDecisionQuery.resource)
+        self.assertTrue("yes=True" in authzDecisionQuery.resource)
         
         authzDecisionQuery.actions.append(Action())
         authzDecisionQuery.actions[0].namespace = Action.GHPP_NS_URI
         authzDecisionQuery.actions[0].value = Action.HTTP_GET_ACTION
         
-        self.assert_(
+        self.assertTrue(
             authzDecisionQuery.actions[0].value == Action.HTTP_GET_ACTION)
-        self.assert_(
+        self.assertTrue(
             authzDecisionQuery.actions[0].namespace == Action.GHPP_NS_URI)
         
         # Try out the restricted vocabulary
@@ -260,8 +260,8 @@ class SAMLTestCase(unittest.TestCase):
             authzDecisionQuery.actions[0].value = "delete everything"
             self.fail("Expecting AttributeError raised for incorrect action "
                       "setting.")
-        except AttributeError, e:
-            print("Caught incorrect action type setting: %s" % e)
+        except AttributeError as e:
+            print(("Caught incorrect action type setting: %s" % e))
         
         authzDecisionQuery.actions[0].actionTypes = {'urn:malicious': 
                                                      ("delete everything",)}
@@ -272,17 +272,17 @@ class SAMLTestCase(unittest.TestCase):
         
     def test09CreateAuthzDecisionQueryResponse(self):
         response = SAMLUtil.create_authz_decision_query_response()
-        self.assert_(response.assertions[0])
-        self.assert_(response.assertions[0].authzDecisionStatements[0])
-        self.assert_(response.assertions[0].authzDecisionStatements[0
+        self.assertTrue(response.assertions[0])
+        self.assertTrue(response.assertions[0].authzDecisionStatements[0])
+        self.assertTrue(response.assertions[0].authzDecisionStatements[0
             ].decision == DecisionType.PERMIT)
-        self.assert_(response.assertions[0].authzDecisionStatements[0
+        self.assertTrue(response.assertions[0].authzDecisionStatements[0
             ].resource == SAMLTestCase.RESOURCE_URI)
-        self.assert_(response.assertions[0].authzDecisionStatements[0
+        self.assertTrue(response.assertions[0].authzDecisionStatements[0
             ].decision == DecisionType.PERMIT)
-        self.assert_(response.assertions[0].authzDecisionStatements[0
+        self.assertTrue(response.assertions[0].authzDecisionStatements[0
             ].actions[-1].namespace == Action.GHPP_NS_URI)
-        self.assert_(response.assertions[0].authzDecisionStatements[0
+        self.assertTrue(response.assertions[0].authzDecisionStatements[0
             ].actions[-1].value == Action.HTTP_GET_ACTION)
  
     def test12PickleAssertion(self):
@@ -294,12 +294,12 @@ class SAMLTestCase(unittest.TestCase):
         
         jar = pickle.dumps(assertion)
         assertion2 = pickle.loads(jar)
-        self.assert_(isinstance(assertion2, Assertion))
-        self.assert_(assertion2.issuer.value == assertion.issuer.value)
-        self.assert_(assertion2.issuer.format == assertion.issuer.format)
-        self.assert_(len(assertion2.attributeStatements)==1)
-        self.assert_(len(assertion2.attributeStatements[0].attributes) > 0)
-        self.assert_(assertion2.attributeStatements[0].attributes[0
+        self.assertTrue(isinstance(assertion2, Assertion))
+        self.assertTrue(assertion2.issuer.value == assertion.issuer.value)
+        self.assertTrue(assertion2.issuer.format == assertion.issuer.format)
+        self.assertTrue(len(assertion2.attributeStatements)==1)
+        self.assertTrue(len(assertion2.attributeStatements[0].attributes) > 0)
+        self.assertTrue(assertion2.attributeStatements[0].attributes[0
                      ].attributeValues[0
                      ].value == assertion.attributeStatements[0].attributes[0
                                 ].attributeValues[0].value)
@@ -316,17 +316,17 @@ class SAMLTestCase(unittest.TestCase):
         jar = pickle.dumps(query)
         query2 = pickle.loads(jar)
 
-        self.assert_(isinstance(query2, AttributeQuery))
-        self.assert_(query2.subject.nameID.value == query.subject.nameID.value)
-        self.assert_((query2.subject.nameID.format == 
+        self.assertTrue(isinstance(query2, AttributeQuery))
+        self.assertTrue(query2.subject.nameID.value == query.subject.nameID.value)
+        self.assertTrue((query2.subject.nameID.format == 
                       query.subject.nameID.format))
-        self.assert_(query2.issuer.value == query.issuer.value)
-        self.assert_(query2.issuer.format == query.issuer.format)
-        self.assert_(query2.issueInstant == query.issueInstant)
-        self.assert_(query2.id == query.id)
-        self.assert_(len(query2.attributes) == 3)
-        self.assert_(query2.attributes[0].name == "urn:esg:first:name")
-        self.assert_(query2.attributes[1].nameFormat == SAMLUtil.XSSTRING_NS)
+        self.assertTrue(query2.issuer.value == query.issuer.value)
+        self.assertTrue(query2.issuer.format == query.issuer.format)
+        self.assertTrue(query2.issueInstant == query.issueInstant)
+        self.assertTrue(query2.id == query.id)
+        self.assertTrue(len(query2.attributes) == 3)
+        self.assertTrue(query2.attributes[0].name == "urn:esg:first:name")
+        self.assertTrue(query2.attributes[1].nameFormat == SAMLUtil.XSSTRING_NS)
 
     def test14PickleAttributeQueryResponse(self):
         response = self._createAttributeQueryResponse()
@@ -334,21 +334,21 @@ class SAMLTestCase(unittest.TestCase):
         jar = pickle.dumps(response)
         response2 = pickle.loads(jar)
         
-        self.assert_(isinstance(response2, Response))
-        self.assert_((response2.status.statusCode.value == 
+        self.assertTrue(isinstance(response2, Response))
+        self.assertTrue((response2.status.statusCode.value == 
                       response.status.statusCode.value))
-        self.assert_((response2.status.statusMessage.value == 
+        self.assertTrue((response2.status.statusMessage.value == 
                       response.status.statusMessage.value))
-        self.assert_(len(response2.assertions) == 1)
-        self.assert_(response2.assertions[0].id == response.assertions[0].id)
-        self.assert_((response2.assertions[0].conditions.notBefore == 
+        self.assertTrue(len(response2.assertions) == 1)
+        self.assertTrue(response2.assertions[0].id == response.assertions[0].id)
+        self.assertTrue((response2.assertions[0].conditions.notBefore == 
                       response.assertions[0].conditions.notBefore))
-        self.assert_((response2.assertions[0].conditions.notOnOrAfter == 
+        self.assertTrue((response2.assertions[0].conditions.notOnOrAfter == 
                       response.assertions[0].conditions.notOnOrAfter))
-        self.assert_(len(response2.assertions[0].attributeStatements) == 1)
-        self.assert_(len(response2.assertions[0].attributeStatements[0
+        self.assertTrue(len(response2.assertions[0].attributeStatements) == 1)
+        self.assertTrue(len(response2.assertions[0].attributeStatements[0
                                                             ].attributes) == 9)
-        self.assert_(response2.assertions[0].attributeStatements[0].attributes[1
+        self.assertTrue(response2.assertions[0].attributeStatements[0].attributes[1
                      ].attributeValues[0
                      ].value == response.assertions[0].attributeStatements[0
                                     ].attributes[1].attributeValues[0].value)
@@ -360,12 +360,12 @@ class SAMLTestCase(unittest.TestCase):
         jar = pickle.dumps(query)
         query2 = pickle.loads(jar)
         
-        self.assert_(isinstance(query2, AuthzDecisionQuery))
-        self.assert_(query.resource == query2.resource)
-        self.assert_(query.version == query2.version)
-        self.assert_(len(query2.actions) == 1)
-        self.assert_(query2.actions[0].value == Action.HTTP_GET_ACTION)
-        self.assert_(query2.actions[0].namespace == Action.GHPP_NS_URI)
+        self.assertTrue(isinstance(query2, AuthzDecisionQuery))
+        self.assertTrue(query.resource == query2.resource)
+        self.assertTrue(query.version == query2.version)
+        self.assertTrue(len(query2.actions) == 1)
+        self.assertTrue(query2.actions[0].value == Action.HTTP_GET_ACTION)
+        self.assertTrue(query2.actions[0].namespace == Action.GHPP_NS_URI)
 
     def test16PickleAuthzDecisionResponse(self):
         response = SAMLUtil.create_authz_decision_query_response()
@@ -373,26 +373,26 @@ class SAMLTestCase(unittest.TestCase):
         jar = pickle.dumps(response)
         response2 = pickle.loads(jar)
         
-        self.assert_(isinstance(response2, Response))
+        self.assertTrue(isinstance(response2, Response))
         
-        self.assert_(len(response.assertions) == 1)
-        self.assert_(len(response.assertions[0].authzDecisionStatements) == 1)
+        self.assertTrue(len(response.assertions) == 1)
+        self.assertTrue(len(response.assertions[0].authzDecisionStatements) == 1)
          
-        self.assert_(response.assertions[0].authzDecisionStatements[0
+        self.assertTrue(response.assertions[0].authzDecisionStatements[0
                         ].resource == response2.assertions[0
                                         ].authzDecisionStatements[0].resource)
         
-        self.assert_(len(response.assertions[0].authzDecisionStatements[0
+        self.assertTrue(len(response.assertions[0].authzDecisionStatements[0
                         ].actions) == 1)
-        self.assert_(response.assertions[0].authzDecisionStatements[0
+        self.assertTrue(response.assertions[0].authzDecisionStatements[0
                         ].actions[0].value == response2.assertions[0
                                         ].authzDecisionStatements[0
                                                 ].actions[0].value)
         
-        self.assert_(response2.assertions[0].authzDecisionStatements[0
+        self.assertTrue(response2.assertions[0].authzDecisionStatements[0
                         ].actions[0].namespace == Action.GHPP_NS_URI)        
 
-        self.assert_(response2.assertions[0].authzDecisionStatements[0
+        self.assertTrue(response2.assertions[0].authzDecisionStatements[0
                         ].decision == DecisionType.PERMIT)        
         
     def test17SAMLDatetime(self):
@@ -400,7 +400,7 @@ class SAMLTestCase(unittest.TestCase):
         # http://www.w3.org/TR/xmlschema-2/#dateTime 
         
         # No seconds fraction
-        self.assert_(SAMLDateTime.fromString('2010-10-20T14:49:50Z'))
+        self.assertTrue(SAMLDateTime.fromString('2010-10-20T14:49:50Z'))
         
         self.assertRaises(TypeError, SAMLDateTime.fromString, None)
         

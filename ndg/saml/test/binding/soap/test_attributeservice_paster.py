@@ -79,11 +79,11 @@ class SamlSslSoapBindingTestCase(WithPasterBaseTestCase):
         samlResponseElem = ResponseElementTree.toXML(response)
         
         print("SAML Response ...")
-        print(ElementTree.tostring(samlResponseElem))
+        print((ElementTree.tostring(samlResponseElem)))
         print("Pretty print SAML Response ...")
-        print(prettyPrint(samlResponseElem))
+        print((prettyPrint(samlResponseElem)))
         
-        self.assert_(response.status.statusCode.value==StatusCode.SUCCESS_URI)
+        self.assertTrue(response.status.statusCode.value==StatusCode.SUCCESS_URI)
   
  
 if __name__ == "__main__":

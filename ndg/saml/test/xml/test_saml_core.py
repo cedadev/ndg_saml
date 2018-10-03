@@ -29,7 +29,7 @@ __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = "$Id$"
 import unittest
-from StringIO import StringIO
+from io import StringIO
 
 from ndg.saml import importElementTree
 ElementTree = importElementTree()
@@ -141,15 +141,15 @@ Resource="http://localhost:8000/resource.html" >
         authzDecisionQueryElem = AuthzDecisionQueryElementTree.toXML(
                                                             authzDecisionQuery)
         
-        self.assert_(ElementTree.iselement(authzDecisionQueryElem))
+        self.assertTrue(ElementTree.iselement(authzDecisionQueryElem))
         
         # Serialise to output 
         xmlOutput = prettyPrint(authzDecisionQueryElem)       
-        self.assert_(len(xmlOutput))
+        self.assertTrue(len(xmlOutput))
         
-        print("\n"+"_"*80)
+        print(("\n"+"_"*80))
         print(xmlOutput)
-        print("_"*80)
+        print(("_"*80))
    
     def test04_deserialize_authz_decision_query(self):
         samlUtil = SAMLUtil()
@@ -159,11 +159,11 @@ Resource="http://localhost:8000/resource.html" >
         authzDecisionQueryElem = AuthzDecisionQueryElementTree.toXML(
                                                             authzDecisionQuery)
         
-        self.assert_(ElementTree.iselement(authzDecisionQueryElem))
+        self.assertTrue(ElementTree.iselement(authzDecisionQueryElem))
         
         # Serialise to output 
         xmlOutput = prettyPrint(authzDecisionQueryElem)       
-        self.assert_(len(xmlOutput))
+        self.assertTrue(len(xmlOutput))
         
         authzDecisionQueryStream = StringIO()
         authzDecisionQueryStream.write(xmlOutput)
@@ -173,21 +173,21 @@ Resource="http://localhost:8000/resource.html" >
         elem2 = tree.getroot()
         
         authzDecisionQuery2 = AuthzDecisionQueryElementTree.fromXML(elem2)
-        self.assert_(authzDecisionQuery2)
-        self.assert_(
+        self.assertTrue(authzDecisionQuery2)
+        self.assertTrue(
         authzDecisionQuery2.subject.nameID.value == SAMLUtil.NAMEID_VALUE)
-        self.assert_(
+        self.assertTrue(
         authzDecisionQuery2.subject.nameID.format == SAMLUtil.NAMEID_FORMAT)
-        self.assert_(
+        self.assertTrue(
             authzDecisionQuery2.issuer.value == SAMLUtil.ISSUER_DN)
-        self.assert_(
+        self.assertTrue(
             authzDecisionQuery2.resource == SAMLUtil.RESOURCE_URI)
-        self.assert_(len(authzDecisionQuery2.actions) == 1)
-        self.assert_(
+        self.assertTrue(len(authzDecisionQuery2.actions) == 1)
+        self.assertTrue(
             authzDecisionQuery2.actions[0].value == Action.HTTP_GET_ACTION)
-        self.assert_(
+        self.assertTrue(
             authzDecisionQuery2.actions[0].namespace == Action.GHPP_NS_URI)
-        self.assert_(authzDecisionQuery2.evidence is None)
+        self.assertTrue(authzDecisionQuery2.evidence is None)
         
 #     def _create_authz_decision_query(self):
 #         authzDecisionQuery = AuthzDecisionQuery()
@@ -214,7 +214,7 @@ Resource="http://localhost:8000/resource.html" >
         
         # Create ElementTree Assertion Element
         responseElem = ResponseElementTree.toXML(response)
-        self.assert_(ElementTree.iselement(responseElem))
+        self.assertTrue(ElementTree.iselement(responseElem))
         
         # Serialise to output        
         xmlOutput = prettyPrint(responseElem)
@@ -222,14 +222,14 @@ Resource="http://localhost:8000/resource.html" >
     
     def test05_serialize_authz_decision_response(self):
         xmlOutput = self._serialize_authz_decision_query_response()
-        self.assert_(len(xmlOutput))
-        print("\n"+"_"*80)
+        self.assertTrue(len(xmlOutput))
+        print(("\n"+"_"*80))
         print(xmlOutput)
-        print("_"*80)
+        print(("_"*80))
         
-        self.assert_('AuthzDecisionStatement' in xmlOutput)
-        self.assert_('GET' in xmlOutput)
-        self.assert_('Permit' in xmlOutput)
+        self.assertTrue('AuthzDecisionStatement' in xmlOutput)
+        self.assertTrue('GET' in xmlOutput)
+        self.assertTrue('Permit' in xmlOutput)
 
     def test06_deserialize_authz_decision_response(self):
         xmlOutput = self._serialize_authz_decision_query_response()
@@ -242,17 +242,17 @@ Resource="http://localhost:8000/resource.html" >
         elem = tree.getroot()
         response = ResponseElementTree.fromXML(elem)
         
-        self.assert_(response.assertions[0])
-        self.assert_(response.assertions[0].authzDecisionStatements[0])
-        self.assert_(response.assertions[0].authzDecisionStatements[0
+        self.assertTrue(response.assertions[0])
+        self.assertTrue(response.assertions[0].authzDecisionStatements[0])
+        self.assertTrue(response.assertions[0].authzDecisionStatements[0
             ].decision == DecisionType.PERMIT)
-        self.assert_(response.assertions[0].authzDecisionStatements[0
+        self.assertTrue(response.assertions[0].authzDecisionStatements[0
             ].resource == SAMLUtil.RESOURCE_URI)
-        self.assert_(response.assertions[0].authzDecisionStatements[0
+        self.assertTrue(response.assertions[0].authzDecisionStatements[0
             ].decision == DecisionType.PERMIT)
-        self.assert_(response.assertions[0].authzDecisionStatements[0
+        self.assertTrue(response.assertions[0].authzDecisionStatements[0
             ].actions[-1].namespace == Action.GHPP_NS_URI)
-        self.assert_(response.assertions[0].authzDecisionStatements[0
+        self.assertTrue(response.assertions[0].authzDecisionStatements[0
             ].actions[-1].value == Action.HTTP_GET_ACTION)
         
 

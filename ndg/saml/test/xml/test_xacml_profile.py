@@ -44,7 +44,7 @@ try:
         XACMLAuthzDecisionQueryElementTree
     _xacml_support = True
     
-except ImportError, e:
+except ImportError as e:
     from warnings import warn
     warn('Error importing XACML packages - skipping XACML profile unit ' + \
          'tests module.  (Error is: %s)' % e)
@@ -67,7 +67,7 @@ if _xacml_support:
     
         def _getSingleElementText(self, contextElem, path):
             elems = contextElem.findall(path)
-            self.assertEquals(len(elems), 1, "Single element not selected")
+            self.assertEqual(len(elems), 1, "Single element not selected")
             return elems[0].text
     
         def test01(self):
@@ -113,7 +113,7 @@ if _xacml_support:
     
             # Convert to element tree.
             queryElem = XACMLAuthzDecisionQueryElementTree.toXML(query)
-            print ET.tostring(queryElem)
+            print(ET.tostring(queryElem))
     
             # Check some values from query and resource content XML.
             self.assertEqual(queryElem.get("Version"), "2.0")

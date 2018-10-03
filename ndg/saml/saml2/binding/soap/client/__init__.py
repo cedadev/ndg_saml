@@ -12,7 +12,7 @@ import logging
 log = logging.getLogger(__name__)
 
 from os import path
-from ConfigParser import ConfigParser, SafeConfigParser
+from configparser import ConfigParser, SafeConfigParser
 
 from ndg.saml.common import SAMLObject
 
@@ -85,7 +85,7 @@ class SOAPBinding(object):
         return self.__serialise
 
     def _setSerialise(self, value):
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             self.__serialise = importModuleObject(value)
             
         elif callable(value):
@@ -101,7 +101,7 @@ class SOAPBinding(object):
         return self.__deserialise
 
     def _setDeserialise(self, value):
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             self.__deserialise = importModuleObject(value)
             
         elif callable(value):
@@ -119,7 +119,7 @@ class SOAPBinding(object):
         return self.__requestEnvelopeClass
 
     def _setRequestEnvelopeClass(self, value):
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             self.client.responseEnvelopeClass = importModuleObject(value)
             
         elif issubclass(value, SOAPEnvelopeBase):
@@ -216,7 +216,7 @@ class SOAPBinding(object):
         :param section: configuration file section from which to extract
         parameters.
         '''  
-        if isinstance(cfg, basestring):
+        if isinstance(cfg, str):
             cfgFilePath = path.expandvars(cfg)
             hereDir = path.dirname(cfgFilePath)
             _cfg = SafeConfigParser(defaults=dict(here=hereDir))
@@ -250,7 +250,7 @@ class SOAPBinding(object):
         variable names.  However, they may prefixed with <prefix>
         """
         prefixLen = len(prefix)
-        for optName, val in kw.items():
+        for optName, val in list(kw.items()):
             if prefix:
                 # Filter attributes based on prefix
                 if optName.startswith(prefix):
@@ -287,7 +287,7 @@ class SOAPBinding(object):
             
         except AttributeError:
             if 'name' == SOAPBinding.RESPONSE_ENVELOPE_CLASS_OPTNAME:
-                if isinstance(value, basestring):
+                if isinstance(value, str):
                     self.client.responseEnvelopeClass = importModuleObject(
                                                                         value)
                 elif issubclass(value, SOAPEnvelopeBase):
@@ -313,5 +313,5 @@ class SOAPBinding(object):
         
     def __setstate__(self, attrDict):
         '''Explicit implementation needed with __slots__'''
-        for attr, val in attrDict.items():
+        for attr, val in list(attrDict.items()):
             setattr(self, attr, val)

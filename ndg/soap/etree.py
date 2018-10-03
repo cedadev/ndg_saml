@@ -262,7 +262,7 @@ class SOAPFault(SOAPFaultBase, ETreeSOAPExtensions):
             if ElementTree.iselement(self.detail):
                 detailElem.append(self.detail)
                 
-            elif isinstance(self.detail, basestring): 
+            elif isinstance(self.detail, str): 
                 detailElem.text = self.detail
             else:
                 raise TypeError('Expecting ElementTree.Element or string '

@@ -12,7 +12,7 @@ __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 import logging
 log = logging.getLogger(__name__)
 import traceback
-from cStringIO import StringIO
+from io import StringIO
 from uuid import uuid4
 from datetime import datetime, timedelta
 
@@ -32,7 +32,7 @@ from ndg.saml.saml2.binding.soap import SOAPBindingInvalidResponse
 try:
     from ndg.saml.saml2.xacml_profile import XACMLAuthzDecisionQuery
     import ndg.saml.xml.etree_xacml_profile as etree_xacml_profile
-except ImportError, e:
+except ImportError as e:
     from warnings import warn
     warn('Error importing XACML packages - disabling SAML XACML profile ' + \
          'support.  (Error is: %s)' % e)
@@ -155,7 +155,7 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         return self.__serialise
 
     def _setSerialise(self, value):
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             self.__serialise = importModuleObject(value)
             
         elif callable(value):
@@ -171,7 +171,7 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         return self.__deserialise
 
     def _setDeserialise(self, value):
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             self.__deserialise = importModuleObject(value)
             
         elif callable(value):
@@ -189,7 +189,7 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         return self.__deserialiseXacmlProfile
 
     def _setDeserialiseXacmlProfile(self, value):
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             self.__deserialiseXacmlProfile = importModuleObject(value)
 
         elif callable(value):
@@ -207,7 +207,7 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         return self.__issuer
 
     def _setIssuer(self, value):
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError('Expecting string type for "issuer"; got %r' %
                             type(value))
             
@@ -251,7 +251,7 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         if isinstance(value, bool):
             self.__verifyTimeConditions = value
             
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             self.__verifyTimeConditions = str2Bool(value)
         else:
             raise TypeError('Expecting bool or string type for '
@@ -271,7 +271,7 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         if isinstance(value, bool):
             self.__verifySAMLVersion = value
             
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             self.__verifySAMLVersion = str2Bool(value)
         else:
             raise TypeError('Expecting bool or string type for '
@@ -292,10 +292,10 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         if isinstance(value, timedelta):
             self.__clockSkewTolerance = value
             
-        elif isinstance(value, (float, int, long)):
+        elif isinstance(value, (float, int)):
             self.__clockSkewTolerance = timedelta(seconds=value)
             
-        elif isinstance(value, basestring):
+        elif isinstance(value, str):
             self.__clockSkewTolerance = timedelta(seconds=float(value))
         else:
             raise TypeError('Expecting timedelta, float, int, long or string '
@@ -312,7 +312,7 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         return self.__samlVersion
 
     def _setSamlVersion(self, value):
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError('Expecting string type for "samlVersion"; got %r' % 
                             type(value)) 
         self.__samlVersion = value
@@ -333,7 +333,7 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         :raise TypeError: incorrect input type
         '''
         
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError('Expecting string type for "mountPath" attribute; '
                             'got %r' % value)
             
@@ -370,7 +370,7 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         return self.__queryInterfaceKeyName
 
     def _setQueryInterfaceKeyName(self, value):
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError('Expecting string type for "queryInterfaceKeyName"'
                             ' got %r' % value)
             
@@ -440,7 +440,7 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
             else:
                 samlQuery = self.deserialise(queryElem)
 
-        except UnknownAttrProfile, e:
+        except UnknownAttrProfile as e:
             log.exception("%r raised parsing incoming query: %s" % 
                           (type(e), traceback.format_exc()))
             samlResponse.status.statusCode.value = \

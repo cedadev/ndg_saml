@@ -12,7 +12,7 @@ __revision__ = '$Id$'
 import unittest
 from uuid import uuid4
 from datetime import datetime, timedelta
-from cStringIO import StringIO
+from io import StringIO
 
 from ndg.soap.etree import SOAPEnvelope
 
@@ -175,7 +175,7 @@ class SOAPAuthzDecisionInterfaceMiddlewareTestCase(
         soapResponse.parse(responseStream)
         
         print("Parsed response ...")
-        print(soapResponse.serialize())
+        print((soapResponse.serialize()))
 #        print(prettyPrint(soapResponse.elem))
         
         response = ResponseElementTree.fromXML(soapResponse.body.elem[0])
@@ -195,17 +195,17 @@ class SOAPAuthzDecisionInterfaceMiddlewareTestCase(
                                  params=request, 
                                  headers=header, 
                                  status=200)
-        print("Response status=%d" % response.status)
+        print(("Response status=%d" % response.status))
         samlResponse = self._getSAMLResponse(response.body)
 
-        self.assert_(samlResponse.status.statusCode.value == \
+        self.assertTrue(samlResponse.status.statusCode.value == \
                      StatusCode.SUCCESS_URI)
-        self.assert_(samlResponse.inResponseTo == query.id)
-        self.assert_(samlResponse.assertions[0].subject.nameID.value == \
+        self.assertTrue(samlResponse.inResponseTo == query.id)
+        self.assertTrue(samlResponse.assertions[0].subject.nameID.value == \
                      query.subject.nameID.value)
-        self.assert_(samlResponse.assertions[0])
-        self.assert_(samlResponse.assertions[0].authzDecisionStatements[0])
-        self.assert_(samlResponse.assertions[0].authzDecisionStatements[0
+        self.assertTrue(samlResponse.assertions[0])
+        self.assertTrue(samlResponse.assertions[0].authzDecisionStatements[0])
+        self.assertTrue(samlResponse.assertions[0].authzDecisionStatements[0
                                             ].decision == DecisionType.PERMIT)
    
     def test02AccessDenied(self):
@@ -221,18 +221,18 @@ class SOAPAuthzDecisionInterfaceMiddlewareTestCase(
                                  params=request, 
                                  headers=header, 
                                  status=200)
-        print("Response status=%d" % response.status)
+        print(("Response status=%d" % response.status))
         
         samlResponse = self._getSAMLResponse(response.body)
 
-        self.assert_(samlResponse.status.statusCode.value == \
+        self.assertTrue(samlResponse.status.statusCode.value == \
                      StatusCode.SUCCESS_URI)
-        self.assert_(samlResponse.inResponseTo == query.id)
-        self.assert_(samlResponse.assertions[0].subject.nameID.value == \
+        self.assertTrue(samlResponse.inResponseTo == query.id)
+        self.assertTrue(samlResponse.assertions[0].subject.nameID.value == \
                      query.subject.nameID.value)
-        self.assert_(samlResponse.assertions[0])
-        self.assert_(samlResponse.assertions[0].authzDecisionStatements[0])
-        self.assert_(samlResponse.assertions[0].authzDecisionStatements[0
+        self.assertTrue(samlResponse.assertions[0])
+        self.assertTrue(samlResponse.assertions[0].authzDecisionStatements[0])
+        self.assertTrue(samlResponse.assertions[0].authzDecisionStatements[0
                                             ].decision == DecisionType.DENY)
         
     def test03IndeterminateResponse(self):
@@ -249,18 +249,18 @@ class SOAPAuthzDecisionInterfaceMiddlewareTestCase(
                                  params=request, 
                                  headers=header, 
                                  status=200)
-        print("Response status=%d" % response.status)
+        print(("Response status=%d" % response.status))
         
         samlResponse = self._getSAMLResponse(response.body)
 
-        self.assert_(samlResponse.status.statusCode.value == \
+        self.assertTrue(samlResponse.status.statusCode.value == \
                      StatusCode.SUCCESS_URI)
-        self.assert_(samlResponse.inResponseTo == query.id)
-        self.assert_(samlResponse.assertions[0].subject.nameID.value == \
+        self.assertTrue(samlResponse.inResponseTo == query.id)
+        self.assertTrue(samlResponse.assertions[0].subject.nameID.value == \
                      query.subject.nameID.value)
-        self.assert_(samlResponse.assertions[0])
-        self.assert_(samlResponse.assertions[0].authzDecisionStatements[0])
-        self.assert_(samlResponse.assertions[0].authzDecisionStatements[0
+        self.assertTrue(samlResponse.assertions[0])
+        self.assertTrue(samlResponse.assertions[0].authzDecisionStatements[0])
+        self.assertTrue(samlResponse.assertions[0].authzDecisionStatements[0
                                     ].decision == DecisionType.INDETERMINATE)
         
 

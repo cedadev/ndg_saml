@@ -121,7 +121,7 @@ class SAMLObject(object):
         :param attrDict: object's attribute dictionary
         :type attrDict: dict
         '''
-        for attrName, val in attrDict.items():
+        for attrName, val in list(attrDict.items()):
             setattr(self, attrName, val)
             
 
@@ -153,7 +153,7 @@ class SAMLVersion(object):
         :type version: basestring or tuple or list
         :raise TypeError: unexpected type for version input
         """
-        if isinstance(version, basestring):
+        if isinstance(version, str):
             self.__version = SAMLVersion.valueOf(version)
         elif isinstance(version, (tuple, list)):
             self.__version = tuple(version)
@@ -184,7 +184,7 @@ class SAMLVersion(object):
         :param attrDict: object's attribute dictionary
         :type attrDict: dict
         '''
-        for attrName, val in attrDict.items():
+        for attrName, val in list(attrDict.items()):
             setattr(self, attrName, val)
     
     def __str__(self):
@@ -206,7 +206,7 @@ class SAMLVersion(object):
         if isinstance(version, SAMLVersion):
             return str(self) == str(version)
           
-        elif isinstance(version, basestring):
+        elif isinstance(version, str):
             return self.__version == SAMLVersion.valueOf(version)
         
         elif isinstance(version, (tuple, list)):
@@ -235,7 +235,7 @@ class SAMLVersion(object):
         :rtype: bool
         :raise TypeError: unexpected type for version input
         """
-        if isinstance(version, basestring):
+        if isinstance(version, str):
             return self.__version > SAMLVersion.valueOf(version)
         elif isinstance(version, (tuple, list)):
             return self.__version > tuple(version)
@@ -252,7 +252,7 @@ class SAMLVersion(object):
         :rtype: bool
         :raise TypeError: unexpected type for version input
         """
-        if isinstance(version, basestring):
+        if isinstance(version, str):
             return self.__version < SAMLVersion.valueOf(version)
         elif isinstance(version, (tuple, list)):
             return self.__version < tuple(version)
@@ -271,7 +271,7 @@ class SAMLVersion(object):
         :rtype: bool
         :raise TypeError: unexpected type for version input
         """
-        if isinstance(version, basestring):
+        if isinstance(version, str):
             return self.__version >= SAMLVersion.valueOf(version)
         elif isinstance(version, (tuple, list)):
             return self.__version >= tuple(version)
@@ -290,7 +290,7 @@ class SAMLVersion(object):
         :rtype: bool
         :raise TypeError: unexpected type for version input
         """
-        if isinstance(version, basestring):
+        if isinstance(version, str):
             return self.__version <= SAMLVersion.valueOf(version)
         elif isinstance(version, (tuple, list)):
             return self.__version <= tuple(version)

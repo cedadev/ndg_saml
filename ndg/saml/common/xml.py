@@ -413,7 +413,7 @@ class QName(object):
         :type value: string
         :raise TypeError: invalid input value type
         """
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError('Expected string type for "prefix"; got %r' %
                             type(value))
         self.__prefix = value
@@ -433,7 +433,7 @@ class QName(object):
         :type value: string
         :raise TypeError: invalid input value type
         """
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError('Expected string type for "localPart"; got %r' %
                             type(value))
         self.__localPart = value
@@ -453,7 +453,7 @@ class QName(object):
         :type value: string
         :raise TypeError: invalid input value type
         """
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError('Expected string type for "namespaceURI"; got %r' %
                             type(value))
         self.__namespaceURI = value

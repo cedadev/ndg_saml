@@ -112,7 +112,7 @@ class XACMLAuthzDecisionQuery(RequestAbstractType):
         :type value: bool
         :raise TypeError: if incorrect input type 
         '''
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError('Expecting string type for "InputContextOnly" '
                             'attribute; got %r instead' % type(value))
         
@@ -139,7 +139,7 @@ class XACMLAuthzDecisionQuery(RequestAbstractType):
         :type value: bool
         :raise TypeError: if incorrect input type 
         '''
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError('Expecting string type for "ReturnContext" '
                             'attribute; got %r instead' % type(value))
         

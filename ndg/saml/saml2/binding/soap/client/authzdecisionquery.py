@@ -9,7 +9,7 @@ __copyright__ = "(C) 2009 Science and Technology Facilities Council"
 __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = '$Id$'
-from urlparse import urlparse
+from urllib.parse import urlparse
 import logging
 log = logging.getLogger(__name__)
 
@@ -120,7 +120,7 @@ class AuthzDecisionQuerySslSOAPBinding(AuthzDecisionQuerySOAPBinding):
             super(AuthzDecisionQuerySslSOAPBinding, self).__setattr__(name, 
                                                                       value)
             
-        except AttributeError, e:
+        except AttributeError as e:
             # Coerce into setting SSL Context Proxy attributes
             try:
                 setattr(self.sslCtxProxy, name, value)

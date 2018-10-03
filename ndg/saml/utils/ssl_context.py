@@ -16,10 +16,9 @@ import logging
 log = logging.getLogger(__name__)
 
 
-class SSLContextProxyInterface(object):
+class SSLContextProxyInterface(object, metaclass=ABCMeta):
     """Interface class for SSL proxy to allow interchange between PyOpenSSL and
     M2Crypto HTTPS libraries"""
-    __metaclass__ = ABCMeta
     
     SSL_CERT_FILEPATH_OPTNAME = "sslCertFilePath"
     SSL_PRIKEY_FILEPATH_OPTNAME = "sslPrikeyFilePath"
@@ -91,7 +90,7 @@ class SSLContextProxyInterface(object):
     def sslCertFilePath(self, filePath):
         "Set X.509 cert/cert chain file path property method"
         
-        if isinstance(filePath, basestring):
+        if isinstance(filePath, str):
             filePath = os.path.expandvars(filePath)
             
         elif filePath is not None:
@@ -116,7 +115,7 @@ class SSLContextProxyInterface(object):
         :type sslCACertFilePath: basestring, list, tuple or None
         :param sslCACertFilePath: file path to CA certificate file.  If None
         then the input is quietly ignored."""
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             self._ssl_cacert_filepath = os.path.expandvars(value)
             
         elif value is None:
@@ -145,7 +144,7 @@ class SSLContextProxyInterface(object):
         :type sslCACertDir: basestring
         :param sslCACertDir: directory containing CA certificate files.
         """
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             self._ssl_ca_cert_dir = os.path.expandvars(value)
         elif value is None:
             self._ssl_ca_cert_dir = value
@@ -159,7 +158,7 @@ class SSLContextProxyInterface(object):
     
     @ssl_valid_hostname.setter
     def ssl_valid_hostname(self, value):
-        if isinstance(value, basestring):  
+        if isinstance(value, str):  
             self._ssl_valid_hostname = value          
         else:
             raise TypeError('Expecting list/tuple or basestring type for "%s" '
@@ -173,7 +172,7 @@ class SSLContextProxyInterface(object):
 
     @ssl_valid_x509_subj_names.setter
     def ssl_valid_x509_subj_names(self, value):
-        if isinstance(value, basestring):  
+        if isinstance(value, str):  
             pat = SSLContextProxyInterface.VALID_DNS_PAT
             self._ssl_valid_x509_subj_names = pat.split(value)
             
@@ -191,7 +190,7 @@ class SSLContextProxyInterface(object):
     def sslPriKeyFilePath(self, filePath):
         "Set ssl private key file path property method"
         
-        if isinstance(filePath, basestring):
+        if isinstance(filePath, str):
             filePath = os.path.expandvars(filePath)
 
         elif filePath is not None:
@@ -208,7 +207,7 @@ class SSLContextProxyInterface(object):
     @sslPriKeyPwd.setter
     def sslPriKeyPwd(self, sslPriKeyPwd):
         "Set method for ssl private key file password"
-        if not isinstance(sslPriKeyPwd, (type(None), basestring)):
+        if not isinstance(sslPriKeyPwd, (type(None), str)):
             raise TypeError("Signing private key password must be None "
                             "or a valid string")
         
@@ -229,5 +228,5 @@ class SSLContextProxyInterface(object):
         
     def __setstate__(self, attrDict):
         '''Enable pickling for use with beaker.session'''
-        for attr, val in attrDict.items():
+        for attr, val in list(attrDict.items()):
             setattr(self, attr, val)

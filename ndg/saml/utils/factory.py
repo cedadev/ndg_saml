@@ -14,7 +14,7 @@ import logging
 import os
 import sys
 import re
-from ConfigParser import ConfigParser, SafeConfigParser
+from configparser import ConfigParser, SafeConfigParser
 from abc import ABCMeta, abstractmethod
 
 from ndg.saml.saml2 import core as saml2
@@ -49,7 +49,7 @@ def importModuleObject(moduleName, objectName=None, objectType=None):
     else:
         _moduleName = moduleName
         
-    if isinstance(objectName, basestring):
+    if isinstance(objectName, str):
         objectName = [objectName]
     
     log.debug("Importing %r ..." % objectName) 
@@ -133,7 +133,7 @@ def callModuleObject(moduleName, objectName=None, moduleFilePath=None,
             if sysPathBak:
                 sys.path = sysPathBak
                             
-    except Exception, e:
+    except Exception as e:
         log.error('%r module import raised %r type exception: %r' % 
                   (moduleName, e.__class__, traceback.format_exc()))
         raise 
@@ -148,7 +148,7 @@ def callModuleObject(moduleName, objectName=None, moduleFilePath=None,
             
         return obj
 
-    except Exception, e:
+    except Exception as e:
         log.error("Instantiating module object, %r: %r" % 
                                                     (importedObject.__name__, 
                                                      traceback.format_exc()))
@@ -168,11 +168,10 @@ class SubjectFactory(object):
         return subject
 
 
-class QueryFactoryBase(object):
+class QueryFactoryBase(object, metaclass=ABCMeta):
     """Abstract base Factory class to create SAML queries from various 
     inputs - derived classes determine the query types
     """
-    __metaclass__ = ABCMeta
     
     QUERY_CLASS = None
     PREFIX = None
@@ -211,7 +210,7 @@ class QueryFactoryBase(object):
         @param section: configuration file section from which to extract
         parameters.
         '''  
-        if isinstance(cfg, basestring):
+        if isinstance(cfg, str):
             cfg_filepath = os.path.expandvars(cfg)
             here_dir = os.path.dirname(cfg_filepath)
             _cfg = SafeConfigParser(defaults=dict(here=here_dir))
@@ -255,7 +254,7 @@ class AttributeQueryFactory(QueryFactoryBase):
         attribute_query = cls.create()
         pat = cls.ATTR_PARAM_VAL_SEP_PAT
         
-        for param_name, param_val in config.items():
+        for param_name, param_val in list(config.items()):
             
             # Skip values that don't start with the correct prefix
             if not param_name.startswith(prefix):
@@ -316,7 +315,7 @@ class AuthzDecisionQueryFactory(QueryFactoryBase):
         authz_decision_query = cls.create()
         pat = cls.ATTR_PARAM_VAL_SEP_PAT
         
-        for param_name, param_val in config.items():
+        for param_name, param_val in list(config.items()):
             
             # Skip values that don't start with the correct prefix
             if not param_name.startswith(prefix):

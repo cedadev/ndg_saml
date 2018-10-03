@@ -80,7 +80,7 @@ class RequestBaseSOAPBinding(SOAPBinding):
         if isinstance(value, bool):
             self.__verifyTimeConditions = value
             
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             self.__verifyTimeConditions = str2Bool(value)
         else:
             raise TypeError('Expecting bool or string type for '
@@ -100,10 +100,10 @@ class RequestBaseSOAPBinding(SOAPBinding):
         if isinstance(value, timedelta):
             self.__clockSkewTolerance = value
             
-        elif isinstance(value, (float, int, long)):
+        elif isinstance(value, (float, int)):
             self.__clockSkewTolerance = timedelta(seconds=value)
             
-        elif isinstance(value, basestring):
+        elif isinstance(value, str):
             self.__clockSkewTolerance = timedelta(seconds=float(value))
         else:
             raise TypeError('Expecting timedelta, float, int, long or string '

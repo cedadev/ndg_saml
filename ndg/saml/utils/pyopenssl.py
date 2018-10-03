@@ -98,7 +98,7 @@ class SSLContextProxy(SSLContextProxyInterface):
     
     @SSLContextProxyInterface.ssl_valid_x509_subj_names.setter
     def ssl_valid_x509_subj_names(self, value):
-        if isinstance(value, basestring):  
+        if isinstance(value, str):  
             self._ssl_valid_x509_subj_names = [value]        
         else:
             raise TypeError('Expecting a SINGLE string type for "%s" '

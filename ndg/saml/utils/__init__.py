@@ -74,7 +74,7 @@ class SAMLDateTime(object):
         @rtype: datetime.datetime
         @return: issue instance as a datetime
         """
-        if not isinstance(strDateTime, basestring):
+        if not isinstance(strDateTime, str):
             raise TypeError("Expecting basestring derived type for string "
                             "conversion, got %r" % strDateTime)
         

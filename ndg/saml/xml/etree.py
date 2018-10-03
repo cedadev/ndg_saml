@@ -210,7 +210,7 @@ def prettyPrint(*arg, **kw):
     # Keep track of namespace declarations made so they're not repeated
     declaredNss = []
     if not Config.use_lxml:
-        mappedPrefixes = dict.fromkeys(ElementTree._namespace_map.values(), True)
+        mappedPrefixes = dict.fromkeys(list(ElementTree._namespace_map.values()), True)
         namespace_map_backup = ElementTree._namespace_map.copy()
     else:
         mappedPrefixes = {}
@@ -267,7 +267,7 @@ class _PrettyPrint(object):
         @rtype: basestring       
         '''  
         strAttribs = []
-        for attr, attrVal in elem.attrib.items():
+        for attr, attrVal in list(elem.attrib.items()):
             nsDeclaration = ''
             
             attrNamespace = QName.getNs(attr)
@@ -318,7 +318,7 @@ class _PrettyPrint(object):
 
     if Config.use_lxml:
         def _getNamespacePrefix(self, elem, namespace):
-            for nsPrefix, ns in elem.nsmap.iteritems():
+            for nsPrefix, ns in elem.nsmap.items():
                 if ns == namespace:
                     return nsPrefix
             raise KeyError('prettyPrint: missing namespace "%s" for '
@@ -999,7 +999,7 @@ class AttributeValueElementTreeFactory(object):
         """
         # Iterate through the attributes searching for a type attribute set to
         # xs:string
-        for attribName, attribVal in elem.attrib.items():
+        for attribName, attribVal in list(elem.attrib.items()):
             qname = QName(attribName)
             if qname.localPart == "type":
                 typeLocalName = attribVal.split(':')[-1]
@@ -1038,7 +1038,7 @@ class AttributeValueElementTreeFactory(object):
         if not isinstance(customToXMLTypeMap, dict):
             raise TypeError('Expecting dict type for "customToXMLTypeMap"')
 
-        for samlClass, etreeClass in customToXMLTypeMap.items(): 
+        for samlClass, etreeClass in list(customToXMLTypeMap.items()): 
             if not issubclass(samlClass, AttributeValue):
                 raise TypeError("Input custom class must be derived from %r, "
                                 "got %r instead" % (Attribute, samlClass))

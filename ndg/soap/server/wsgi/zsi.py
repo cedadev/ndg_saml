@@ -14,10 +14,10 @@ log = logging.getLogger(__name__)
 
 import sys
 
-from ZSI.parse import ParsedSoap
-from ZSI.writer import SoapWriter
-from ZSI import fault
-from ZSI.ServiceContainer import ServiceSOAPBinding
+from .ZSI.parse import ParsedSoap
+from .ZSI.writer import SoapWriter
+from .ZSI import fault
+from .ZSI.ServiceContainer import ServiceSOAPBinding
 
 from ndg.security.server.wsgi.soap import SOAPMiddleware, SOAPMiddlewareError,\
     SOAPMiddlewareConfigError, SOAPMiddlewareReadError
@@ -98,7 +98,7 @@ class ZSIMiddleware(SOAPMiddleware):
         return self.__charset
 
     def _setCharset(self, value):
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError('Expecting string type for "charset" got %r' %
                             type(value))
         self.__charset = value
@@ -107,7 +107,7 @@ class ZSIMiddleware(SOAPMiddleware):
         return self.__path
 
     def _setPath(self, value):
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError('Expecting string type for "path" got %r' %
                             type(value))
         self.__path = value
@@ -116,7 +116,7 @@ class ZSIMiddleware(SOAPMiddleware):
         return self.__publishedURI
 
     def _setPublishedURI(self, value):
-        if not isinstance(value, (basestring, type(None))):
+        if not isinstance(value, (str, type(None))):
             raise TypeError('Expecting string or None type for "publishedURI" '
                             'got %r' % type(value))
         self.__publishedURI = value
@@ -147,7 +147,7 @@ class ZSIMiddleware(SOAPMiddleware):
         return self.__filterID
 
     def _setFilterID(self, value):
-        if not isinstance(value, (basestring, type(None))):
+        if not isinstance(value, (str, type(None))):
             raise TypeError('Expecting string or None type for "filterID" got '
                             '%r' % type(value))
         self.__filterID = value
@@ -285,7 +285,7 @@ class ZSIMiddleware(SOAPMiddleware):
         # Parse input into a ZSI ParsedSoap object set as a key in environ
         try:
             self.parseRequest(environ)
-        except Exception, e:
+        except Exception as e:
             sw = self.exception2SOAPFault(environ, e)
             self.setSOAPWriter(environ, sw)
             return self.writeResponse(environ, start_response)
@@ -441,7 +441,7 @@ class SOAPBindingMiddleware(ZSIMiddleware):
 
     def _setServiceSOAPBindingKeyName(self, value):
         """Instance must be ZSI ServiceSOAPBindingKeyName derived type"""
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError('Expecting bool type for "enableWSDLQuery"; got '
                             '%r' % type(value))
         self.__serviceSOAPBindingKeyName = value
@@ -507,7 +507,7 @@ class SOAPBindingMiddleware(ZSIMiddleware):
                             DEFAULT_SERVICE_SOAP_BINDING_PROPPREFIX_OPTNAME)
             
             serviceSOAPBindingKw = dict([(k.replace(prefix, ''), v)
-                                         for k, v in app_conf.items()
+                                         for k, v in list(app_conf.items())
                                          if k.startswith(prefix)])
     
             self.serviceSOAPBinding = instantiateClass(modName,
@@ -579,7 +579,7 @@ class SOAPBindingMiddleware(ZSIMiddleware):
             
             method = getattr(serviceSOAPBinding, soapMethodName)            
             resp = method(ps)
-        except Exception, e:
+        except Exception as e:
             sw = self.exception2SOAPFault(environ, e)
         else: 
             # Serialize output using SOAP writer class

@@ -9,7 +9,7 @@ __license__ = "BSD - see LICENSE file in top-level directory"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = '$Id: $'
 import re
-from ConfigParser import SafeConfigParser
+from configparser import SafeConfigParser
 
 class CaseSensitiveConfigParser(SafeConfigParser):
     '''

@@ -10,8 +10,8 @@ __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = '$Id: client.py 7131 2010-06-30 13:37:48Z pjkersha $'
 from abc import ABCMeta, abstractmethod
-import httplib
-import urllib2
+import http.client
+import urllib.request, urllib.error, urllib.parse
 from urllib import addinfourl
 
 import logging
@@ -28,13 +28,12 @@ class SOAPParseError(SOAPClientError):
     """Error parsing SOAP response"""
     
            
-class SOAPClientBase(object):
+class SOAPClientBase(object, metaclass=ABCMeta):
     """Handle client request to a SOAP Service
     @cvar RESPONSE_CONTENT_TYPES: expected content type to be returned in a 
     response from a service
     @type RESPONSE_CONTENT_TYPES: string
     """
-    __metaclass__ = ABCMeta
     RESPONSE_CONTENT_TYPES = ('text/xml', )
     
     def __init__(self):
@@ -90,9 +89,9 @@ class SOAPRequestBase(object):
         return self.__url
 
     def _setUrl(self, value):
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError('Setting request URL: expecting %r; got '
-                            '%r' % (basestring, type(value)))
+                            '%r' % (str, type(value)))
         self.__url = value
 
     url = property(fget=_getUrl, fset=_setUrl, doc="URL of SOAP endpoint")
@@ -155,18 +154,18 @@ class CapitalizedKeysDict(dict):
             arg = list(arg)
             
             if isinstance(arg[0], dict):
-                arg[0] = [(k.capitalize(), v) for k, v in arg[0].items()]
+                arg[0] = [(k.capitalize(), v) for k, v in list(arg[0].items())]
             else:
                 arg[0] = [(k.capitalize(), v) for k, v in arg[0]] 
                 
             arg = tuple(arg)
         
-        kw = dict([(k.capitalize(), v) for k, v in kw.items()])
+        kw = dict([(k.capitalize(), v) for k, v in list(kw.items())])
         
         super(CapitalizedKeysDict, self).__init__(*arg, **kw)
         
     def __setitem__(self, k, v):
-        if not isinstance(k, basestring):
+        if not isinstance(k, str):
             raise TypeError('Key must be string type; got %r' % type(k))
         
         super(CapitalizedKeysDict, self).__setitem__(k.capitalize(), v)
@@ -183,9 +182,9 @@ class UrlLib2SOAPClient(SOAPClientBase):
     
     def __init__(self):
         super(UrlLib2SOAPClient, self).__init__()
-        self.__openerDirector = urllib2.OpenerDirector()
-        self.__openerDirector.add_handler(urllib2.UnknownHandler())
-        self.__openerDirector.add_handler(urllib2.HTTPHandler())
+        self.__openerDirector = urllib.request.OpenerDirector()
+        self.__openerDirector.add_handler(urllib.request.UnknownHandler())
+        self.__openerDirector.add_handler(urllib.request.HTTPHandler())
         self.__timeout = None
         self.__httpHeader = UrlLib2SOAPClient.DEFAULT_HTTP_HEADER.copy()
 
@@ -198,7 +197,7 @@ class UrlLib2SOAPClient(SOAPClientBase):
         return self.__httpHeader.get('Soapaction')
 
     def _setSOAPAction(self, value):
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError("Setting request soapAction: got %r, expecting "
                             "string type" % type(value))
         self.__httpHeader['Soapaction'] = value
@@ -226,9 +225,9 @@ class UrlLib2SOAPClient(SOAPClientBase):
     def _setOpenerDirector(self, value):
         """This shouldn't need to be used much in practice because __init__
         creates one"""
-        if not isinstance(value, urllib2.OpenerDirector):
+        if not isinstance(value, urllib.request.OpenerDirector):
             raise TypeError("Setting opener: expecting %r; got %r" % 
-                            (urllib2.OpenerDirector, type(value)))
+                            (urllib.request.OpenerDirector, type(value)))
         self.__openerDirector = value
 
     openerDirector = property(fget=_getOpenerDirector, 
@@ -264,14 +263,14 @@ class UrlLib2SOAPClient(SOAPClientBase):
             log.debug(prettyPrint(soapRequest.envelope.elem))
 
         soapResponse = UrlLib2SOAPResponse()
-        urllib2Request = urllib2.Request(soapRequest.url) 
-        for i in self.httpHeader.items():
+        urllib2Request = urllib.request.Request(soapRequest.url) 
+        for i in list(self.httpHeader.items()):
             urllib2Request.add_header(*i)
             
         response = self.openerDirector.open(urllib2Request, 
                                             soapRequestStr, 
                                             *arg)
-        if response.code != httplib.OK:
+        if response.code != http.client.OK:
             excep = HTTPException("Response for request to [%s] is: %d %s" % 
                                   (soapRequest.url, 
                                    response.code, 
@@ -300,7 +299,7 @@ class UrlLib2SOAPClient(SOAPClientBase):
         
         try:
             soapResponse.envelope.parse(soapResponse.fileObject)
-        except Exception, e:
+        except Exception as e:
             raise SOAPParseError("%r type error raised parsing response for "
                                  "request to [%s]: %s"
                                  % (type(e), soapRequest.url, e))

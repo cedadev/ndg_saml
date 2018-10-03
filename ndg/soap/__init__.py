@@ -159,7 +159,7 @@ class SOAPFaultBase(SOAPObject):
             self.detail = detail
 
     def _setFaultCode(self, value):
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise AttributeError('Expecting string type for "faultCode" '
                                  'attribute; got %r' % type(value))
             
@@ -184,7 +184,7 @@ class SOAPFaultBase(SOAPObject):
                          doc="Fault Code")
 
     def _setFaultString(self, value):
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise AttributeError('Expecting string type for "faultString" '
                                  'attribute; got %r' % type(value))
         self.__faultString = value
@@ -199,7 +199,7 @@ class SOAPFaultBase(SOAPObject):
         return self.__faultActor
 
     def _setFaultActor(self, value):
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise AttributeError('Expecting string type for "faultActor" '
                                  'attribute; got %r' % type(value))
         self.__faultActor = value

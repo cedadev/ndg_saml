@@ -29,8 +29,8 @@ __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = "$Id$"
 from datetime import datetime
-from urlparse import urlsplit, urlunsplit
-import urllib
+from urllib.parse import urlsplit, urlunsplit
+import urllib.request, urllib.parse, urllib.error
 import itertools # use to extract unique action types for Action class
 import ipaddress # use for SubjectLocality element - part of AuthnStatement
 
@@ -158,7 +158,7 @@ class Attribute(SAMLObject):
         :type name: basestring
         :raise TypeError: invalid input value type
         """
-        if not isinstance(name, basestring):
+        if not isinstance(name, str):
             raise TypeError("Expecting basestring type for name, got %r"% 
                             type(name))
         
@@ -181,7 +181,7 @@ class Attribute(SAMLObject):
         :type nameFormat: string
         :raise TypeError: invalid input value type
         """
-        if not isinstance(nameFormat, basestring):
+        if not isinstance(nameFormat, str):
             raise TypeError("Expecting basestring type for nameFormat, got %r"
                             % type(nameFormat))
             
@@ -204,7 +204,7 @@ class Attribute(SAMLObject):
         :type friendlyName: string
         :raise TypeError: invalid input value type
         """
-        if not isinstance(friendlyName, basestring):
+        if not isinstance(friendlyName, str):
             raise TypeError("Expecting basestring type for friendlyName, got "
                             "%r" % type(friendlyName))
             
@@ -386,7 +386,7 @@ class SubjectLocality(SAMLObject):
     
     @address.setter
     def address(self, value):
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             self.__address = ipaddress.ip_address(value)
             
         elif isinstance(value, (ipaddress.IPv4Address,
@@ -402,7 +402,7 @@ class SubjectLocality(SAMLObject):
     
     @dns_name.setter
     def dns_name(self, value):
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError('Expecting string type for "dns_name", got %r' % 
                             type(value))            
     
@@ -523,7 +523,7 @@ class AuthnStatement(Statement):
         authenticating authority
         :type value: ?
         '''
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError('Expecting string type for "session_index", '
                             'got %r' % type(value))
         
@@ -671,7 +671,7 @@ class DecisionType(object):
         :param attrDict: object's attribute dictionary
         :type attrDict: dict
         '''
-        for attrName, val in attrDict.items():
+        for attrName, val in list(attrDict.items()):
             setattr(self, attrName, val)
             
     def _setValue(self, value):
@@ -683,7 +683,7 @@ class DecisionType(object):
             # Cast to string
             value = str(value)
             
-        elif not isinstance(value, basestring):
+        elif not isinstance(value, str):
             raise TypeError('Expecting string or DecisionType instance for '
                             '"value" attribute; got %r instead' % type(value))
             
@@ -721,7 +721,7 @@ class DecisionType(object):
             # Cast to string
             value = decision.value
             
-        elif isinstance(decision, basestring):
+        elif isinstance(decision, str):
             value = decision
             
         else:
@@ -938,7 +938,7 @@ class AuthzDecisionStatement(Statement):
         :type value: basetring
         :raise TypeError: input value is incorrect type
         '''
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError('Expecting string type for "normalizeResource" '
                             'attribute; got %r instead' % type(value))
             
@@ -971,7 +971,7 @@ class AuthzDecisionStatement(Statement):
         :type value: basestring
         :raise TypeError: input value is incorrect type
         '''
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError('Expecting string type for "resource" attribute; '
                             'got %r instead' % type(value))
         
@@ -995,7 +995,7 @@ class AuthzDecisionStatement(Statement):
                 if not isHttpWithStdPort and not isHttpsWithStdPort:
                     uriComponents[1] += ":%d" % splitResult.port
             
-            uriComponents[2] = urllib.quote(splitResult.path, 
+            uriComponents[2] = urllib.parse.quote(splitResult.path, 
                                             self.safeNormalizationChars)
             
             self.__resource = urlunsplit(uriComponents)
@@ -1179,9 +1179,9 @@ class Subject(SAMLObject):
         :type value: basestring
         :raise TypeError: invalid input value type
         """ 
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError("Expecting %r type for \"baseID\" got %r" %
-                            (basestring, value.__class__))
+                            (str, value.__class__))
         self.__baseID = value
 
     baseID = property(fget=_getBaseID, 
@@ -1406,7 +1406,7 @@ class AbstractNameIDType(SAMLObject):
         :type value: string
         :raise TypeError: invalid input value type
         """
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError("\"value\" must be a basestring derived type, "
                             "got %r" % value.__class__)
             
@@ -1463,7 +1463,7 @@ class AbstractNameIDType(SAMLObject):
         :type format_: string
         :raise TypeError: invalid input value type
         """
-        if not isinstance(format_, basestring):
+        if not isinstance(format_, str):
             raise TypeError("\"format\" must be a basestring derived type, "
                             "got %r" % format_.__class__)
             
@@ -1978,7 +1978,7 @@ class Assertion(SAMLObject):
         :type _id: basestring
         :raise TypeError: incorrect type for input value
         '''
-        if not isinstance(_id, basestring):
+        if not isinstance(_id, str):
             raise TypeError('Expecting basestring derived type for "id", got '
                             '%r' % _id.__class__)
         self.__id = _id
@@ -2058,7 +2058,7 @@ class Assertion(SAMLObject):
         :param advice: advice for this assertion
         :type advice: basestring
         :raise TypeError: incorrect type for input value"""
-        if not isinstance(advice, basestring):
+        if not isinstance(advice, str):
             raise TypeError("advice must be a string")
 
         self.__advice = advice
@@ -2193,7 +2193,7 @@ class XSStringAttributeValue(AttributeValue):
         :type value: string
         :raise TypeError: invalid input value type
         """
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError("Input must be a basestring derived type, got %r" %
                             value.__class__)
             
@@ -2350,7 +2350,7 @@ class StatusMessage(SAMLObject):
         :type value: basestring
         :raise TypeError: incorrect type for input value
         '''
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError("\"value\" must be a basestring derived type, "
                             "got %r" % type(value))
             
@@ -2591,7 +2591,7 @@ class StatusCode(SAMLObject):
         :param value: message text
         :type value: basestring
         """ 
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError("\"value\" must be a basestring derived type, "
                             "got %r" % value.__class__)
             
@@ -2909,7 +2909,7 @@ class Action(SAMLObject):
     # Unique action types across all action namespaces - this is useful for 
     # rudimentary validation of action values where the namespace has not been
     # declared
-    ALL_ACTION_TYPES = tuple(set(itertools.chain(*ACTION_TYPES.values())))
+    ALL_ACTION_TYPES = tuple(set(itertools.chain(*list(ACTION_TYPES.values()))))
     
     __slots__ = (
         'default_namespace',
@@ -2967,7 +2967,7 @@ class Action(SAMLObject):
             raise TypeError('Expecting list or tuple type for "actionTypes" '
                             'attribute; got %r' % type(value))
             
-        for k, v in value.items():
+        for k, v in list(value.items()):
             if not isinstance(v, (tuple, type(None))):
                 raise TypeError('Expecting None or tuple type for '
                                 '"actionTypes" dictionary values; got %r for '
@@ -2992,14 +2992,14 @@ class Action(SAMLObject):
         :param value: the namespace of the action
         :type value: basestring
         '''
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError('Expecting string type for "namespace" '
                             'attribute; got %r' % type(value))
             
-        if value not in self.__actionTypes.keys():
+        if value not in list(self.__actionTypes.keys()):
             raise AttributeError('"namespace" action type %r not recognised. '
                                  'It must be one of these action types: %r' % 
-                                 (value, self.__actionTypes.keys()))
+                                 (value, list(self.__actionTypes.keys())))
             
         self.__namespace = value
 
@@ -3021,7 +3021,7 @@ class Action(SAMLObject):
         :raise TypeError: incorrect type for input value
         '''
         # int and oct allow for UNIX file permissions action type
-        if not isinstance(value, (basestring, int)):
+        if not isinstance(value, (str, int)):
             raise TypeError('Expecting string or int type for "action" '
                             'attribute; got %r' % type(value))
             
@@ -3273,7 +3273,7 @@ class RequestAbstractType(SAMLObject):
         :type value: basestring
         :raise TypeError: incorrect input type
         '''
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError('Expecting basestring derived type for "id", got '
                             '%r' % type(value))
         self.__id = value
@@ -3295,7 +3295,7 @@ class RequestAbstractType(SAMLObject):
         :type value: basestring
         :raise TypeError: incorrect input value type
         '''
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError('Expecting basestring derived type for '
                             '"destination", got %r' % type(value))
         self.__destination = value
@@ -3323,7 +3323,7 @@ class RequestAbstractType(SAMLObject):
         :type value: basestring
         :raise TypeError: incorrect input type
         ''' 
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError('Expecting basestring derived type for "consent", '
                             'got %r' % type(value))
         self.__consent = value
@@ -3599,7 +3599,7 @@ class AssertionURIRef(Evidentiary):
         :type value: basestring
         :raise TypeError: incorrect input value type
         '''
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError('Expecting string type for "assertionID" '
                             'attribute; got %r' % type(value))
         self.__assertionURI = value
@@ -3675,7 +3675,7 @@ class AssertionIDRef(Evidentiary):
         :type value: basestring
         :raise TypeError: incorrect type for input value
         '''
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError('Expecting string type for "assertionID" '
                             'attribute; got %r' % type(value))
         self.__assertionID = value
@@ -4007,7 +4007,7 @@ class AuthzDecisionQuery(SubjectQuery):
         :type value: string
         :raise TypeError: incorrect type for input value
         '''
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError('Expecting string type for "normalizeResource" '
                             'attribute; got %r instead' % type(value))
             
@@ -4042,7 +4042,7 @@ class AuthzDecisionQuery(SubjectQuery):
         :type value: basestring
         :raise TypeError: if incorrect input type 
         '''
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError('Expecting string type for "resource" attribute; '
                             'got %r instead' % type(value))
         
@@ -4066,7 +4066,7 @@ class AuthzDecisionQuery(SubjectQuery):
                 if not isHttpWithStdPort and not isHttpsWithStdPort:
                     uriComponents[1] += ":%d" % splitResult.port
             
-            uriComponents[2] = urllib.quote(splitResult.path, 
+            uriComponents[2] = urllib.parse.quote(splitResult.path, 
                                             self.safeNormalizationChars)
             
             self.__resource = urlunsplit(uriComponents)
@@ -4318,7 +4318,7 @@ class StatusResponseType(SAMLObject):
         :type value: basestring
         :raise TypeError: incorrect type for input value
         '''
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError('Expecting basestring derived type for "id", got '
                             '%r' % type(value))
         self.__id = value
@@ -4342,7 +4342,7 @@ class StatusResponseType(SAMLObject):
         :type value: basestring
         :raise TypeError: incorrect type for input value
         '''
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError('Expecting basestring derived type for '
                             '"inResponseTo", got %r' % type(value))
         self.__inResponseTo = value
@@ -4391,7 +4391,7 @@ class StatusResponseType(SAMLObject):
         :type value: basestring
         :raise TypeError: incorrect type for input value
         '''
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError('Expecting basestring derived type for '
                             '"destination", got %r' % type(value))
         self.__destination = value
@@ -4419,7 +4419,7 @@ class StatusResponseType(SAMLObject):
         :type value: basestring
         :raise TypeError: incorrect type for input value
         ''' 
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError('Expecting basestring derived type for "consent", '
                             'got %r' % type(value))
         self.__consent = value

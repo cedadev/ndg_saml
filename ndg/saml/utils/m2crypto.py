@@ -18,9 +18,9 @@ import re
 from time import strptime
 from datetime import datetime
 
-import M2Crypto
-from M2Crypto import SSL, X509
-from M2Crypto.httpslib import HTTPSConnection as _HTTPSConnection
+from . import M2Crypto
+from .M2Crypto import SSL, X509
+from .M2Crypto.httpslib import HTTPSConnection as _HTTPSConnection
 
 from ndg.saml.utils.ssl_context import SSLContextProxyInterface
 
@@ -47,12 +47,12 @@ class X500DN(dict):
         'domainComponent':          'DC',
         'userid':                   'UID'
     }
-    SLASH_PARSER_RE_STR = '/(%s)=' % '|'.join(__shortNameLUT.keys() + 
-                                              __shortNameLUT.values())    
+    SLASH_PARSER_RE_STR = '/(%s)=' % '|'.join(list(__shortNameLUT.keys()) + 
+                                              list(__shortNameLUT.values()))    
     SLASH_PARSER_RE = re.compile(SLASH_PARSER_RE_STR)
 
-    COMMA_PARSER_RE_STR = '[,]?\s*(%s)=' % '|'.join(__shortNameLUT.keys() + 
-                                                    __shortNameLUT.values())    
+    COMMA_PARSER_RE_STR = '[,]?\s*(%s)=' % '|'.join(list(__shortNameLUT.keys()) + 
+                                                    list(__shortNameLUT.values()))    
     COMMA_PARSER_RE = re.compile(COMMA_PARSER_RE_STR)
     
     def __init__(self, dn=None, m2CryptoX509Name=None, separator=None):
@@ -71,7 +71,7 @@ class X500DN(dict):
         """
         
         # Private key data
-        self.__dat = {}.fromkeys(X500DN.__shortNameLUT.values(), '')
+        self.__dat = {}.fromkeys(list(X500DN.__shortNameLUT.values()), '')
     
         dict.__init__(self)
     
@@ -79,7 +79,7 @@ class X500DN(dict):
         
         # Check for separator from input
         if separator is not None:
-            if not isinstance(separator, basestring):
+            if not isinstance(separator, str):
                 raise X500DNError("dn Separator must be a valid string")
 
             # Check for single character but allow trailing space chars
@@ -122,7 +122,7 @@ class X500DN(dict):
         if not isinstance(x500dn, X500DN):
             return False
 
-        return self.__dat.items() == x500dn.items()
+        return list(self.__dat.items()) == list(x500dn.items())
    
     def __ne__(self, x500dn):
         """Return true if the all the fields of the two DNs are equal"""
@@ -130,7 +130,7 @@ class X500DN(dict):
         if not isinstance(x500dn, X500DN):
             return False
 
-        return self.__dat.items() != x500dn.items()
+        return list(self.__dat.items()) != list(x500dn.items())
   
     def __delitem__(self, key):
         """Prevent keys from being deleted."""
@@ -139,12 +139,12 @@ class X500DN(dict):
     def __getitem__(self, key):
 
         # Check input key
-        if self.__dat.has_key(key):
+        if key in self.__dat:
 
             # key recognised
             return self.__dat[key]
         
-        elif X500DN.__shortNameLUT.has_key(key):
+        elif key in X500DN.__shortNameLUT:
 
             # key not recognised - but a long name version of the key may
             # have been passed
@@ -158,12 +158,12 @@ class X500DN(dict):
     def __setitem__(self, key, item):
         
         # Check input key
-        if self.__dat.has_key(key):
+        if key in self.__dat:
 
             # key recognised
             self.__dat[key] = item
             
-        elif X500DN.__shortNameLUT.has_key(key):
+        elif key in X500DN.__shortNameLUT:
                 
             # key not recognised - but a long name version of the key may
             # have been passed
@@ -182,20 +182,20 @@ class X500DN(dict):
         return copy.copy(self)
 
     def keys(self):
-        return self.__dat.keys()
+        return list(self.__dat.keys())
 
     def items(self):
-        return self.__dat.items()
+        return list(self.__dat.items())
 
     def values(self):
-        return self.__dat.values()
+        return list(self.__dat.values())
 
     def has_key(self, key):
-        return self.__dat.has_key(key)
+        return key in self.__dat
 
     # 'in' operator
     def __contains__(self, key):
-        return self.has_key(key)
+        return key in self
 
     def get(self, *arg):
         return self.__dat.get(*arg)
@@ -204,7 +204,7 @@ class X500DN(dict):
         """Combine fields in Distinguished Name into a single string."""
         
         if separator:
-            if not isinstance(separator, basestring):
+            if not isinstance(separator, str):
                 raise X500DNError("Separator must be a valid string")
         
             self.__separator = separator
@@ -221,7 +221,7 @@ class X500DN(dict):
             sDN = ''
      
         dnList = []
-        for (key, val) in self.__dat.items():
+        for (key, val) in list(self.__dat.items()):
             if val:
                 if isinstance(val, tuple):
                     dnList += [separator.join(["%s=%s" % (key, valSub) \
@@ -240,7 +240,7 @@ class X500DN(dict):
         update the object's dictionary"""
         
         if separator:
-            if not isinstance(separator, basestring):
+            if not isinstance(separator, str):
                 raise X500DNError("Separator must be a valid string")
 
             self.__separator = separator
@@ -264,7 +264,7 @@ class X500DN(dict):
             if len(dnFields) < 2:
                 raise X500DNError("Error parsing DN string: \"%s\"" % dn)
 
-            items = zip(dnFields[1::2], dnFields[2::2])
+            items = list(zip(dnFields[1::2], dnFields[2::2]))
             
             # Reset existing dictionary values
             self.__dat.fromkeys(self.__dat, '')
@@ -283,7 +283,7 @@ class X500DN(dict):
                     parsedDN[key] = val
                 
             # Copy matching DN fields
-            for key, val in parsedDN.items():
+            for key, val in list(parsedDN.items()):
                 if key not in self.__dat and key not in self.__shortNameLUT:
                     raise X500DNError('Invalid field "%s" in input DN string' %
                                       key)
@@ -291,7 +291,7 @@ class X500DN(dict):
                 self.__dat[key] = val
 
                 
-        except Exception, excep:
+        except Exception as excep:
             raise X500DNError("Error de-serialising DN \"%s\": %s" % \
                               (dn, str(excep)))
 
@@ -319,7 +319,7 @@ class X500DN(dict):
         # The resulting match should be a list.  The first character in each
         # element in the list should be the field separator and should be the
         # same
-        regExpr = '|'.join(['\W\s*'+i+'=' for i in self.__dat.keys()])
+        regExpr = '|'.join(['\W\s*'+i+'=' for i in list(self.__dat.keys())])
         match = re.findall(regExpr, dn)
             
         # In the first example above, the resulting match is:
@@ -372,7 +372,7 @@ class X509Cert(object):
 
         # Set certificate file path
         if filePath is not None:
-            if not isinstance(filePath, basestring):
+            if not isinstance(filePath, str):
                 raise X509CertError("Certificate File Path input must be a "
                                     "valid string")
             
@@ -408,7 +408,7 @@ class X509Cert(object):
         
         # Check for optional input certificate file path
         if filePath is not None:
-            if not isinstance(filePath, basestring):
+            if not isinstance(filePath, str):
                 raise X509CertError("Certificate File Path input must be a "
                                     "valid string")
             
@@ -417,7 +417,7 @@ class X509Cert(object):
         try:
             self.__m2CryptoX509 = M2Crypto.X509.load_cert(self.__filePath,
                                                           format=file_format)
-        except Exception, e:
+        except Exception as e:
             raise X509CertReadError("Error loading certificate \"%s\": %s" %
                                     (self.__filePath, e))
 
@@ -457,7 +457,7 @@ class X509Cert(object):
 #            self.__m2CryptoX509 = M2Crypto.X509.load_cert_bio(certBIO)
             self.__m2CryptoX509 = M2Crypto.X509.load_cert_string(str(certTxt),
                                                                  format=file_format)
-        except Exception, e:
+        except Exception as e:
             raise X509CertParseError("Error loading certificate: %s" % e)
 
         # Update DN and validity times from M2Crypto X509 object just
@@ -493,14 +493,14 @@ class X509Cert(object):
             m2CryptoNotBefore = self.__m2CryptoX509.get_not_before()
             self.__dtNotBefore=self.__m2CryptoUTC2datetime(m2CryptoNotBefore)
                                         
-        except Exception, e:
+        except Exception as e:
             raise X509CertError("Not Before time: %s" % e)
 
         try:
             m2CryptoNotAfter = self.__m2CryptoX509.get_not_after()
             self.__dtNotAfter = self.__m2CryptoUTC2datetime(m2CryptoNotAfter)
                                     
-        except Exception, e:
+        except Exception as e:
             raise X509CertError("Not After time: %s" % e)
 
     def __getM2CryptoX509(self, m2CryptoX509=None):
@@ -828,7 +828,7 @@ class X509Stack(object):
         elif isinstance(x509Cert, X509Cert):
             return self.__m2X509Stack.push(x509Cert.m2CryptoX509)
         
-        elif isinstance(x509Cert, basestring):
+        elif isinstance(x509Cert, str):
             return self.__m2X509Stack.push(
                                        X509Cert.Parse(x509Cert).m2CryptoX509)  
         else:
@@ -1042,7 +1042,7 @@ class HostCheck(SSL.Checker.Checker, object):
         try:
             SSL.Checker.Checker.__call__(self, peerCert, host=self.peerCertCN)
             
-        except SSL.Checker.WrongHost, e:
+        except SSL.Checker.WrongHost as e:
             # Try match against peerCertDN set   
             if peerCertDN != self.peerCertDN:
                 raise e
@@ -1067,7 +1067,7 @@ class HostCheck(SSL.Checker.Checker, object):
             try:
                 self.__caCertStack.verifyCertChain(
                            x509Cert2Verify=X509Cert(m2CryptoX509=peerCert))
-            except Exception, e:
+            except Exception as e:
                 raise InvalidCertSignature("Peer certificate verification "
                                            "against CA certificate failed: %s" 
                                            % e)
@@ -1095,7 +1095,7 @@ class HostCheck(SSL.Checker.Checker, object):
         be used to verify certificate used to sign message.  If a single 
         string item is input then this is converted into a tuple
         '''
-        if isinstance(caCertFilePathList, basestring):
+        if isinstance(caCertFilePathList, str):
             caCertFilePathList = (caCertFilePathList,)
             
         elif not isinstance(caCertFilePathList, (list, tuple)):
@@ -1192,7 +1192,7 @@ class SSLContextProxy(SSLContextProxyInterface):
     """Holder for M2Crypto.SSL.Context parameters implements SSL Context
     proxy interface
     """
-    PRE_VERIFY_FAIL, PRE_VERIFY_OK = range(2)
+    PRE_VERIFY_FAIL, PRE_VERIFY_OK = list(range(2))
     M2_SSL_PROTOCOL_METHOD = 'tlsv1'
     M2_SSL_VERIFY_DEPTH = 9
 
@@ -1311,7 +1311,7 @@ class SSLContextProxy(SSLContextProxyInterface):
 
     @SSLContextProxyInterface.ssl_valid_x509_subj_names.setter
     def ssl_valid_x509_subj_names(self, value):
-        if isinstance(value, basestring):  
+        if isinstance(value, str):  
             pat = SSLContextProxy.VALID_DNS_PAT
             self._ssl_valid_dns = [X500DN.fromString(dn) 
                                   for dn in pat.split(value)]
@@ -1327,7 +1327,7 @@ class SSLContextProxy(SSLContextProxyInterface):
     @SSLContextProxyInterface.sslPriKeyPwd.setter
     def _setSSLPriKeyPwd(self, sslPriKeyPwd):
         "Set method for ssl private key file password"
-        if not isinstance(sslPriKeyPwd, (type(None), basestring)):
+        if not isinstance(sslPriKeyPwd, (type(None), str)):
             raise TypeError("Signing private key password must be None "
                             "or a valid string")
         
@@ -1350,5 +1350,5 @@ class SSLContextProxy(SSLContextProxyInterface):
         
     def __setstate__(self, attrDict):
         '''Enable pickling for use with beaker.session'''
-        for attr, val in attrDict.items():
+        for attr, val in list(attrDict.items()):
             setattr(self, attr, val)
