@@ -56,7 +56,7 @@ class SamlSslSoapBindingTestCase(WithPasterBaseTestCase):
         attribute_query = AttributeQueryFactory.create()
         attribute_query.subject.nameID.format = self.__class__.SUBJECT_FORMAT
         attribute_query.subject.nameID.value = self.__class__.SUBJECT
-        attribute_query.issuerName = '/O=Site A/CN=Authorisation Service'
+        attribute_query.issuer.value = '/O=Site A/CN=Authorisation Service'
 
 
         attribute = Attribute()
@@ -83,7 +83,8 @@ class SamlSslSoapBindingTestCase(WithPasterBaseTestCase):
         print("Pretty print SAML Response ...")
         print((prettyPrint(samlResponseElem)))
         
-        self.assertTrue(response.status.statusCode.value==StatusCode.SUCCESS_URI)
+        self.assertTrue(
+            response.status.statusCode.value==StatusCode.SUCCESS_URI)
   
  
 if __name__ == "__main__":

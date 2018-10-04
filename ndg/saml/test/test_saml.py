@@ -292,7 +292,9 @@ class SAMLTestCase(unittest.TestCase):
         assertion.issuer.format = Issuer.X509_SUBJECT
         assertion.issuer.value = SAMLTestCase.ISSUER_DN
         
-        jar = pickle.dumps(assertion)
+        # Use '1' pickle method - default '3' breaks with Pytohn 3 - 
+        # elementType instance variable is not defined!
+        jar = pickle.dumps(assertion, 1)
         assertion2 = pickle.loads(jar)
         self.assertTrue(isinstance(assertion2, Assertion))
         self.assertTrue(assertion2.issuer.value == assertion.issuer.value)

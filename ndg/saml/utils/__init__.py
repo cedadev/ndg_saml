@@ -102,95 +102,68 @@ class TypedList(list):
     any type where the array type in the Standard Library is restricted to 
     only limited set of primitive types
     """
-    __slots__ = ('_elementType',)
-    
-    def __init__(self, elementType, *arg, **kw):
+    def __init__(self, element_type):
         """
-        @type elementType: type/tuple
-        @param elementType: object type or types which the list is allowed to
+        @type element_type: type/tuple
+        @param element_type: object type or types which the list is allowed to
         contain.  If more than one type, pass as a tuple
         """
-        super(TypedList, self).__init__(*arg, **kw)
-        self._elementType = elementType 
-           
+        self._element_type = element_type
+        super(TypedList, self).__init__()    
+            
     @property
-    def elementType(self):
+    def element_type(self):
         """@return: element type for this list
         @rtype: type
         """
-        return self._elementType
-    
-    @elementType.setter
-    def elementType(self, value):
+        return self._element_type
+     
+    @element_type.setter
+    def element_type(self, value):
         if not isinstance(value, type):
-            raise TypeError('Expecting a type object for elementType')
-        
-        self._elementType = value
+            raise TypeError('Expecting a type object for element_type')
+         
+        self._element_type = value
      
     def extend(self, iter_):
         """Extend an existing list with the input iterable
         @param iter_: iterable to extend list with
         @type iter_: iterable
         """
-        for i in iter_:
-            if not isinstance(i, self.elementType):
-                raise TypeError("List items must be of type %s" % 
-                                (self.elementType,))
-                
+        # Explicitly check for attribute defined - a workaround for unpickling
+        # with Python 3.  extend is called during unpickling and for some 
+        # reason _element_type is not defined when it is called
+        if hasattr(self, '_element_type'):
+            for i in iter_:
+                if not isinstance(i, self._element_type):
+                    raise TypeError("List items must be of type %s" % 
+                                    (self._element_type,))
+                 
         return super(TypedList, self).extend(iter_)
         
-    def __iadd__(self, iter):
+    def __iadd__(self, iter_):
         """Extend an existing list with the input iterable with += operator
         
-        @param iter: iterable to extend list with
-        @type iter: iterable
+        @param iter_: iterable to extend list with
+        @type iter_: iterable
         """
-        for i in iter:
-            if not isinstance(i, self.elementType):
+        for i in iter_:
+            if not isinstance(i, self._element_type):
                 raise TypeError("List items must be of type %s" % 
-                                (self.elementType,))
+                                (self._element_type,))
                     
-        return super(TypedList, self).__iadd__(iter)
+        return super(TypedList, self).__iadd__(iter_)
          
     def append(self, item):
         """Append a list with the given item
         
         @param item: item to extend list
-        @type item: must agree witj "elementType" attribute of this list 
+        @type item: must agree with "element_type" attribute of this list 
         """
-        if not isinstance(item, self.elementType):
+        if not isinstance(item, self._element_type):
                 raise TypeError("List items must be of type %s" % 
-                                (self.elementType,))
+                                (self._element_type,))
     
         return super(TypedList, self).append(item)
+
     
-    def __getstate__(self):
-        '''Enable pickling
-        
-        :return: object's attribute dictionary
-        :rtype: dict
-        '''
-        _dict = {}
-        for attr_name in self.__slots__:
-            # Ugly hack to allow for derived classes setting private member
-            # variables
-            if attr_name.startswith('__'):
-                attr_name = "_TypedList" + attr_name
-                
-            _dict[attr_name] = getattr(self, attr_name)
-            
-        return _dict
-  
-    def __setstate__(self, attr_dict):
-        '''Enable pickling
-        
-        :param attr_dict: object's attribute dictionary
-        :type attr_dict: dict
-        '''
-        for attr_name, val in list(attr_dict.items()):
-            if attr_name.startswith('_TypedList'):
-                attr_name_ = attr_name.split('_TypedList__')[-1]
-                setattr(self, attr_name_, val)
-            else:  
-                setattr(self, attr_name, val)
-        

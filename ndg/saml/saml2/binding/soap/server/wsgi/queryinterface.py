@@ -420,7 +420,7 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         
         # Parse into a SOAP envelope object
         soapRequest = SOAPEnvelope()
-        soapRequest.parse(StringIO(soapRequestTxt))
+        soapRequest.parse(StringIO(soapRequestTxt.decode()))
         
         log.debug("SOAPQueryInterfaceMiddleware.__call__: received SAML "
                   "SOAP Query: %s", soapRequestTxt)

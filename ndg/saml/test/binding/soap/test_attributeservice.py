@@ -229,7 +229,7 @@ class SOAPAttributeInterfaceMiddlewareTestCase(WithPasteFixtureBaseTestCase):
         soapResponse = SOAPEnvelope()
         
         responseStream = StringIO()
-        responseStream.write(responseBody)
+        responseStream.write(responseBody.decode())
         responseStream.seek(0)
         
         soapResponse.parse(responseStream)

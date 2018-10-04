@@ -3516,10 +3516,11 @@ class AttributeQuery(SubjectQuery):
         :type value: TypedList
         :raise TypeError: incorrect type for attributes list
         '''
-        if isinstance(value, TypedList) and not issubclass(value.elementType, 
-                                                           Attribute):
+        if (isinstance(value, TypedList) and 
+            not issubclass(value.element_type, Attribute)):
             raise TypeError('Expecting %r derived type for "attributes" '
-                            'elements; got %r' % (Attribute, value.elementType))
+                            'elements; got %r' % (Attribute, 
+                                                  value.element_type))
         else:
             self.__attributes = TypedList(Attribute)
             for i in value:

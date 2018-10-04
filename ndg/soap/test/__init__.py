@@ -2,7 +2,6 @@
 
 NERC DataGrid Project
 """
-from ndg.saml.test.binding.soap import paste_installed
 __author__ = "P J Kershaw"
 __date__ = "24/07/09"
 __copyright__ = "(C) 2009 Science and Technology Facilities Council"
@@ -12,20 +11,12 @@ __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = "$Id: __init__.py 7130 2010-06-30 13:33:07Z pjkersha $"
 import logging
 logging.basicConfig(level=logging.DEBUG)
-
-try:
-    import paste.httpserver
-    from paste.deploy import loadapp
-    from paste.script.util.logging_config import fileConfig
-    paste_installed = True
-    
-except ImportError:
-    import warnings
-    warnings.warn('Paste is required for %r' % __name__)
-    paste_installed = False
-    
 from threading import Thread
 
+import paste.httpserver
+from paste.deploy import loadapp
+from paste.script.util.logging_config import fileConfig    
+    
 
 class PasteDeployAppServer(object):
     """Wrapper to paste.httpserver to enable background threading"""
@@ -68,4 +59,7 @@ class PasteDeployAppServer(object):
         self.thread.start()
         
     def terminateThread(self):
-        self.pasteServer.server_close()
+        try:
+            self.pasteServer.server_close()
+        except Exception as e:
+            pass

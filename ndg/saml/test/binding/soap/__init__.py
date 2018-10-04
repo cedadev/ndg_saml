@@ -11,6 +11,8 @@ __revision__ = '$Id$'
 import os
 import unittest
 import socket
+import warnings
+
 try:
     import paste.fixture
     from paste.deploy import loadapp
@@ -18,6 +20,8 @@ try:
     
     paste_installed = True
 except ImportError as import_exc:
+    warnings.warn("Checking Paste package dependencies: {}".format(
+                  import_exc))
     paste_installed = False
     
 
@@ -103,8 +107,7 @@ class WithPasterBaseTestCase(unittest.TestCase):
             certFilePath = self.__class__.SERVER_CERT_FILEPATH
             priKeyFilePath = self.__class__.SERVER_PRIKEY_FILEPATH
             
-            kw['ssl_context'] = SSL.Context(SSL.SSLv23_METHOD)
-            kw['ssl_context'].set_options(SSL.OP_NO_SSLv2)
+            kw['ssl_context'] = SSL.Context(SSL.TLSv1_2_METHOD)
         
             kw['ssl_context'].use_privatekey_file(priKeyFilePath)
             kw['ssl_context'].use_certificate_file(certFilePath)
@@ -120,6 +123,8 @@ class WithPasterBaseTestCase(unittest.TestCase):
         """Stop any services started with the addService method and clean up
         the CA directory following the trust roots call
         """
+
         if hasattr(self, 'services'):
             for service in self.services:
                 service.terminateThread()
+
