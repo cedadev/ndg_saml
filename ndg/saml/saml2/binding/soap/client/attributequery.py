@@ -12,11 +12,7 @@ from urllib.parse import urlparse
 import logging
 log = logging.getLogger(__name__)
 
-try:
-    from ndg.httpsclient.https import HTTPSContextHandler as HTTPSHandler_
-    
-except ImportError:
-    from M2Crypto.m2urllib2 import HTTPSHandler as HTTPSHandler_
+from ndg.httpsclient.https import HTTPSContextHandler as HTTPSHandler_
 
 from ndg.saml.saml2.core import AttributeQuery
 from ndg.saml.saml2.binding.soap.client.subjectquery import (
@@ -25,17 +21,7 @@ from ndg.saml.saml2.binding.soap.client.subjectquery import (
 
 # Prevent whole module breaking if this is not available - it's only needed for
 # AttributeQuerySslSOAPBinding
-try:
-    from ndg.saml.utils.pyopenssl import SSLContextProxy as SSLContextProxy_
-    _sslContextProxySupport = True
-    
-except ImportError:
-    try:
-        from ndg.saml.utils.m2crypto import SSLContextProxy as SSLContextProxy_
-        _sslContextProxySupport = True
-        
-    except ImportError:
-        _sslContextProxySupport = False
+from ndg.saml.utils.pyopenssl import SSLContextProxy as SSLContextProxy_
 
 
 class AttributeQueryResponseError(SubjectQueryResponseError):
@@ -79,13 +65,9 @@ class AttributeQuerySslSOAPBinding(AttributeQuerySOAPBinding):
     """Specialisation of AttributeQuerySOAPbinding taking in the setting of
     SSL parameters for mutual authentication
     """
-    SSL_CONTEXT_PROXY_SUPPORT = _sslContextProxySupport
     __slots__ = ('__sslCtxProxy',)
     
     def __init__(self, **kw):
-        if not AttributeQuerySslSOAPBinding.SSL_CONTEXT_PROXY_SUPPORT:
-            raise ImportError("ndg.saml.utils.m2crypto import "
-                              "failed - missing M2Crypto package?")
         
         # Miss out default HTTPSHandler and set in send() instead
         if 'handlers' in kw:

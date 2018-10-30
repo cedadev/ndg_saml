@@ -12,29 +12,15 @@ from urllib.parse import urlparse
 import logging
 log = logging.getLogger(__name__)
 
+from ndg.httpsclient.https import HTTPSContextHandler as HTTPSHandler_
+
 from ndg.saml.saml2.binding.soap.client.requestbase import \
                                                         RequestBaseSOAPBinding
 from ndg.saml.saml2.xacml_profile import XACMLAuthzDecisionQuery
 
-try:
-    from ndg.httpsclient.https import HTTPSContextHandler as HTTPSHandler_
-
-except ImportError:
-    from M2Crypto.m2urllib2 import HTTPSHandler as HTTPSHandler_
-
 # Prevent whole module breaking if this is not available - it's only needed for
 # XACMLAuthzDecisionQuerySslSOAPBinding
-try:
-    from ndg.saml.utils.pyopenssl import SSLContextProxy as SSLContextProxy_
-    _sslContextProxySupport = True
-    
-except ImportError:
-    try:
-        from ndg.saml.utils.m2crypto import SSLContextProxy as SSLContextProxy_
-        _sslContextProxySupport = True
-        
-    except ImportError:
-        _sslContextProxySupport = False
+from ndg.saml.utils.pyopenssl import SSLContextProxy as SSLContextProxy_
 
 
 class XACMLAuthzDecisionQuerySOAPBinding(RequestBaseSOAPBinding):
@@ -69,21 +55,16 @@ class XACMLAuthzDecisionQuerySslSOAPBinding(XACMLAuthzDecisionQuerySOAPBinding):
     """Specialisation of AuthzDecisionQuerySOAPbinding taking in the setting of
     SSL parameters for mutual authentication
     """
-    SSL_CONTEXT_PROXY_SUPPORT = _sslContextProxySupport
     __slots__ = ('__sslCtxProxy',)
     
     def __init__(self, **kw):
-        if not XACMLAuthzDecisionQuerySslSOAPBinding.SSL_CONTEXT_PROXY_SUPPORT:
-            raise ImportError("ndg.security.common.utils.m2crypto import "
-                              "failed - missing M2Crypto package?")
-        
         # Miss out default HTTPSHandler and set in send() instead
         if 'handlers' in kw:
             raise TypeError("__init__() got an unexpected keyword argument "
                             "'handlers'")
             
-        super(XACMLAuthzDecisionQuerySslSOAPBinding, self).__init__(handlers=(), 
-                                                                    **kw)
+        super(XACMLAuthzDecisionQuerySslSOAPBinding, self).__init__(
+                                                            handlers=(), **kw)
         self.__sslCtxProxy = SSLContextProxy_()
 
     def send(self, query, **kw):

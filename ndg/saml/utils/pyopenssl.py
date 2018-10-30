@@ -23,13 +23,13 @@ class SSLContextProxy(SSLContextProxyInterface):
     SSL_VERIFY_DEPTH = 9
     
     def __call__(self):
-        """Create an M2Crypto SSL Context from this objects properties
+        """Create an SSL Context from this objects properties
         :type depth: int
         :param depth: max. depth of certificate to verify against
         :type kw: dict
         :param kw: OpenSSL.SSL.Context keyword arguments
         :rtype: OpenSSL.SSL.Context
-        :return: M2Crypto SSL context object
+        :return: SSL context object
         """
         ctx = SSL.Context(self.__class__.SSL_PROTOCOL_METHOD)
         
@@ -62,10 +62,12 @@ class SSLContextProxy(SSLContextProxyInterface):
             verify_cb = lambda connection, peerCert, errorStatus, errorDepth, \
                  preverifyOK: preverifyOK
         else:
-            mode = SSL.VERIFY_NONE
-            log.warning('No CA certificate files set: mode set to '
-                        '"verify_none"!  No verification of the server '
-                        'certificate will be enforced')
+#             mode = SSL.VERIFY_NONE
+#             log.warning('No CA certificate files set: mode set to '
+#                         '"verify_none"!  No verification of the server '
+#                         'certificate will be enforced')
+            log.info('Setting default OS CA trust roots')
+            ctx.set_default_verify_paths()
             
         n_ssl_valid_x509_subj_names = len(self.ssl_valid_x509_subj_names)
         if n_ssl_valid_x509_subj_names > 0 or self.ssl_valid_hostname:

@@ -25,19 +25,31 @@ except ImportError as import_exc:
     paste_installed = False
     
 
-class TestApp(object):
+class TestApp:
     """Dummy application to terminate middleware stack containing SAML service
     """
     def __init__(self, global_conf, **app_conf):
         pass
     
     def __call__(self, environ, start_response):
-        response = "404 Not Found"
+        if environ.get('PATH_INFO') == '/stop-service/':
+            import signal
+            self.gunicorn_server_app.kill_workers(signal.SIGKILL)
+      
+            response = (
+                "<html><head/><body><h1>Stopping service</h1><body></html>".
+                encode('utf-8'))
+        else:
+            response = (
+                "<html><head/><body><h1>404 Not Found</h1><body></html>".
+                encode('utf-8'))
+        
         start_response(response,
                        [('Content-length', str(len(response))),
-                        ('Content-type', 'text/plain')])
+                        ('Content-type', 'text/html')])
                             
         return [response]
+
 
 
 class WithPasteFixtureBaseTestCase(unittest.TestCase):
@@ -60,13 +72,13 @@ class WithPasteFixtureBaseTestCase(unittest.TestCase):
         wsgiapp = loadapp('config:%s' % self.__class__.CONFIG_FILENAME, 
                           relative_to=self.__class__.HERE_DIR)
         
-        self.app = paste.fixture.TestApp(wsgiapp)
-         
+        self.app = paste.fixture.TestApp(wsgiapp)     
         
     
-class WithPasterBaseTestCase(unittest.TestCase):
+class WithGunicornBaseTestCase(unittest.TestCase):
     """Base class for testing SAML SOAP Binding Query/Response interface
-    using a Paste Deploy ini file and Paste Fixture
+    using a Paste Deploy ini file and Gunicorn WSGI server to run a test
+    service to test against
     """
     THIS_DIR = os.path.dirname(os.path.abspath(__file__))
     CONFIG_FILENAME = None # Set in derived class
@@ -76,10 +88,11 @@ class WithPasterBaseTestCase(unittest.TestCase):
     
     def __init__(self, *arg, **kw):
         withSSL = kw.pop('withSSL', False)
-        unittest.TestCase.__init__(self, *arg, **kw)
+        disableServiceStartup = kw.pop('disableServiceStartup', False)
+        super().__init__(*arg, **kw)
         
         self.services = []
-        self.disableServiceStartup = False
+        self.disableServiceStartup = disableServiceStartup
         cfgFilePath = os.path.join(self.__class__.THIS_DIR, 
                                    self.__class__.CONFIG_FILENAME)
         

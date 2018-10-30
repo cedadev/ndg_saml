@@ -109,7 +109,7 @@ class TypedList(list):
         contain.  If more than one type, pass as a tuple
         """
         self._element_type = element_type
-        super(TypedList, self).__init__()    
+        super().__init__()    
             
     @property
     def element_type(self):
@@ -117,13 +117,6 @@ class TypedList(list):
         @rtype: type
         """
         return self._element_type
-     
-    @element_type.setter
-    def element_type(self, value):
-        if not isinstance(value, type):
-            raise TypeError('Expecting a type object for element_type')
-         
-        self._element_type = value
      
     def extend(self, iter_):
         """Extend an existing list with the input iterable

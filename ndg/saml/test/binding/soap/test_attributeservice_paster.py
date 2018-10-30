@@ -24,12 +24,14 @@ from ndg.saml.xml.etree import ResponseElementTree
 from ndg.saml.saml2.binding.soap.client.attributequery import \
     AttributeQuerySslSOAPBinding
 from ndg.saml.utils.factory import AttributeQueryFactory
-from ndg.saml.test.binding.soap import WithPasterBaseTestCase, paste_installed
+from ndg.saml.test.binding.soap import WithGunicornBaseTestCase, paste_installed
     
- 
-class SamlSslSoapBindingTestCase(WithPasterBaseTestCase):
+             
+class SamlSslSoapBindingTestCase(WithGunicornBaseTestCase):
     """Test SAML SOAP Binding with SSL"""
-    SERVICE_URI = 'https://localhost:5443/attributeauthority'
+    SERVICE_STEM_URI = 'https://localhost:5443/'
+    TERMINATE_SERVICE_URI = 'stop-service/'
+    SERVICE_URI = SERVICE_STEM_URI + 'attributeauthority'
     SUBJECT = "https://openid.localhost/philip.kershaw"
     SUBJECT_FORMAT = "urn:ndg:saml:openid"
     CONFIG_FILENAME = 'attribute-interface.ini'
@@ -48,7 +50,8 @@ class SamlSslSoapBindingTestCase(WithPasterBaseTestCase):
     
     def __init__(self, *arg, **kw):
         kw['withSSL'] = True
-        super(SamlSslSoapBindingTestCase, self).__init__(*arg, **kw)
+        kw['disableServiceStartup'] = True
+        super().__init__(*arg, **kw)
                     
     def test02SendQuery(self):
         query_binding = AttributeQuerySslSOAPBinding()
@@ -85,8 +88,14 @@ class SamlSslSoapBindingTestCase(WithPasterBaseTestCase):
         
         self.assertTrue(
             response.status.statusCode.value==StatusCode.SUCCESS_URI)
-  
- 
+        
+    def __del__(self):
+        from ndg.httpsclient.urllib2_build_opener import build_opener
+        opener = build_opener()
+        res = opener.open(self.TERMINATE_SERVICE_URI)
+        res.read()
+
+
 if __name__ == "__main__":
     if paste_installed:
         unittest.main()

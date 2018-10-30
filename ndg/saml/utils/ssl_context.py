@@ -18,13 +18,14 @@ log = logging.getLogger(__name__)
 
 class SSLContextProxyInterface(object, metaclass=ABCMeta):
     """Interface class for SSL proxy to allow interchange between PyOpenSSL and
-    M2Crypto HTTPS libraries"""
+    any other HTTPS libraries"""
     
     SSL_CERT_FILEPATH_OPTNAME = "sslCertFilePath"
     SSL_PRIKEY_FILEPATH_OPTNAME = "sslPrikeyFilePath"
     SSL_PRIKEY_PWD_OPTNAME = "sslPrikeyPwd"
     SSL_CACERT_FILEPATH_OPTNAME = "sslCACertFilePath"
     SSL_CACERT_DIRPATH_OPTNAME = "sslCACertDir"
+    SSL_NO_PEER_VERIFICATION = "ssl_no_peer_verification"
     SSL_VALID_X509_SUBJ_NAMES_OPTNAME = "ssl_valid_x509_subj_names"
     SSL_VALID_HOST_NAME_OPTNAME = "ssl_valid_x509_subj_names"
     
@@ -43,6 +44,7 @@ class SSLContextProxyInterface(object, metaclass=ABCMeta):
         "_ssl_prikey_pwd",
         "_ssl_cacert_filepath",
         "_ssl_ca_cert_dir",
+        "_ssl_no_peer_verification",
         "_ssl_valid_hostname",
         "_ssl_valid_x509_subj_names"
     )
@@ -55,6 +57,7 @@ class SSLContextProxyInterface(object, metaclass=ABCMeta):
         self._ssl_prikey_pwd = None
         self._ssl_cacert_filepath = None
         self._ssl_ca_cert_dir = None
+        self._ssl_no_peer_verification = False
         self._ssl_valid_hostname = None
         self._ssl_valid_x509_subj_names = []
         
@@ -152,6 +155,22 @@ class SSLContextProxyInterface(object, metaclass=ABCMeta):
             raise TypeError("Input CA Certificate directroy must be "
                             "a valid string or None type: %r" % type(value))      
       
+    @property
+    def ssl_no_peer_verification(self):
+        return self._ssl_no_peer_verification
+    
+    @ssl_no_peer_verification.setter
+    def ssl_no_peer_verification(self, value):
+        if isinstance(value, bool):
+            self._ssl_no_peer_verification = value
+        elif isinstance(value, str) and value.lower() in ('true', 'false'):
+            self._ssl_no_peer_verification = (value.lower() == 'true')
+        else:
+            raise TypeError('Expecting boolean or string type (True/False) '
+                            'for "{}" attribute; got {!r}'.format(
+                            SSLContextProxyInterface.SSL_NO_PEER_VERIFICATION,
+                            type(value)))
+            
     @property
     def ssl_valid_hostname(self):
         return self._ssl_valid_hostname
