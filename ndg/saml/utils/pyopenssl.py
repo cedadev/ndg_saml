@@ -52,7 +52,13 @@ class SSLContextProxy(SSLContextProxyInterface):
         else:
             log.debug("No client certificate or key set in SSL Context")
             
-        if self.sslCACertFilePath or self.sslCACertDir:
+        if self.ssl_no_peer_verification:
+            mode = SSL.VERIFY_NONE
+            log.warning('No CA certificate files set: mode set to '
+                        '"verify_none"!  No verification of the server '
+                        'certificate will be enforced')
+
+        elif self.sslCACertFilePath or self.sslCACertDir:
             # Set CA certificates in order to verify peer
             ctx.load_verify_locations(self.sslCACertFilePath, 
                                       self.sslCACertDir)
@@ -62,10 +68,6 @@ class SSLContextProxy(SSLContextProxyInterface):
             verify_cb = lambda connection, peerCert, errorStatus, errorDepth, \
                  preverifyOK: preverifyOK
         else:
-#             mode = SSL.VERIFY_NONE
-#             log.warning('No CA certificate files set: mode set to '
-#                         '"verify_none"!  No verification of the server '
-#                         'certificate will be enforced')
             log.info('Setting default OS CA trust roots')
             ctx.set_default_verify_paths()
             

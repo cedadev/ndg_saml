@@ -63,6 +63,8 @@ class SamlSoapCommandLineClient(object):
 commands:
   authz       Make a SAML Authorisation Decision Query
   attr        Make a SAML Attribute Query
+  
+For help with individual commands run: %prog [command] -h
 """
         parser = OptionParser(usage=usage)
         
@@ -116,6 +118,15 @@ commands:
                                "one of these.",
                           metavar="CA_CERT_DIR")
    
+        parser.add_option("-N", "--no-ssl-peer-verify",
+                          dest="ssl_no_peer_verification",
+                          action="store_true", 
+                          help="Disable SSL verification of SAML service.  "
+                               "Use with caution as the identity of the peer "
+                               "will not be checked.  This option is mutually"
+                               " exclusive to the -C/--ca-cert-dir option",
+                          metavar="NO_SSL_PEER_VERIFICATION")
+           
         parser.add_option("-p", "--pretty-print",
                           dest="pretty_print", 
                           action="store_true",
@@ -229,9 +240,16 @@ commands:
         else:
             parser.error('Command %s not supported' % command)
 
+
         # Leave the command option out of the parser's processing
         options = parser.parse_args(argv[2:])[0]
-        
+  
+        if options.ssl_no_peer_verification and options.ca_cert_dir:
+            parser.error("-C/--ca-cert-dir and -N/--no-ssl-peer-verify "
+                         "command line options are mutually exclusive: if " 
+                         "peer verification is disabled it makes no sense to "
+                         "set a CA certificate directory path.")
+         
         # Post-processing needed for attribute query
         if command == self.__class__.ATTRIBUTE_QUERY_CMD:
             len_attribute_names = len(options.attribute_names)
@@ -265,17 +283,22 @@ commands:
                 if len_attribute_names > 1 and len_attribute_formats == 1:
                     options.attribute_formats = options.attribute_formats * \
                                                     len_attribute_names
-  
+           
         missing_vals = []
-        for i in (self.__class__.__slots__):
-            val = getattr(options, i, None)
+        for attr_name in (self.__class__.__slots__):
+            val = getattr(options, attr_name, None)
             if val == '':
-                missing_vals.append(i)
+                for option in parser.option_list:
+                    if getattr(option, 'dest') == attr_name:
+                        opt_name = str(option)
+                        missing_vals.append(opt_name)
+                        break
             else:
-                setattr(self, i, val)
+                setattr(self, attr_name, val)
                 
         if len(missing_vals) > 0:
-            parser.error('Missing option or options: %r' % missing_vals)
+            parser.error('Missing option or options: {}'.format(
+                                                    ", ".join(missing_vals)))
             
         return command
     
@@ -336,6 +359,7 @@ commands:
             binding = AuthzDecisionQuerySslSOAPBinding()
 
         binding.sslCACertDir = self.ca_cert_dir
+        binding.ssl_no_peer_verification = self.ssl_no_peer_verification
         binding.sslCertFilePath = self.client_cert_filepath
         binding.sslPriKeyFilePath = self.client_prikey_filepath
         binding.clockSkewTolerance = self.clock_skew_tolerance
