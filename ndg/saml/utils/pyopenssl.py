@@ -52,49 +52,51 @@ class SSLContextProxy(SSLContextProxyInterface):
         else:
             log.debug("No client certificate or key set in SSL Context")
             
+                
+        verify_cb = lambda connection, peerCert, errorStatus, errorDepth, \
+                     preverifyOK: preverifyOK
+                     
         if self.ssl_no_peer_verification:
             mode = SSL.VERIFY_NONE
             log.warning('No CA certificate files set: mode set to '
                         '"verify_none"!  No verification of the server '
                         'certificate will be enforced')
 
-        elif self.sslCACertFilePath or self.sslCACertDir:
-            # Set CA certificates in order to verify peer
-            ctx.load_verify_locations(self.sslCACertFilePath, 
-                                      self.sslCACertDir)
-            mode = SSL.VERIFY_PEER
-            ctx.set_verify_depth(self.__class__.SSL_VERIFY_DEPTH)
-            
-            verify_cb = lambda connection, peerCert, errorStatus, errorDepth, \
-                 preverifyOK: preverifyOK
         else:
-            log.info('Setting default OS CA trust roots')
-            ctx.set_default_verify_paths()
-            
-        n_ssl_valid_x509_subj_names = len(self.ssl_valid_x509_subj_names)
-        if n_ssl_valid_x509_subj_names > 0 or self.ssl_valid_hostname:
-            # Set custom callback in order to verify peer certificate DN 
-            # against whitelist
-            mode = SSL.VERIFY_PEER
-            
-            if n_ssl_valid_x509_subj_names == 0:
-                cert_dn = None
+            if self.sslCACertFilePath or self.sslCACertDir:
+                # Set CA certificates in order to verify peer
+                ctx.load_verify_locations(self.sslCACertFilePath, 
+                                          self.sslCACertDir)
+                mode = SSL.VERIFY_PEER
+                ctx.set_verify_depth(self.__class__.SSL_VERIFY_DEPTH)
             else:
-                cert_dn = self.ssl_valid_x509_subj_names[0]
+                log.info('Setting default OS CA trust roots')
+                ctx.set_default_verify_paths()
+            
+            n_ssl_valid_x509_subj_names = len(self.ssl_valid_x509_subj_names)
+            if n_ssl_valid_x509_subj_names > 0 or self.ssl_valid_hostname:
+                # Set custom callback in order to verify peer certificate DN 
+                # against whitelist
+                mode = SSL.VERIFY_PEER
                 
-            # Nb. limit - this verification callback can only validate against
-            # a single DN not multiples as allowed by the interface class
-            ssl_cert_verification = ServerSSLCertVerification(
-                                    hostname=self.ssl_valid_hostname,
-                                    certDN=cert_dn)
-            
-            verify_cb = ssl_cert_verification.get_verify_server_cert_func()
-            
-            log.debug('Set peer certificate Distinguished Name check set in '
-                      'SSL Context')
-        else:
-            log.warning('No peer certificate Distinguished Name check set in '
-                        'SSL Context')
+                if n_ssl_valid_x509_subj_names == 0:
+                    cert_dn = None
+                else:
+                    cert_dn = self.ssl_valid_x509_subj_names[0]
+                    
+                # Nb. limit - this verification callback can only validate against
+                # a single DN not multiples as allowed by the interface class
+                ssl_cert_verification = ServerSSLCertVerification(
+                                        hostname=self.ssl_valid_hostname,
+                                        certDN=cert_dn)
+                
+                verify_cb = ssl_cert_verification.get_verify_server_cert_func()
+                
+                log.debug('Set peer certificate Distinguished Name check set in '
+                          'SSL Context')
+            else:
+                log.warning('No peer certificate Distinguished Name check set in '
+                            'SSL Context')
             
         ctx.set_verify(mode, verify_cb)
                    

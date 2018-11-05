@@ -42,6 +42,7 @@ class SamlSoapCommandLineClient(object):
         "attribute_names",
         "attribute_friendly_names",
         "attribute_formats",
+        "ssl_no_peer_verification",
         "ca_cert_dir",
         "client_cert_filepath",
         "client_prikey_filepath",

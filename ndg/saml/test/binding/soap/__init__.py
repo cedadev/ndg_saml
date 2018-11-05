@@ -27,12 +27,17 @@ except ImportError as import_exc:
 
 class TestApp:
     """Dummy application to terminate middleware stack containing SAML service
+    
+    Use for testing ONLY.  stop-service/ path provides a crude mechanism
+    to destroy the app at the end of a test run
     """
     def __init__(self, global_conf, **app_conf):
         pass
     
     def __call__(self, environ, start_response):
+        
         if environ.get('PATH_INFO') == '/stop-service/':
+            # Self-destruct application!
             import signal
             self.gunicorn_server_app.kill_workers(signal.SIGKILL)
       
@@ -63,7 +68,6 @@ class WithPasteFixtureBaseTestCase(unittest.TestCase):
         unittest.TestCase.__init__(self, *args, **kwargs)
         
         if not paste_installed:
-            import warnings
             warnings.warn('Disabling WithPasteFixtureBaseTestCase, '
                           'Paste.Deploy package is not installed')
             self.app = None

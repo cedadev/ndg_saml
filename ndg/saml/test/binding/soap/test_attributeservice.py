@@ -71,12 +71,14 @@ class TestAttributeServiceMiddleware(object):
 
             if query.issuer.value not in self.__class__.VALID_QUERY_ISSUERS:
                 response.status.statusCode.value = \
-                                            StatusCode.REQUEST_DENIED_URI   
+                                            StatusCode.REQUEST_DENIED_URI 
+                response.status.statusMessage.value = 'Invalid issuer'  
                 return response    
 
             if query.subject.nameID.value not in self.__class__.VALID_SUBJECTS:
                 response.status.statusCode.value = \
-                                            StatusCode.UNKNOWN_PRINCIPAL_URI   
+                                            StatusCode.UNKNOWN_PRINCIPAL_URI 
+                response.status.statusMessage.value = 'Unknown user'  
                 return response    
                 
             assertion = Assertion()
