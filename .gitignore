@@ -1,2 +1,7 @@
 /ndg_saml.egg-info/
 /dist/
+*.pyc
+*/*.pyc
+*/*/*.pyc
+*/*/*/*.pyc
+*/*/*/*/*.pyc
