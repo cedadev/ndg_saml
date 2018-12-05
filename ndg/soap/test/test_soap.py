@@ -30,7 +30,6 @@ from urllib.error import URLError
 from ndg.soap import SOAPFaultBase
 from ndg.soap.etree import SOAPEnvelope, SOAPFault, SOAPFaultException
 from ndg.soap.client import UrlLib2SOAPClient, UrlLib2SOAPRequest
-from ndg.soap.test import PasteDeployAppServer
 
 
 class SOAPBindingMiddleware(object):
@@ -186,10 +185,6 @@ class SOAPServiceTestCase(unittest.TestCase):
 
     def test02Urllib2Client(self):
         
-        # Paster based service is threaded from this call
-        self.addService(app=SOAPBindingMiddleware(), 
-                        port=self.__class__.SOAP_SERVICE_PORTNUM)
-        
         client = UrlLib2SOAPClient()
         
         # ElementTree based envelope class
@@ -208,33 +203,6 @@ class SOAPServiceTestCase(unittest.TestCase):
         
         print(("Response from server:\n\n%s" % response.envelope.serialize()))
         
-    def addService(self, *arg, **kw):
-        """Utility for setting up threads to run Paste HTTP based services with
-        unit tests
-        
-        @param arg: tuple contains ini file path setting for the service
-        @type arg: tuple
-        @param kw: keywords including "port" - port number to run the service 
-        from
-        @type kw: dict
-        """
-        if self.disableServiceStartup:
-            return
-        
-        try:
-            self.services.append(PasteDeployAppServer(*arg, **kw))
-            self.services[-1].startThread()
-            
-        except socket.error:
-            pass
-
-    def __del__(self):
-        """Stop any services started with the addService method and clean up
-        the CA directory following the trust roots call
-        """
-        if hasattr(self, 'services'):
-            for service in self.services:
-                service.terminateThread()
 
 
 if __name__ == "__main__":

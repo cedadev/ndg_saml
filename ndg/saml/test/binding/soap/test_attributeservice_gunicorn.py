@@ -24,10 +24,10 @@ from ndg.saml.xml.etree import ResponseElementTree
 from ndg.saml.saml2.binding.soap.client.attributequery import \
     AttributeQuerySslSOAPBinding
 from ndg.saml.utils.factory import AttributeQueryFactory
-from ndg.saml.test.binding.soap import WithGunicornBaseTestCase, paste_installed
+from ndg.saml.test.binding.soap import paste_installed
     
              
-class SamlSslSoapBindingTestCase(WithGunicornBaseTestCase):
+class SamlSslSoapBindingTestCase:
     """Test SAML SOAP Binding with SSL"""
     SERVICE_STEM_URI = 'https://localhost:5443/'
     TERMINATE_SERVICE_URI = 'stop-service/'
@@ -36,11 +36,12 @@ class SamlSslSoapBindingTestCase(WithGunicornBaseTestCase):
     SUBJECT_FORMAT = "urn:ndg:saml:openid"
     CONFIG_FILENAME = 'attribute-interface.ini'
     
-    CLIENT_CERT_FILEPATH = path.join(WithGunicornBaseTestCase.THIS_DIR, 
+    THIS_DIR = path.dirname(__name__)
+    CLIENT_CERT_FILEPATH = path.join(THIS_DIR, 
                                      'localhost.crt')
-    CLIENT_PRIKEY_FILEPATH = path.join(WithGunicornBaseTestCase.THIS_DIR, 
+    CLIENT_PRIKEY_FILEPATH = path.join(THIS_DIR, 
                                        'localhost.key')
-    CLIENT_CACERT_DIR = path.join(WithGunicornBaseTestCase.THIS_DIR, 'ca')
+    CLIENT_CACERT_DIR = path.join(THIS_DIR, 'ca')
     VALID_DNS = [
         '/O=NDG/OU=Security/CN=localhost', 
     ]
