@@ -42,14 +42,16 @@ class TestApp:
             self.gunicorn_server_app.kill_workers(signal.SIGKILL)
       
             response = (
-                "<html><head/><body><h1>Stopping service</h1><body></html>".
+                "<html><head/><body><h1>Stopping service</h1></body></html>".
                 encode('utf-8'))
+            code = "200 OK".encode('utf-8')
         else:
             response = (
-                "<html><head/><body><h1>404 Not Found</h1><body></html>".
+                "<html><head/><body><h1>404 Not Found</h1></body></html>".
                 encode('utf-8'))
+            code = "404 Not Found"#.encode('utf-8')
         
-        start_response(response,
+        start_response(code,
                        [('Content-length', str(len(response))),
                         ('Content-type', 'text/html')])
                             

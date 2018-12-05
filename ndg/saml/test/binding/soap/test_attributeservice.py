@@ -159,7 +159,7 @@ class SOAPAttributeInterfaceMiddlewareTestCase(WithPasteFixtureBaseTestCase):
     """Test SAML Attribute Query over SOAP Binding querying a test attribute
     server served using Paste Paster over HTTPS""" 
     CONFIG_FILENAME = 'attribute-interface.ini'
-    SERVICE_URI = '/attributeauthority'
+    SERVICE_URI = '/attribute-service'
     
     @unittest.skipIf(not paste_installed, 'Need Paste.Deploy to run '
                      'SOAPAttributeInterfaceMiddlewareTestCase')

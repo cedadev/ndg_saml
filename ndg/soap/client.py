@@ -10,7 +10,6 @@ __contact__ = "Philip.Kershaw@stfc.ac.uk"
 from abc import ABC, abstractmethod
 import http.client
 import urllib.request, urllib.error, urllib.parse
-from urllib.response import addinfourl
 
 import logging
 log = logging.getLogger(__name__)
@@ -103,7 +102,7 @@ class UrlLib2SOAPClientError(SOAPClientError):
     """Specialisation to enable the urllib2 response to be included in the
     exception instance as context information for the caller
     """
-    URLLIB2RESPONSE_TYPE = addinfourl
+    URLLIB2RESPONSE_TYPE = http.client.HTTPResponse
     
     def __init__(self, *arg, **kw):
         Exception.__init__(self, *arg, **kw)

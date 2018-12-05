@@ -1,5 +1,5 @@
 """SAML SOAP Binding Query/Response Interface with service hosted in
-Paste paster web server
+Gunicorn WSGI server
 
 NERC DataGrid Project
 """
@@ -31,16 +31,16 @@ class SamlSslSoapBindingTestCase(WithGunicornBaseTestCase):
     """Test SAML SOAP Binding with SSL"""
     SERVICE_STEM_URI = 'https://localhost:5443/'
     TERMINATE_SERVICE_URI = 'stop-service/'
-    SERVICE_URI = SERVICE_STEM_URI + 'attributeauthority'
+    SERVICE_URI = SERVICE_STEM_URI + 'attribute-service'
     SUBJECT = "https://openid.localhost/philip.kershaw"
     SUBJECT_FORMAT = "urn:ndg:saml:openid"
     CONFIG_FILENAME = 'attribute-interface.ini'
     
-    CLIENT_CERT_FILEPATH = path.join(WithPasterBaseTestCase.THIS_DIR, 
+    CLIENT_CERT_FILEPATH = path.join(WithGunicornBaseTestCase.THIS_DIR, 
                                      'localhost.crt')
-    CLIENT_PRIKEY_FILEPATH = path.join(WithPasterBaseTestCase.THIS_DIR, 
+    CLIENT_PRIKEY_FILEPATH = path.join(WithGunicornBaseTestCase.THIS_DIR, 
                                        'localhost.key')
-    CLIENT_CACERT_DIR = path.join(WithPasterBaseTestCase.THIS_DIR, 'ca')
+    CLIENT_CACERT_DIR = path.join(WithGunicornBaseTestCase.THIS_DIR, 'ca')
     VALID_DNS = [
         '/O=NDG/OU=Security/CN=localhost', 
     ]
@@ -53,7 +53,7 @@ class SamlSslSoapBindingTestCase(WithGunicornBaseTestCase):
         kw['disableServiceStartup'] = True
         super().__init__(*arg, **kw)
                     
-    def test02SendQuery(self):
+    def test01_send_query(self):
         query_binding = AttributeQuerySslSOAPBinding()
         
         attribute_query = AttributeQueryFactory.create()
@@ -92,8 +92,12 @@ class SamlSslSoapBindingTestCase(WithGunicornBaseTestCase):
     def __del__(self):
         from ndg.httpsclient.urllib2_build_opener import build_opener
         opener = build_opener()
-        res = opener.open(self.TERMINATE_SERVICE_URI)
-        res.read()
+        
+        try:
+            res = opener.open(self.TERMINATE_SERVICE_URI)
+            res.read()
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":
