@@ -9,7 +9,7 @@ __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 from abc import ABC, abstractmethod
 import http.client
-import urllib.request, urllib.error, urllib.parse
+import urllib
 
 import logging
 log = logging.getLogger(__name__)
@@ -98,45 +98,43 @@ class SOAPResponseBase(_SoapIOBase):
     """Interface for SOAP responses"""
 
 
-class UrlLib2SOAPClientError(SOAPClientError):
-    """Specialisation to enable the urllib2 response to be included in the
+class SOAPClientResponseError(SOAPClientError):
+    """Specialisation to enable the urllib response to be included in the
     exception instance as context information for the caller
     """
-    URLLIB2RESPONSE_TYPE = http.client.HTTPResponse
+    RESPONSE_TYPE = http.client.HTTPResponse
     
     def __init__(self, *arg, **kw):
         Exception.__init__(self, *arg, **kw)
-        self.__urllib2Response = None
+        self.__response = None
 
-    def _getUrllib2Response(self):
+    @property
+    def response(self):
         return self.__urllib2Response
 
-    def _setUrllib2Response(self, value):
-        if not isinstance(value, UrlLib2SOAPClientError.URLLIB2RESPONSE_TYPE):
+    @response.setter
+    def response(self, value):
+        if not isinstance(value, SOAPClientError.RESPONSE_TYPE):
             raise TypeError('Expecting %r type for "urllib2Response"; got %r' %
-                            (UrlLib2SOAPClientError.URLLIB2RESPONSE_TYPE, 
+                            (SOAPClientError.RESPONSE_TYPE, 
                              type(value)))
-        self.__urllib2Response = value
-
-    urllib2Response = property(_getUrllib2Response, 
-                               _setUrllib2Response, 
-                               doc="Urllib2Response")
+        self.__response = value
 
 
-class SOAPResponseError(UrlLib2SOAPClientError):
+class SOAPResponseError(SOAPClientError):
     """Raise for invalid SOAP response from server"""
      
        
-class HTTPException(UrlLib2SOAPClientError):
+class HTTPException(SOAPClientError):
     """Server returned HTTP code error code"""
 
 
-class UrlLib2SOAPRequest(SOAPRequestBase):  
-    """Interface for UrlLib2 based SOAP Requests"""
+class SOAPRequest(SOAPRequestBase):  
+    """Interface for based SOAP Requests"""
     
     
-class UrlLib2SOAPResponse(SOAPResponseBase):
-    """Interface for UrlLib2 based SOAP Responses"""
+class SOAPResponse(SOAPResponseBase):
+    """Interface for based SOAP Responses"""
     def __init__(self):
         self.__fileobject = None
         
@@ -175,17 +173,17 @@ class CapitalizedKeysDict(dict):
         return CapitalizedKeysDict(self)
     
     
-class UrlLib2SOAPClient(SOAPClientBase):
+class SOAPClient(SOAPClientBase):
     """urllib2 based SOAP Client"""
     DEFAULT_HTTP_HEADER = CapitalizedKeysDict({'Content-type': 'text/xml'})
     
     def __init__(self):
-        super(UrlLib2SOAPClient, self).__init__()
+        super(SOAPClient, self).__init__()
         self.__openerDirector = urllib.request.OpenerDirector()
         self.__openerDirector.add_handler(urllib.request.UnknownHandler())
         self.__openerDirector.add_handler(urllib.request.HTTPHandler())
         self.__timeout = None
-        self.__httpHeader = UrlLib2SOAPClient.DEFAULT_HTTP_HEADER.copy()
+        self.__httpHeader = SOAPClient.DEFAULT_HTTP_HEADER.copy()
 
     @property
     def httpHeader(self):
@@ -237,13 +235,13 @@ class UrlLib2SOAPClient(SOAPClientBase):
     def send(self, soapRequest):
         """Make a request to the given URL with a SOAP Request object"""
         
-        if not isinstance(soapRequest, UrlLib2SOAPRequest):
-            raise TypeError('UrlLib2SOAPClient.send: expecting %r '
+        if not isinstance(soapRequest, SOAPRequest):
+            raise TypeError('SOAPClient.send: expecting %r '
                             'derived type for SOAP request, got %r' % 
                             (self.responseEnvelopeClass, type(soapRequest)))
             
         if not isinstance(soapRequest.envelope, self.responseEnvelopeClass):
-            raise TypeError('UrlLib2SOAPClient.send: expecting %r '
+            raise TypeError('SOAPClient.send: expecting %r '
                             'derived type for SOAP envelope, got %r' % 
                             (self.responseEnvelopeClass, type(soapRequest)))
                             
@@ -261,7 +259,7 @@ class UrlLib2SOAPClient(SOAPClientBase):
             log.debug("_"*80)
             log.debug(prettyPrint(soapRequest.envelope.elem))
 
-        soapResponse = UrlLib2SOAPResponse()
+        soapResponse = SOAPResponse()
         urllib2Request = urllib.request.Request(soapRequest.url) 
         for i in list(self.httpHeader.items()):
             urllib2Request.add_header(*i)
@@ -279,12 +277,12 @@ class UrlLib2SOAPClient(SOAPClientBase):
         
         # Check for accepted response type string in response from server
         accepted_response_content_type = False
-        for content_type in UrlLib2SOAPClient.RESPONSE_CONTENT_TYPES:
+        for content_type in SOAPClient.RESPONSE_CONTENT_TYPES:
             if content_type in response.headers.values():
                 accepted_response_content_type = True
         
         if not accepted_response_content_type:
-            responseType = ', '.join(UrlLib2SOAPClient.RESPONSE_CONTENT_TYPES)
+            responseType = ', '.join(SOAPClient.RESPONSE_CONTENT_TYPES)
             excep = SOAPResponseError("Expecting %r response type; got %r for "
                                       "request to [%s]" % 
                                       (responseType, 

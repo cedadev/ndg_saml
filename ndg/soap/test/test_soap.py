@@ -10,26 +10,23 @@ __copyright__ = "(C) 2009 Science and Technology Facilities Council"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
-__revision__ = "$Id: test_soap.py 7134 2010-06-30 13:49:40Z pjkersha $"
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
 import unittest
-import socket
 from io import StringIO
 from os import path
+from urllib.request import HTTPHandler, URLError
+
 try:
     import paste.fixture
     paste_installed = True
 except ImportError:
     paste_installed = False
     
-from urllib.request import HTTPHandler
-from urllib.error import URLError
-
 from ndg.soap import SOAPFaultBase
 from ndg.soap.etree import SOAPEnvelope, SOAPFault, SOAPFaultException
-from ndg.soap.client import UrlLib2SOAPClient, UrlLib2SOAPRequest
+from ndg.soap.client import SOAPClient, SOAPRequest
 
 
 class SOAPBindingMiddleware(object):
@@ -183,14 +180,14 @@ class SOAPServiceTestCase(unittest.TestCase):
         print((response.status))
         print((response.body))
 
-    def test02Urllib2Client(self):
+    def test02_client(self):
         
-        client = UrlLib2SOAPClient()
+        client = SOAPClient()
         
         # ElementTree based envelope class
         client.responseEnvelopeClass = SOAPEnvelope
         
-        request = UrlLib2SOAPRequest()
+        request = SOAPRequest()
         request.url = self.__class__.ENDPOINT
         request.envelope = SOAPEnvelope()
         request.envelope.create()
@@ -202,7 +199,6 @@ class SOAPServiceTestCase(unittest.TestCase):
             self.fail("soap_server.py must be running for this test")
         
         print(("Response from server:\n\n%s" % response.envelope.serialize()))
-        
 
 
 if __name__ == "__main__":
