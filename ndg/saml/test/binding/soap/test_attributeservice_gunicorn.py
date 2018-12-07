@@ -14,6 +14,8 @@ logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 from os import path
+from urllib.error import URLError
+
 from ndg.saml import importElementTree
 ElementTree = importElementTree()
 
@@ -27,20 +29,17 @@ from ndg.saml.utils.factory import AttributeQueryFactory
 from ndg.saml.test.binding.soap import paste_installed
     
              
-class SamlSslSoapBindingTestCase:
+class SamlSslSoapBindingTestCase(unittest.TestCase):
     """Test SAML SOAP Binding with SSL"""
     SERVICE_STEM_URI = 'https://localhost:5443/'
-    TERMINATE_SERVICE_URI = 'stop-service/'
     SERVICE_URI = SERVICE_STEM_URI + 'attribute-service'
     SUBJECT = "https://openid.localhost/philip.kershaw"
     SUBJECT_FORMAT = "urn:ndg:saml:openid"
     CONFIG_FILENAME = 'attribute-interface.ini'
     
     THIS_DIR = path.dirname(__name__)
-    CLIENT_CERT_FILEPATH = path.join(THIS_DIR, 
-                                     'localhost.crt')
-    CLIENT_PRIKEY_FILEPATH = path.join(THIS_DIR, 
-                                       'localhost.key')
+    CLIENT_CERT_FILEPATH = path.join(THIS_DIR, 'localhost.crt')
+    CLIENT_PRIKEY_FILEPATH = path.join(THIS_DIR, 'localhost.key')
     CLIENT_CACERT_DIR = path.join(THIS_DIR, 'ca')
     VALID_DNS = [
         '/O=NDG/OU=Security/CN=localhost', 
@@ -49,11 +48,6 @@ class SamlSslSoapBindingTestCase:
     @unittest.skipIf(not paste_installed, 'Need Paste.Deploy to run '
                      'SamlSslSoapBindingTestCase')
     
-    def __init__(self, *arg, **kw):
-        kw['withSSL'] = True
-        kw['disableServiceStartup'] = True
-        super().__init__(*arg, **kw)
-                    
     def test01_send_query(self):
         query_binding = AttributeQuerySslSOAPBinding()
         
@@ -76,8 +70,14 @@ class SamlSslSoapBindingTestCase:
         query_binding.sslPriKeyFilePath = self.__class__.CLIENT_PRIKEY_FILEPATH
         query_binding.sslValidDNs = self.__class__.VALID_DNS
         
-        response = query_binding.send(attribute_query, 
-                                      uri=self.__class__.SERVICE_URI)
+        try:
+            response = query_binding.send(attribute_query, 
+                                          uri=self.__class__.SERVICE_URI)
+        except URLError:
+            import warnings
+            warnings.warn("Check that the test Attribute Service is running. "
+                          " Run attribute_service_runner.py")
+            raise
         
         # Convert back to ElementTree instance read for string output
         samlResponseElem = ResponseElementTree.toXML(response)
@@ -89,18 +89,8 @@ class SamlSslSoapBindingTestCase:
         
         self.assertTrue(
             response.status.statusCode.value==StatusCode.SUCCESS_URI)
-        
-    def __del__(self):
-        from ndg.httpsclient.urllib2_build_opener import build_opener
-        opener = build_opener()
-        
-        try:
-            res = opener.open(self.TERMINATE_SERVICE_URI)
-            res.read()
-        except Exception:
-            pass
 
-
+ 
 if __name__ == "__main__":
     if paste_installed:
         unittest.main()

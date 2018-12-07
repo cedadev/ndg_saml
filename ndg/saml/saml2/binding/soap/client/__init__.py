@@ -19,7 +19,7 @@ from ndg.saml.common import SAMLObject
 from ndg.saml.utils.factory import importModuleObject
 from ndg.soap import SOAPEnvelopeBase
 from ndg.soap.etree import SOAPEnvelope
-from ndg.soap.client import (UrlLib2SOAPClient, UrlLib2SOAPRequest)
+from ndg.soap.client import SOAPClient, SOAPRequest
 
 from ndg.saml.saml2.binding.soap import SOAPBindingInvalidResponse
     
@@ -69,7 +69,7 @@ class SOAPBinding:
         if deserialise is not None:
             self.deserialise = deserialise
         
-        self.client = UrlLib2SOAPClient()
+        self.client = SOAPClient()
         self.client.httpHeader['SOAPAction'] = SOAPBinding.SOAP_ACTION
         
         # Configurable envelope classes
@@ -141,9 +141,9 @@ class SOAPBinding:
         return self.__client
 
     def _setClient(self, value):     
-        if not isinstance(value, UrlLib2SOAPClient):
+        if not isinstance(value, SOAPClient):
             raise TypeError('Expecting %r for "client"; got %r' % 
-                            (UrlLib2SOAPClient, type(value)))
+                            (SOAPClient, type(value)))
         self.__client = value
 
     client = property(_getClient, _setClient, 
@@ -156,9 +156,9 @@ class SOAPBinding:
         :param samlObj: SAML query/request object
         :type uri: basestring 
         :param uri: uri of service.  May be omitted if set from request.url
-        :type request: ndg.security.common.soap.UrlLib2SOAPRequest
+        :type request: ndg.security.common.soap.SOAPRequest
         :param request: SOAP request object to which query will be attached
-        defaults to ndg.security.common.soap.client.UrlLib2SOAPRequest
+        defaults to ndg.security.common.soap.client.SOAPRequest
         '''
         if self.serialise is None:
             raise AttributeError('No "serialise" method set to serialise the '
@@ -173,7 +173,7 @@ class SOAPBinding:
                             % (SAMLObject, type(samlObj)))
             
         if request is None:
-            request = UrlLib2SOAPRequest()
+            request = SOAPRequest()
             request.envelope = self.requestEnvelopeClass()
             request.envelope.create()
             

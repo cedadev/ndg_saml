@@ -110,14 +110,14 @@ class SOAPClientResponseError(SOAPClientError):
 
     @property
     def response(self):
-        return self.__urllib2Response
+        return self.__response
 
     @response.setter
     def response(self, value):
         if not isinstance(value, SOAPClientError.RESPONSE_TYPE):
-            raise TypeError('Expecting %r type for "urllib2Response"; got %r' %
-                            (SOAPClientError.RESPONSE_TYPE, 
-                             type(value)))
+            raise TypeError('Expecting %r type for "urllib2Response"; '
+                            'got %r'.format(SOAPClientError.RESPONSE_TYPE, 
+                                            type(value)))
         self.__response = value
 
 
