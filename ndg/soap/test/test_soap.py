@@ -150,9 +150,26 @@ class SOAPTestCase(unittest.TestCase):
         self.assertTrue(soap2 == soap)
             
 
+_TEST_SOAP_SERVICE_PORTNUM = 10080
+_TEST_SOAP_SERVICE_ENDPOINT = 'http://localhost:{}/soap'.format(
+    _TEST_SOAP_SERVICE_PORTNUM)
+
+def _is_soap_server_running():
+    '''Helper function to ensure SOAP server is running for 
+    SOAPServiceTestCase client test
+    '''
+    import urllib
+    try:
+        urllib.request.urlopen(_TEST_SOAP_SERVICE_ENDPOINT)
+    except Exception as e:
+        import warnings
+        warnings.warn("Error calling test soap server {}".format(e))
+        return False
+    
+    return True
+
 class SOAPServiceTestCase(unittest.TestCase):
-    SOAP_SERVICE_PORTNUM = 10080
-    ENDPOINT = 'http://localhost:%d/soap' % SOAP_SERVICE_PORTNUM
+    ENDPOINT = _TEST_SOAP_SERVICE_ENDPOINT
     THIS_DIR = path.abspath(path.dirname(__file__))   
     
     @unittest.skipIf(not paste_installed, 'Need Paste.Deploy to run '
@@ -179,7 +196,10 @@ class SOAPServiceTestCase(unittest.TestCase):
         print((response.headers))
         print((response.status))
         print((response.body))
-
+    
+    @unittest.skipIf(not _is_soap_server_running(), 
+                     '"/ndg_saml/ndg/soap/test/soap_server.py" must be '
+                    "running in order to enable this test")
     def test02_client(self):
         
         client = SOAPClient()
@@ -196,7 +216,8 @@ class SOAPServiceTestCase(unittest.TestCase):
         try:
             response = client.send(request)
         except URLError:
-            self.fail("soap_server.py must be running for this test")
+            self.fail("\"/ndg_saml/ndg/soap/test/soap_server.py\" must be "
+                      "running for this test")
         
         print(("Response from server:\n\n%s" % response.envelope.serialize()))
 

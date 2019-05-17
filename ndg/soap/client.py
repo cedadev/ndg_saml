@@ -286,7 +286,7 @@ class SOAPClient(SOAPClientBase):
             excep = SOAPResponseError("Expecting %r response type; got %r for "
                                       "request to [%s]" % 
                                       (responseType, 
-                                       response.headers.typeheader,
+                                       response.headers.get_content_type(),
                                        soapRequest.url))
             excep.urllib2Response = response
             raise excep

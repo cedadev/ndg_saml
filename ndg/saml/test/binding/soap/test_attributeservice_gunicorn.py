@@ -28,16 +28,33 @@ from ndg.saml.saml2.binding.soap.client.attributequery import \
 from ndg.saml.utils.factory import AttributeQueryFactory
 from ndg.saml.test.binding.soap import paste_installed
     
-             
+
+_TEST_ATTRIBUTE_SERVICE_STEM_URI = 'https://localhost:5443/'
+_TEST_ATTRIBUTE_SERVICE_URI = _TEST_ATTRIBUTE_SERVICE_STEM_URI + 'attribute-service'
+
+def _is_attribute_service_running():
+    '''Helper function to ensure SAML Attribute service is running for 
+    SamlSslSoapBindingTestCase client test
+    '''
+    import urllib
+    try:
+        urllib.request.urlopen(_TEST_ATTRIBUTE_SERVICE_URI)
+    except Exception as e:
+        import warnings
+        warnings.warn("Error calling test attribute service {}".format(e))
+        return False
+    
+    return True
+
+          
 class SamlSslSoapBindingTestCase(unittest.TestCase):
     """Test SAML SOAP Binding with SSL"""
-    SERVICE_STEM_URI = 'https://localhost:5443/'
-    SERVICE_URI = SERVICE_STEM_URI + 'attribute-service'
+    SERVICE_URI = _TEST_ATTRIBUTE_SERVICE_URI
     SUBJECT = "https://openid.localhost/philip.kershaw"
     SUBJECT_FORMAT = "urn:ndg:saml:openid"
     CONFIG_FILENAME = 'attribute-interface.ini'
     
-    THIS_DIR = path.dirname(__name__)
+    THIS_DIR = path.dirname(__file__)
     CLIENT_CERT_FILEPATH = path.join(THIS_DIR, 'localhost.crt')
     CLIENT_PRIKEY_FILEPATH = path.join(THIS_DIR, 'localhost.key')
     CLIENT_CACERT_DIR = path.join(THIS_DIR, 'ca')
@@ -48,6 +65,9 @@ class SamlSslSoapBindingTestCase(unittest.TestCase):
     @unittest.skipIf(not paste_installed, 'Need Paste.Deploy to run '
                      'SamlSslSoapBindingTestCase')
     
+    @unittest.skipIf(not _is_attribute_service_running(), 
+                     '"{}test_attributeservice_gunicorn.py" must be running '
+                     'in order to enable this test')
     def test01_send_query(self):
         query_binding = AttributeQuerySslSOAPBinding()
         

@@ -137,6 +137,7 @@ setup(
         # required. ndg-httpsclient provides a urllib2 interface to PyOpenSSL
         'soap_binding':  ["ndg-httpsclient", "Paste", "PasteDeploy", 
                           "PasteScript"],
+        'test_http_server': ['waitress', 'gunicorn'],
         # Required for the SAML profile to XACML - enables richer functionality
         # for expressing authorisation queries and decisions.
         'xacml_profile': ['ndg_xacml'],

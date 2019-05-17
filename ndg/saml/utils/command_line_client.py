@@ -126,6 +126,7 @@ For help with individual commands run: %prog [command] -h
                                "Use with caution as the identity of the peer "
                                "will not be checked.  This option is mutually"
                                " exclusive to the -C/--ca-cert-dir option",
+                          default=False,
                           metavar="NO_SSL_PEER_VERIFICATION")
            
         parser.add_option("-p", "--pretty-print",
