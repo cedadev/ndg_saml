@@ -8,7 +8,6 @@ __date__ = "01/07/10"
 __copyright__ = "(C) 2010 Science and Technology Facilities Council"
 __license__ = "http://www.apache.org/licenses/LICENSE-2.0"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
-__revision__ = '$Id$'
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -29,22 +28,40 @@ from ndg.saml.utils.factory import AttributeQueryFactory
 from ndg.saml.test.binding.soap import paste_installed
     
 
+_THIS_DIR = path.dirname(__file__)
 _TEST_ATTRIBUTE_SERVICE_STEM_URI = 'https://localhost:5443/'
-_TEST_ATTRIBUTE_SERVICE_URI = _TEST_ATTRIBUTE_SERVICE_STEM_URI + 'attribute-service'
+_TEST_ATTRIBUTE_SERVICE_URI = _TEST_ATTRIBUTE_SERVICE_STEM_URI + \
+                                'attribute-service'
+_TEST_ATTRIBUTE_SERVICE_CACERT_DIR = path.join(_THIS_DIR, 'ca')
 
 def _is_attribute_service_running():
     '''Helper function to ensure SAML Attribute service is running for 
     SamlSslSoapBindingTestCase client test
     '''
     import urllib
-    try:
-        urllib.request.urlopen(_TEST_ATTRIBUTE_SERVICE_URI)
-    except Exception as e:
-        import warnings
-        warnings.warn("Error calling test attribute service {}".format(e))
-        return False
     
-    return True
+    exception = None
+    
+    try:
+        urllib.request.urlopen(_TEST_ATTRIBUTE_SERVICE_URI, 
+                               capath=_TEST_ATTRIBUTE_SERVICE_CACERT_DIR)
+    except urllib.error.HTTPError as e:
+        # Expecting 400 response with GET request.  Correct method is POST
+        # but GET is sufficient to sanity check that the service is up
+        if e.code != 400:
+            exception = e
+            
+    except Exception as e:
+        exception = e
+        
+    if exception:
+        import warnings
+        warnings.warn("Error calling test attribute service "
+                      "{}".format(exception))
+        return False
+    else:
+        return True
+
 
           
 class SamlSslSoapBindingTestCase(unittest.TestCase):
@@ -54,10 +71,10 @@ class SamlSslSoapBindingTestCase(unittest.TestCase):
     SUBJECT_FORMAT = "urn:ndg:saml:openid"
     CONFIG_FILENAME = 'attribute-interface.ini'
     
-    THIS_DIR = path.dirname(__file__)
+    THIS_DIR = _THIS_DIR
     CLIENT_CERT_FILEPATH = path.join(THIS_DIR, 'localhost.crt')
     CLIENT_PRIKEY_FILEPATH = path.join(THIS_DIR, 'localhost.key')
-    CLIENT_CACERT_DIR = path.join(THIS_DIR, 'ca')
+    CLIENT_CACERT_DIR = _TEST_ATTRIBUTE_SERVICE_CACERT_DIR
     VALID_DNS = [
         '/O=NDG/OU=Security/CN=localhost', 
     ]
@@ -66,8 +83,10 @@ class SamlSslSoapBindingTestCase(unittest.TestCase):
                      'SamlSslSoapBindingTestCase')
     
     @unittest.skipIf(not _is_attribute_service_running(), 
-                     '"{}test_attributeservice_gunicorn.py" must be running '
-                     'in order to enable this test')
+                     '"{}" must be running in order to enable this '
+                     'test'.format(path.join(THIS_DIR, 
+                                             'attribute_service_runner.py')))
+    
     def test01_send_query(self):
         query_binding = AttributeQuerySslSOAPBinding()
         

@@ -45,7 +45,7 @@ class GunicornServerApp(gunicorn.app.base.BaseApplication):
             self.arbiter = gunicorn.arbiter.Arbiter(self)
             self.arbiter.run()
         except RuntimeError as e:
-            print("\nError: %s\n" % e, file=sys.stderr)
+            print("\nError: {}\n".format(e), file=sys.stderr)
             sys.stderr.flush()
             sys.exit(1)
             

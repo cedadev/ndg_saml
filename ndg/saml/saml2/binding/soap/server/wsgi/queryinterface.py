@@ -397,8 +397,12 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
           
         # Ignore non-POST requests
         if environ.get('REQUEST_METHOD') != 'POST':
-            return self._app(environ, start_response)
-        
+            response = b'Invalid request method'
+            start_response("400 Bad Request",
+                           [('Content-length', str(len(response))),
+                            ('Content-type', 'text/html')])
+            return [response]
+               
         soapRequestStream = environ.get('wsgi.input')
         if soapRequestStream is None:
             raise SOAPQueryInterfaceMiddlewareError('No "wsgi.input" in '
@@ -420,7 +424,15 @@ class SOAPQueryInterfaceMiddleware(SOAPMiddleware):
         
         # Parse into a SOAP envelope object
         soapRequest = SOAPEnvelope()
-        soapRequest.parse(StringIO(soapRequestTxt.decode()))
+        
+        try:
+            soapRequest.parse(StringIO(soapRequestTxt.decode()))
+        except Exception as e:
+            response = b'Invalid SAML SOAP query: {}'.format(e)
+            start_response("400 Bad Request",
+                           [('Content-length', str(len(response))),
+                            ('Content-type', 'text/html')])
+            return [response]            
         
         log.debug("SOAPQueryInterfaceMiddleware.__call__: received SAML "
                   "SOAP Query: %s", soapRequestTxt)
