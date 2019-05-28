@@ -43,7 +43,7 @@ setup(
     version =        		'0.9.0',
     description =    		('SAML 2.0 implementation for the NERC DataGrid '
                                 'based on the Java OpenSAML library'),
-    long_description =		_longDescription,
+    long_description =		_long_description,
     author =         		'Philip Kershaw',
     author_email =   		'Philip.Kershaw@stfc.ac.uk',
     maintainer =         	'Philip Kershaw',
