@@ -4,9 +4,9 @@ NERC DataGrid Project
 """
 __author__ = "P J Kershaw"
 __date__ = "27/07/09"
-__copyright__ = "(C) 2009 Science and Technology Facilities Council"
+__copyright__ = "Copyright 2019 United Kingdom Research and Innovation"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
-__license__ = "http://www.apache.org/licenses/LICENSE-2.0"
+__license__ = "BSD - see LICENSE file in top-level package directory"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 import sys
 from ndg.soap.test.test_soap import SOAPBindingMiddleware

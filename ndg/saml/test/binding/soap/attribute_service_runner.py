@@ -3,7 +3,7 @@ Attribute Service based on Gunicorn WSGI application server
 '''
 __author__ = "Philip Kershaw"
 __date__ = "5 Oct 2018"
-__copyright__ = "(C) 2018 Science and Technology Facilities Council"
+__copyright__ = "Copyright 2019 United Kingdom Research and Innovation"
 __license__ = "BSD - see LICENSE file in top-level package directory"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 from os import path

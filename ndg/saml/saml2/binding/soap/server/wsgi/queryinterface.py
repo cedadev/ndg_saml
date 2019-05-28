@@ -5,10 +5,9 @@ NERC DataGrid Project
 """
 __author__ = "P J Kershaw"
 __date__ = "15/02/10"
-__copyright__ = "(C) 2010 Science and Technology Facilities Council"
+__copyright__ = "Copyright 2019 United Kingdom Research and Innovation"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
-__revision__ = "$Id$"
-__license__ = "http://www.apache.org/licenses/LICENSE-2.0"
+__license__ = "BSD - see LICENSE file in top-level package directory"
 import logging
 log = logging.getLogger(__name__)
 import traceback

@@ -5,7 +5,7 @@ NERC DataGrid Project
 """
 __author__ = "P J Kershaw"
 __date__ = "19/08/09"
-__copyright__ = "(C) 2009 Science and Technology Facilities Council"
+__copyright__ = "Copyright 2019 United Kingdom Research and Innovation"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __license__ = "BSD - see LICENSE file in top-level directory"
 __revision__ = "$Id: $"

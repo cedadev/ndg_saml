@@ -4,8 +4,8 @@ NDG SAML
 """
 __author__ = "P J Kershaw"
 __date__ = "29/05/15"
-__copyright__ = "(C) 2009 Science and Technology Facilities Council"
-__license__ = "http://www.apache.org/licenses/LICENSE-2.0"
+__copyright__ = "Copyright 2019 United Kingdom Research and Innovation"
+__license__ = "BSD - see LICENSE file in top-level package directory"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = '$Id$'
 import logging
