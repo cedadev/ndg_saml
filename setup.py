@@ -39,7 +39,7 @@ with open('README.md') as f:
     _long_description = f.read()
     
 setup(
-    name =           		'ndg_saml',
+    name =                  'ndg_saml',
     version =        		'0.9.0',
     description =    		('SAML 2.0 implementation for the NERC DataGrid '
                                 'based on the Java OpenSAML library'),
@@ -49,9 +49,17 @@ setup(
     maintainer =         	'Philip Kershaw',
     maintainer_email =   	'Philip.Kershaw@stfc.ac.uk',
     url =            		'https://github.com/cedadev/ndg_saml',
-    license =                   'http://www.apache.org/licenses/LICENSE-2.0',
-    packages =			find_packages(),
-    extras_require = {
+    license =               'http://www.apache.org/licenses/LICENSE-2.0',
+    packages =              find_packages(),
+    package_data =          {
+        'ndg.saml': [
+            'LICENSE',
+            'test/binding/soap/*.ini',
+            'test/binding/soap/localhost.*',
+            'test/binding/soap/ca/*.0'
+            ],
+    },
+    extras_require =        {
         # These additional packages are needed if you wish to use the SOAP 
         # binding, Nb. M2Crypto can be used in place of ndg-httpsclient if
         # required. ndg-httpsclient provides a urllib2 interface to PyOpenSSL
@@ -62,14 +70,13 @@ setup(
         # for expressing authorisation queries and decisions.
         'xacml_profile': ['ndg_xacml'],
     },
-    entry_points={
+    entry_points =          {
     'console_scripts': [
         'ndg_saml_client = ndg.saml.utils.command_line_client:'
         'SamlSoapCommandLineClient.main',
         ],
     },
-    include_package_data=True,
-    classifiers=[
+    classifiers =           [
         'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
         'Environment :: Web Environment',
