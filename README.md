@@ -7,7 +7,7 @@ easily be extended to use other Python XML parsers.
 
 Releases
 --------
-* 0.9.0
+* 0.9.1
   * Upgrade to Python 3.  Python 2 is not supported for this version/
   * Updated namespace package handling and improved unittest management for test SOAP and Attribute services
 

@@ -24,7 +24,7 @@ with open('README.md') as f:
     
 setup(
     name =                  'ndg_saml',
-    version =        		'0.9.0',
+    version =        		'0.9.1',
     description =    		('SAML 2.0 implementation for the NERC DataGrid '
                                 'based on the Java OpenSAML library'),
     long_description =		_long_description,
