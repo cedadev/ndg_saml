@@ -28,12 +28,13 @@ setup(
     description =    		('SAML 2.0 implementation for the NERC DataGrid '
                                 'based on the Java OpenSAML library'),
     long_description =		_long_description,
+    long_description_content_type='text/markdown',
     author =         		'Philip Kershaw',
     author_email =   		'Philip.Kershaw@stfc.ac.uk',
     maintainer =         	'Philip Kershaw',
     maintainer_email =   	'Philip.Kershaw@stfc.ac.uk',
     url =            		'https://github.com/cedadev/ndg_saml',
-    license =               'http://www.apache.org/licenses/LICENSE-2.0',
+    license =               'BSD - See ndg/saml/LICENCE file for details',
     packages =              find_packages(),
     package_data =          {
         'ndg.saml': [
@@ -41,6 +42,9 @@ setup(
             'test/binding/soap/*.ini',
             'test/binding/soap/localhost.*',
             'test/binding/soap/ca/*.0'
+            ],
+        'ndg.soap': [
+            'LICENSE',
             ],
     },
     extras_require =        {
