@@ -12,7 +12,7 @@ import logging
 log = logging.getLogger(__name__)
 
 from os import path
-from configparser import ConfigParser, SafeConfigParser
+from configparser import ConfigParser
 
 from ndg.saml.common import SAMLObject
 
@@ -221,7 +221,7 @@ class SOAPBinding:
         if isinstance(cfg, str):
             cfgFilePath = path.expandvars(cfg)
             hereDir = path.dirname(cfgFilePath)
-            _cfg = SafeConfigParser(defaults=dict(here=hereDir))
+            _cfg = ConfigParser(defaults=dict(here=hereDir))
             _cfg.optionxform = str
 
             _cfg.read(cfgFilePath)

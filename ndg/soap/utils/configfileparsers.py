@@ -9,11 +9,11 @@ __license__ = "BSD - see LICENSE file in top-level directory"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = '$Id: $'
 import re
-from configparser import SafeConfigParser
+from configparser import ConfigParser
 
-class CaseSensitiveConfigParser(SafeConfigParser):
+class CaseSensitiveConfigParser(ConfigParser):
     '''
-    Subclass the SafeConfigParser - to preserve the original string case of the
+    Subclass the ConfigParser - to preserve the original string case of the
     cfg section names - NB, the RawConfigParser default is to lowercase these 
     by default
     '''  

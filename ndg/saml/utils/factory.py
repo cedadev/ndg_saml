@@ -14,7 +14,7 @@ import logging
 import os
 import sys
 import re
-from configparser import ConfigParser, SafeConfigParser
+from configparser import ConfigParser
 from abc import ABCMeta, abstractmethod
 
 from ndg.saml.saml2 import core as saml2
@@ -213,7 +213,7 @@ class QueryFactoryBase(object, metaclass=ABCMeta):
         if isinstance(cfg, str):
             cfg_filepath = os.path.expandvars(cfg)
             here_dir = os.path.dirname(cfg_filepath)
-            _cfg = SafeConfigParser(defaults=dict(here=here_dir))
+            _cfg = ConfigParser(defaults=dict(here=here_dir))
             _cfg.optionxform = str
 
             _cfg.read(cfg_filepath)
